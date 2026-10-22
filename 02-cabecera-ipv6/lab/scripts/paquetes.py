@@ -20,6 +20,7 @@ Experimentos:
 El destino por defecto es h2 (3fff:0:2::10).
 """
 import sys
+import time
 
 from scapy.all import (
     ICMPv6EchoRequest,
@@ -29,8 +30,9 @@ from scapy.all import (
     IPv6ExtHdrRouting,
     IPv6ExtHdrSegmentRouting,
     HBHOptUnknown,
+    AsyncSniffer,
     conf,
-    sr1,
+    send,
 )
 
 conf.verb = 0
@@ -90,14 +92,33 @@ def main():
     print("=" * 70)
     pkt.show2()
 
-    resp = sr1(pkt, timeout=3)
+    resp = enviar_y_esperar(pkt)
     print("=" * 70)
     if resp is None:
         print("RESPUESTA: ninguna en 3 segundos")
         return
-    print(f"RESPUESTA de {resp[IPv6].src}: {resp.lastlayer().summary()}")
+    print(f"RESPUESTA de {resp[IPv6].src}: {resp[IPv6].payload.summary()}")
     print("=" * 70)
     resp.show2()
+
+
+def enviar_y_esperar(pkt, espera=3):
+    """Envía el paquete y devuelve el primer ICMPv6 de respuesta que llegue a h1.
+
+    Se captura directamente en la interfaz en lugar de usar sr1(), porque Scapy
+    no empareja bien un Echo Reply con una petición que llevaba cabeceras de
+    extensión. Solo se aceptan Echo Reply con nuestro identificador y mensajes
+    de error ICMPv6 (tipos 1 a 4), así que el tráfico de Neighbor Discovery no
+    interfiere.
+    """
+    iface = conf.route6.route(pkt[IPv6].dst)[0]      # interfaz de salida (eth1)
+    filtro = "icmp6 and (ip6[40] <= 4 or (ip6[40] == 129 and ip6[44:2] == 0x0202))"
+    sniffer = AsyncSniffer(iface=iface, filter=filtro, count=1, timeout=espera)
+    sniffer.start()
+    time.sleep(0.5)          # dar tiempo a que la captura esté lista
+    send(pkt)
+    sniffer.join()
+    return sniffer.results[0] if sniffer.results else None
 
 
 if __name__ == "__main__":

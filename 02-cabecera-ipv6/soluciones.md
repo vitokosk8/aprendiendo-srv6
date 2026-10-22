@@ -1,6 +1,6 @@
 # 02 · Soluciones
 
-> Las salidas de comandos son orientativas y se ajustarán con las de una ejecución real del laboratorio.
+> Las salidas son de una ejecución real del laboratorio. El Flow Label, los tiempos y algunos detalles pueden cambiar en la tuya.
 
 ## Parte A
 
@@ -78,6 +78,14 @@ IP6 (flowlabel 0x3a2b1, hlim 62, next-header ICMPv6 (58), payload length 64) 3ff
 
 ### B2
 
+Salida real (resumida con `grep RESPUESTA`):
+
+```
+hoplimit 1 → RESPUESTA de 3fff:0:1::1:  type = Time exceeded, code = hop limit exceeded in transit
+hoplimit 2 → RESPUESTA de 3fff:0:12::2: type = Time exceeded, code = hop limit exceeded in transit
+hoplimit 3 → RESPUESTA de 3fff:0:2::10: ICMPv6 Echo Reply (id: 0x202 seq: 0x1)
+```
+
 1.
    - `hoplimit 1`: responde **r1** (`3fff:0:1::1`) con un ICMPv6 **Time Exceeded** (*hop limit exceeded in transit*). r1 resta 1, el Hop Limit llega a 0 y descarta el paquete.
    - `hoplimit 2`: responde **r2** con Time Exceeded. La dirección de origen será la de r2 en el enlace por el que sale la respuesta hacia h1, `3fff:0:12::2`.
@@ -107,27 +115,50 @@ La salida de `-x` empieza por la cabecera IPv6, sin la cabecera Ethernet:
 
 ### B5
 
-1. `hbh-saltar`: responde **h2** con un Echo Reply. r1, r2 y h2 ven la opción, no la reconocen y, como sus bits altos son `00`, la saltan.
+1. `hbh-saltar`: responde **h2** con un Echo Reply:
 
-   `hbh-descartar`: responde **r1** (`3fff:0:1::1`) con un ICMPv6 **Parameter Problem**, código 2 (*unrecognized IPv6 option*).
+   ```
+   RESPUESTA de 3fff:0:2::10: ICMPv6 Echo Reply (id: 0x202 seq: 0x1)
+   ```
+
+   r1, r2 y h2 ven la opción, no la reconocen y, como sus bits altos son `00`, la saltan.
+
+   `hbh-descartar`: responde **r1** (`3fff:0:1::1`) con un ICMPv6 **Parameter Problem**:
+
+   ```
+   RESPUESTA de 3fff:0:1::1
+        type      = Parameter problem
+        code      = unrecognized IPv6 option encountered
+        ptr       = 42
+   ```
+
+   Scapy también decodifica la opción que provocó el error: `otype = 158 [10: discard+ICMP, 0: Don't change en-route]`. 158 es `0x9e`, y los bits `10` son los que ordenan descartar y avisar.
 2. `ptr` = **42**: el byte 42 del paquete es el tipo de la opción (40 bytes de cabecera IPv6 + 2 bytes de cabecera Hop-by-Hop).
 3. Porque **r1** procesa la Hop-by-Hop, como todos los nodos del camino. Encuentra una opción desconocida con bits `10`, descarta el paquete y avisa. Nunca llega a r2.
 
 ### B6
 
-1. **h2** responde con Parameter Problem código 2, `ptr` 42.
+`dst-saltar` llega sin problemas: `RESPUESTA de 3fff:0:2::10: ICMPv6 Echo Reply (id: 0x202 seq: 0x1)`.
+
+1. **h2** (`3fff:0:2::10`) responde con *Parameter problem*, `code = unrecognized IPv6 option encountered`, `ptr = 42`. El mismo error que en B5, pero ahora lo genera el destino.
 2. El paquete ha atravesado r1 y r2 sin problemas, aunque llevaba la misma opción desconocida que en B5. Los routers **no abren** las cabeceras de extensión, salvo Hop-by-Hop: miran el destino y reenvían. Es la regla que hace posible SRv6.
 
 ### B7
 
-1. **h2** responde con un ICMPv6 **Parameter Problem**, código 0 (*erroneous header field*), con `ptr` 42, que apunta al campo *Routing Type* del Routing Header.
+1. **h2** responde con *Parameter problem*, `code = erroneous header field encountered`, `ptr = 42`. El byte 42 es el campo *Routing Type* del Routing Header (40 de la cabecera IPv6 + 2: *Next Header* y *Hdr Ext Len*).
 2. Porque el Routing Header tipo 0 está prohibido desde el RFC 5095. Un nodo que recibe uno con *Segments Left* > 0 lo trata como un tipo desconocido y avisa al origen. Si *Segments Left* fuera 0, lo ignoraría y procesaría el resto del paquete.
 
 ### B8
 
-1. **No responde.** h2 descarta el paquete en silencio.
+1. **No responde** (`RESPUESTA: ninguna en 3 segundos`). h2 descarta el paquete en silencio, sin enviar ningún error.
 2. Las dos claves valen **0**: SRv6 está desactivado.
-3. Con `seg6_enabled=1`, h2 acepta la SRH. Como *Segments Left* = 0, no hay nada más que hacer con ella y procesa la cabecera siguiente: el ICMPv6 Echo Request. h2 responde con un **Echo Reply**.
+3. Con `seg6_enabled=1` la respuesta cambia:
+
+   ```
+   RESPUESTA de 3fff:0:2::10: ICMPv6 Echo Reply (id: 0x202 seq: 0x1)
+   ```
+
+   h2 acepta la SRH. Como *Segments Left* = 0, no hay nada más que hacer con ella y procesa la cabecera siguiente: el ICMPv6 Echo Request. h2 responde con un **Echo Reply**.
 
    Linux es más estricto que el RFC: descarta **cualquier** paquete con SRH si SRv6 no está activado en la interfaz de entrada, aunque *Segments Left* sea 0. Es una medida de seguridad: un nodo que no forma parte del dominio SRv6 no debe aceptar paquetes con SRH, para que nadie pueda usarlo desde fuera. Por eso, en los laboratorios SRv6, siempre activamos `seg6_enabled` en las interfaces del dominio.
 
@@ -144,15 +175,25 @@ La salida de `-x` empieza por la cabecera IPv6, sin la cabecera Ethernet:
 
 ### B10
 
-1. El primer ping falla: `ping` muestra algo como `From 3fff:0:1::1 icmp_seq=1 Packet too big: mtu=1400`. Lo envía **r1**, que no puede reenviar 2048 bytes por un enlace de MTU 1400. Los pings siguientes funcionan.
-2. Después aparece la MTU aprendida en la caché de rutas:
+Salida real del primer `ping -c3 -s 2000` con el laboratorio recién levantado:
+
+```
+PING 3fff:0:2::10 (3fff:0:2::10) 2000 data bytes
+From 3fff:0:1::1 icmp_seq=1 Packet too big: mtu=1400
+2008 bytes from 3fff:0:2::10: icmp_seq=3 ttl=62 time=0.240 ms
+
+--- 3fff:0:2::10 ping statistics ---
+3 packets transmitted, 1 received, +1 errors, 66.6667% packet loss
+```
+
+1. El primer ping falla con `Packet too big: mtu=1400`, enviado por **r1** (`3fff:0:1::1`), que no puede reenviar 2048 bytes por un enlace de MTU 1400. Fíjate en que **el segundo también se pierde**, sin error visible: h1 ya fragmenta y el *echo request* llega a h2, pero el *echo reply* de h2 (también de 2048 bytes) choca con la misma MTU en r2, que avisa a **h2**, no a h1. Solo a partir del tercero los dos extremos conocen la MTU del camino y todo funciona.
+2. Después aparece la MTU aprendida:
 
    ```
-   3fff:0:2::10 from :: via 3fff:0:1::1 dev eth1 src 3fff:0:1::10 metric 1024 pref medium
-       cache expires 597sec mtu 1400
+   3fff:0:2::10 via 3fff:0:1::1 dev eth1 src 3fff:0:1::10 metric 1024 expires 587sec mtu 1400 pref medium
    ```
 
-   La entrada caduca a los 10 minutos; entonces h1 volverá a probar con paquetes grandes.
+   `mtu 1400` es la MTU del camino que h1 ha aprendido, y `expires 587sec`, el tiempo que le queda a esa información (unos 10 minutos en total). Cuando caduque, h1 volverá a probar con paquetes grandes. Si repites el ping antes, los tres funcionan a la primera.
 3. Dos fragmentos por cada *echo request*:
 
    ```
@@ -161,7 +202,7 @@ La salida de `-x` empieza por la cabecera IPv6, sin la cabecera Ethernet:
    ```
 
    `frag (0|1352)` significa "offset 0, 1352 bytes de datos". Cada fragmento mide 40 + 8 + 1352 = 1400 bytes y 40 + 8 + 656 = 704 bytes, como en la teoría. El Payload Length incluye los 8 bytes de la Fragment Header.
-4. Porque el camino de vuelta tiene el mismo cuello de botella. h2 envía un *echo reply* de 2048 bytes, r2 le devuelve un Packet Too Big y, a partir de entonces, h2 también fragmenta.
+4. Porque el camino de vuelta tiene el mismo cuello de botella, como se ve en la pérdida del segundo ping: r2 envía un Packet Too Big a h2 y, a partir de entonces, h2 también fragmenta sus respuestas.
 
 ### Reto
 
