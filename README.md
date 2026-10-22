@@ -46,7 +46,7 @@ El estado indica qué módulos están ya escritos y probados.
 | Módulo | Tema | Estado |
 |--------|------|:------:|
 | [06](06-mpls-a-sr/README.md) | De MPLS a Segment Routing: el porqué | ✅ |
-| [07](07-sid-srh/README.md) | El SID y la Segment Routing Header (SRH) | 🧪 |
+| [07](07-sid-srh/README.md) | El SID y la Segment Routing Header (SRH) | ✅ |
 | 08 | Network programming con iproute2: End, End.X, End.DT4/DT6/DT46, H.Encaps | ⏳ |
 | 09 | Reducción de cabeceras: H.Encaps.Red y los flavors PSP/USP/USD | ⏳ |
 | 10 | uSID: SIDs comprimidos | ⏳ |
