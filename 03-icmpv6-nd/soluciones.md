@@ -89,23 +89,33 @@ aa:c1:ab:22:22:22 > aa:c1:ab:11:11:11, ethertype IPv6 (0x86dd), length 86:
 
 ### B5
 
-1. r1 **no responde** al primer RS (Hop Limit 64) y **sí** al segundo (Hop Limit 255), con un RA casi inmediato, fuera del ritmo de 10 segundos.
-2. Porque todos los mensajes de ND deben llegar con **Hop Limit 255**. r1 descarta el RS con 64 sin procesarlo: así se asegura de que la petición nació en el enlace y no fue inyectada desde fuera.
-3. En el RA verás algo como:
+Un RA periódico se ve así (capturado en h1):
 
-   ```
-   router advertisement, length 56
-     hop limit 64, Flags [none], pref medium, router lifetime 30s, reachable time 0ms, retrans timer 0ms
-       prefix info option (3), length 32 (4): 3fff:0:10::/64, Flags [onlink], valid time 2592000s, pref. time 604800s
-       source link-address option (1), length 8 (1): aa:c1:ab:rr:rr:rr
-   ```
+```
+(hlim 255, next-header ICMPv6 (58), payload length 56) fe80::a8c1:abff:fe3a:7c1c > ff02::1:
+  ICMP6, router advertisement, length 56
+    hop limit 64, Flags [none], pref medium, router lifetime 30s, reachable time 0ms, retrans timer 0ms
+      prefix info option (3), length 32 (4): 3fff:0:10::/64, Flags [onlink], valid time 2592000s, pref. time 604800s
+      source link-address option (1), length 8 (1): aa:c1:ab:3a:7c:1c
+```
 
-   El **router lifetime** es 30 s (3 × el intervalo de 10 s). El prefijo es `3fff:0:10::/64` con el flag **onlink**; **no** lleva el flag `auto`, porque desactivamos SLAAC en el laboratorio. La última opción es la **MAC de r1**.
+1. El RA sale de la **link-local de r1** (`fe80::…`) y va a **`ff02::1`** (todos los nodos). Llega con **Hop Limit 255**, como todo mensaje ND.
+2. **Router lifetime 30 s** (3 × el intervalo de 10 s): si r1 dejara de anunciarse, los hosts lo quitarían como router por defecto a los 30 s. El prefijo es `3fff:0:10::/64` con el flag **onlink** (está en este enlace). La última opción es la **MAC de r1**. Ojo: el `hop limit 64` que aparece dentro del RA es un campo *de datos* (el valor que r1 sugiere a los hosts para sus paquetes), no el Hop Limit del propio paquete, que es 255.
+3. El prefijo **no** lleva el flag `auto` porque en el laboratorio desactivamos la autoconfiguración (`net.ipv6.conf.default.autoconf: 0` en el `lab.clab.yml`). Así los hosts usan las direcciones fijas que les asignamos (`::10`, `::20`, `::30`) en lugar de generar una por SLAAC. Sí aprenden el router por defecto, porque eso no depende de ese flag.
+
+> Si pruebas a enviar un RS con Hop Limit distinto de 255, verás que r1 **no** lo rechaza por ese motivo: el kernel de este laboratorio no comprueba la regla. En una implementación que sí la aplique, el RS se descartaría sin respuesta.
 
 ### B6
 
 1. El NS de h3 lleva como origen la dirección **no especificada `::`**, porque h3 todavía no tiene una dirección válida en ese prefijo: la está comprobando.
-2. Responde **h2** con un NA dirigido a **`ff02::1`** (todos los nodos), no en unicast: como el NS venía de `::`, h2 no tiene a quién responder en unicast y avisa a toda la red.
+2. Responde **h2** con un NA a **`ff02::1`** (todos los nodos, MAC `33:33:00:00:00:01`), no en unicast: como el NS venía de `::`, h2 no tiene a quién responder en concreto y avisa a toda la red. Capturado desde h1 (un tercero en la LAN):
+
+   ```
+   aa:c1:ab:4f:e4:a9 > 33:33:00:00:00:01: 3fff:0:10::20 > ff02::1:
+     ICMP6, neighbor advertisement, tgt is 3fff:0:10::20
+   ```
+
+   (Si capturas en el propio h2 quizá solo veas el NS entrante: Linux no siempre muestra en `tcpdump` el multicast que él mismo genera. Captura en h1 o h3 para ver el NA de defensa.)
 3. La dirección queda en estado **`dadfailed`** y **no se puede usar**:
 
    ```
@@ -116,25 +126,34 @@ aa:c1:ab:22:22:22 > aa:c1:ab:11:11:11, ethertype IPv6 (0x86dd), length 86:
 
 ### B7
 
-1. `ping` muestra algo como:
+1. `ping` termina con `100% packet loss`. Si le das tiempo suficiente (sin `-W1`), muestra además:
 
    ```
    From 3fff:0:10::10 icmp_seq=1 Destination unreachable: Address unreachable
    ```
 
-   Lo genera **el propio h1**: tras agotar los NS sin respuesta, concluye que nadie tiene esa dirección en el enlace y entrega a la aplicación un ICMPv6 *Destination Unreachable*, código 3 (*address unreachable*).
-2. La entrada queda en **`FAILED`**:
+   Lo genera **el propio h1**: tras agotar los NS sin respuesta, concluye que nadie tiene esa dirección en el enlace.
+2. Justo después de rendirse, la entrada queda un instante en **`INCOMPLETE`** y a los pocos segundos pasa a **`FAILED`**:
 
    ```
-   3fff:0:10::99  FAILED
+   3fff:0:10::99 dev eth1 INCOMPLETE      ← al momento
+   3fff:0:10::99 dev eth1 FAILED          ← unos segundos después
    ```
 
-   h1 ha enviado **3 NS** (el valor por defecto de `net.ipv6.neigh.eth1.mcast_solicit`) antes de rendirse.
+   h1 ha enviado **3 NS** (el valor por defecto de `net.ipv6.neigh.eth1.mcast_solicit`) antes de rendirse. Con un timeout corto (`ping -W1`), `ping` no llega a imprimir el texto *Destination unreachable*: simplemente termina con `100% packet loss`.
 
 ### B8
 
-1. h3 envía un **informe MLD** (*Multicast Listener Report*) a la dirección del propio grupo multicast.
-2. Al grupo **solicited-node de la nueva dirección**, `ff02::1:ff00:33`. Al configurar `3fff:0:10::33`, h3 debe empezar a escuchar los NS dirigidos a su solicited-node, y avisa con MLD para que switches y routers con snooping le entreguen ese multicast.
+1. h3 envía un **informe MLDv2** (*Multicast Listener Report v2*) a **`ff02::16`** (todos los routers con MLDv2), desde su link-local y con **Hop Limit 1**. Capturado en h2:
+
+   ```
+   (hlim 1, next-header Options (0)) fe80::… > ff02::16: HBH (rtalert: 0x0000) (padn)
+     ICMP6, multicast listener report v2, 3 group record(s)
+       [gaddr ff02::1:ff00:33 to_ex { }] [gaddr ff02::1:ff00:30 to_ex { }] [gaddr ff02::1:ff65:8c28 to_ex { }]
+   ```
+
+   A diferencia de MLDv1, el informe va a `ff02::16` (no al grupo) y lleva **varios registros de grupo** en un solo mensaje.
+2. Entre los registros aparece el **solicited-node de la nueva dirección**, `ff02::1:ff00:33` (los otros dos son los de sus direcciones anteriores). Al configurar `3fff:0:10::33`, h3 debe empezar a escuchar los NS dirigidos a su solicited-node, y avisa con MLD para que switches y routers con snooping le entreguen ese multicast.
 3. La cabecera **Hop-by-Hop** lleva la opción **Router Alert**, para que los routers examinen el informe aunque no vaya dirigido a ellos.
 4. `ip -6 maddr` muestra ahora `ff02::1:ff00:33` entre los grupos de eth1.
 

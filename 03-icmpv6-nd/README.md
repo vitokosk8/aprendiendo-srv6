@@ -92,6 +92,8 @@ Los cinco últimos forman **Neighbor Discovery**.
 
 Todos los mensajes ND se envían con **Hop Limit 255**, y el receptor descarta los que llegan con otro valor. Como cualquier router lo habría restado, un 255 garantiza que el mensaje se generó **en el propio enlace** y no viene de fuera.
 
+> **En la práctica, no todos lo comprueban.** La regla es obligatoria en el RFC, pero algunos núcleos (como el de este laboratorio) aceptan mensajes ND con otro Hop Limit. Es un buen recordatorio de por qué la seguridad de ND no puede confiar solo en esta regla y se refuerza en el switch (sección 8).
+
 ## 3. Resolución de direcciones: el sustituto de ARP
 
 Para enviar un paquete a `3fff:0:10::20` por Ethernet, h1 necesita la MAC de h2. En IPv4, ARP lo pregunta **a todo el mundo** con un broadcast. IPv6 no tiene broadcast y lo resuelve de una forma más fina.

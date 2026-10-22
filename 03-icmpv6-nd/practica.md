@@ -151,33 +151,23 @@ $ docker exec clab-m03-h1 ip -6 neigh show dev eth1
 1. ¿A qué dirección envía h1 los paquetes para h4?
 2. ¿Qué entradas hay en la caché después del ping? ¿Aparece h4? ¿Qué significa la palabra `router` en una de ellas?
 
-### B5. Router Solicitation y la regla del Hop Limit 255
+### B5. El Router Advertisement de r1
 
-Captura en h1 los RS y RA:
-
-```bash
-$ docker exec clab-m03-h1 tcpdump -ni eth1 -tttt -vv 'icmp6 and (ip6[40]==133 or ip6[40]==134)'
-```
-
-Verás un RA de r1 cada 10 segundos. Justo después de uno, envía un RS desde h1 con **Hop Limit 64**:
+Captura los RA periódicos en h1 (r1 los envía cada 10 segundos):
 
 ```bash
-$ docker exec clab-m03-h1 python3 -c "
-from scapy.all import *
-send(IPv6(dst='ff02::2', hlim=64)/ICMPv6ND_RS(), iface='eth1')"
+$ docker exec clab-m03-h1 tcpdump -ni eth1 -vv 'icmp6 and ip6[40]==134'
 ```
 
-Espera al siguiente RA y repite con **Hop Limit 255**:
+1. ¿Desde qué dirección de r1 llega el RA y a qué dirección de destino va? ¿Con qué Hop Limit?
+2. Localiza en el RA: el *router lifetime*, el prefijo anunciado con sus flags (`onlink`, `auto`) y la MAC de r1.
+3. ¿Por qué el prefijo **no** lleva el flag `auto`? (Pista: mira en el `lab.clab.yml` la opción `autoconf`.)
 
-```bash
-$ docker exec clab-m03-h1 python3 -c "
-from scapy.all import *
-send(IPv6(dst='ff02::2', hlim=255)/ICMPv6ND_RS(), iface='eth1')"
-```
-
-1. ¿Responde r1 al primer RS? ¿Y al segundo? Fíjate en las marcas de tiempo.
-2. ¿Por qué r1 ignora el primero?
-3. En el RA, localiza: el *router lifetime*, el prefijo anunciado con sus flags y la MAC del router.
+> **La regla del Hop Limit 255.** En teoría, r1 debería ignorar un RS que no llegue con Hop Limit 255. Puedes probarlo, pero no te sorprendas si no cambia nada: el kernel de este laboratorio no aplica esa comprobación (lo explicamos en la teoría). La regla es real en el RFC y es la razón por la que un atacante no puede inyectar ND desde fuera de la LAN… en implementaciones que sí la respetan.
+>
+> ```bash
+> $ docker exec clab-m03-h1 python3 -c "from scapy.all import *; send(IPv6(dst='ff02::2',hlim=64)/ICMPv6ND_RS(),iface='eth1')"
+> ```
 
 ### B6. Detección de direcciones duplicadas
 
