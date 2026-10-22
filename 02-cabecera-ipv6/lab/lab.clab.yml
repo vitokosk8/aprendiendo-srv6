@@ -1,0 +1,87 @@
+# Módulo 02 · La cabecera IPv6 y las cabeceras de extensión
+#
+# h1 ── r1 ══ r2 ── h2      (el enlace r1–r2 tiene MTU 1400)
+#
+# Las direcciones y rutas son fijas: aquí estudiamos los paquetes, no cómo se configuran.
+# h1 tiene el script scripts/paquetes.py (Scapy) para fabricar paquetes con
+# cabeceras de extensión a medida.
+#
+# Las etiquetas (labels) de cada nodo describen el esquema de conexionado:
+#   python3 herramientas/topologia.py 02-cabecera-ipv6/lab/lab.clab.yml
+#
+# Probado con containerlab 0.74.3, FRR 10.2.1, netshoot v0.13, kernel 7.2 (OrbStack).
+
+name: m02
+
+topology:
+  defaults:
+    kind: linux
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: 0
+      net.ipv6.conf.default.disable_ipv6: 0
+
+  nodes:
+    h1:
+      image: nicolaka/netshoot:v0.13
+      labels:
+        graph-level: 1
+        graph-icon: host
+        ip.eth1: "3fff:0:1::10/64"
+      cmd: sleep infinity
+      binds:
+        - scripts:/lab:ro
+      exec:
+        - ip -6 route del default dev eth0
+        - ip -6 addr add 3fff:0:1::10/64 dev eth1
+        - ip -6 route add default via 3fff:0:1::1 dev eth1
+
+    r1:
+      image: quay.io/frrouting/frr:10.2.1
+      labels:
+        graph-level: 2
+        graph-icon: router
+        ip.eth1: "3fff:0:1::1/64"
+        ip.eth2: "3fff:0:12::1/64, MTU 1400"
+      sysctls:
+        net.ipv6.conf.all.forwarding: 1
+      binds:
+        - r1/daemons:/etc/frr/daemons
+        - r1/frr.conf:/etc/frr/frr.conf
+        - r1/vtysh.conf:/etc/frr/vtysh.conf
+      exec:
+        - ip -6 route del default dev eth0
+        - ip link set eth2 mtu 1400
+
+    r2:
+      image: quay.io/frrouting/frr:10.2.1
+      labels:
+        graph-level: 3
+        graph-icon: router
+        ip.eth1: "3fff:0:12::2/64, MTU 1400"
+        ip.eth2: "3fff:0:2::1/64"
+      sysctls:
+        net.ipv6.conf.all.forwarding: 1
+      binds:
+        - r2/daemons:/etc/frr/daemons
+        - r2/frr.conf:/etc/frr/frr.conf
+        - r2/vtysh.conf:/etc/frr/vtysh.conf
+      exec:
+        - ip -6 route del default dev eth0
+        - ip link set eth1 mtu 1400
+
+    h2:
+      image: nicolaka/netshoot:v0.13
+      labels:
+        graph-level: 4
+        graph-icon: host
+        ip.eth1: "3fff:0:2::10/64"
+      cmd: sleep infinity
+      exec:
+        - ip -6 route del default dev eth0
+        - ip -6 addr add 3fff:0:2::10/64 dev eth1
+        - ip -6 route add default via 3fff:0:2::1 dev eth1
+
+  links:
+    - endpoints: ["h1:eth1", "r1:eth1"]
+    - endpoints: ["r1:eth2", "r2:eth1"]
+    - endpoints: ["r2:eth2", "h2:eth1"]

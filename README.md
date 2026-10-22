@@ -36,7 +36,7 @@ El estado indica qué módulos están ya escritos y probados.
 |--------|------|:------:|
 | [00](00-preparacion/README.md) | Preparación del entorno: Docker, Containerlab, FRR y netshoot | ✅ |
 | [01](01-direccion-ipv6/README.md) | La dirección IPv6: formato, tipos y cómo la obtiene un equipo | ✅ |
-| 02 | La cabecera IPv6 y las cabeceras de extensión | ⏳ |
+| [02](02-cabecera-ipv6/README.md) | La cabecera IPv6 y las cabeceras de extensión | 🧪 |
 | 03 | ICMPv6 y Neighbor Discovery | ⏳ |
 | 04 | Enrutamiento IPv6: rutas estáticas y longest-prefix match | ⏳ |
 | 05 | IS-IS para IPv6 | ⏳ |
