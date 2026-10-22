@@ -14,8 +14,8 @@
 #
 # SID instalados (función entre corchetes):
 #   r2: 5f00:0:2:e000::  [End]
-#   r1: 5f00:0:1:d400::  [End.DT4]   5f00:0:1:d600:: [End.DT6]
-#   r3: 5f00:0:3:d400::  [End.DT4]   5f00:0:3:d600:: [End.DT6]
+#   r1: 5f00:0:1:dc04::  [End.DX4]   5f00:0:1:d600:: [End.DT6]
+#   r3: 5f00:0:3:dc04::  [End.DX4]   5f00:0:3:d600:: [End.DT6]
 #
 #   python3 herramientas/topologia.py 08-network-programming/lab/lab.clab.yml
 #
@@ -41,11 +41,12 @@ topology:
         - "ip -6 addr add 3fff:0:1::10/64 dev eth1"
         - "ip addr add 10.0.1.10/24 dev eth1"
         - "ip -6 route add default via 3fff:0:1::1 dev eth1"
+        - "ip route flush default"
         - "ip route add default via 10.0.1.1 dev eth1"
 
     r1:
       image: quay.io/frrouting/frr:10.2.1
-      labels: {graph-level: 2, graph-icon: router, ip.lo: "3fff:0:ff::1/128", ip.eth1: "3fff:0:1::1/64, 10.0.1.1/24", ip.eth2: "3fff:0:12::1/64", srv6.locator: "5f00:0:1::/48", srv6.sids: "5f00:0:1:d400:: End.DT4; 5f00:0:1:d600:: End.DT6"}
+      labels: {graph-level: 2, graph-icon: router, ip.lo: "3fff:0:ff::1/128", ip.eth1: "3fff:0:1::1/64, 10.0.1.1/24", ip.eth2: "3fff:0:12::1/64", srv6.locator: "5f00:0:1::/48", srv6.sids: "5f00:0:1:dc04:: End.DX4; 5f00:0:1:d600:: End.DT6"}
       sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.conf.all.forwarding: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
       binds: [r1/daemons:/etc/frr/daemons, r1/frr.conf:/etc/frr/frr.conf, r1/vtysh.conf:/etc/frr/vtysh.conf]
       exec:
@@ -54,10 +55,10 @@ topology:
         - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1 net.ipv6.conf.eth2.seg6_enabled=1"
         - "ip sr tunsrc set 3fff:0:ff::1"
         # SID locales de r1 (para el tráfico de vuelta)
-        - "ip -6 route add 5f00:0:1:d400::/128 encap seg6local action End.DT4 vrftable 254 dev eth1"
+        - "ip -6 route add 5f00:0:1:dc04::/128 encap seg6local action End.DX4 nh4 10.0.1.10 dev eth1"
         - "ip -6 route add 5f00:0:1:d600::/128 encap seg6local action End.DT6 table 254 dev eth1"
         # Encap: el tráfico de h1 hacia la red de h2 entra en SRv6 (por r2 y r3)
-        - "ip route add 10.0.2.0/24 encap seg6 mode encap segs 5f00:0:2:e000::,5f00:0:3:d400:: dev eth2"
+        - "ip route add 10.0.2.0/24 encap seg6 mode encap segs 5f00:0:2:e000::,5f00:0:3:dc04:: dev eth2"
 
     r2:
       image: quay.io/frrouting/frr:10.2.1
@@ -71,7 +72,7 @@ topology:
 
     r3:
       image: quay.io/frrouting/frr:10.2.1
-      labels: {graph-level: 4, graph-icon: router, ip.lo: "3fff:0:ff::3/128", ip.eth1: "3fff:0:23::3/64", ip.eth2: "3fff:0:2::1/64, 10.0.2.1/24", srv6.locator: "5f00:0:3::/48", srv6.sids: "5f00:0:3:d400:: End.DT4; 5f00:0:3:d600:: End.DT6"}
+      labels: {graph-level: 4, graph-icon: router, ip.lo: "3fff:0:ff::3/128", ip.eth1: "3fff:0:23::3/64", ip.eth2: "3fff:0:2::1/64, 10.0.2.1/24", srv6.locator: "5f00:0:3::/48", srv6.sids: "5f00:0:3:dc04:: End.DX4; 5f00:0:3:d600:: End.DT6"}
       sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.conf.all.forwarding: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
       binds: [r3/daemons:/etc/frr/daemons, r3/frr.conf:/etc/frr/frr.conf, r3/vtysh.conf:/etc/frr/vtysh.conf]
       exec:
@@ -79,10 +80,10 @@ topology:
         - "ip addr add 10.0.2.1/24 dev eth2"
         - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1 net.ipv6.conf.eth2.seg6_enabled=1"
         - "ip sr tunsrc set 3fff:0:ff::3"
-        - "ip -6 route add 5f00:0:3:d400::/128 encap seg6local action End.DT4 vrftable 254 dev eth1"
+        - "ip -6 route add 5f00:0:3:dc04::/128 encap seg6local action End.DX4 nh4 10.0.2.20 dev eth2"
         - "ip -6 route add 5f00:0:3:d600::/128 encap seg6local action End.DT6 table 254 dev eth1"
         # Encap de vuelta: el tráfico hacia la red de h1 entra en SRv6 (por r2 y r1)
-        - "ip route add 10.0.1.0/24 encap seg6 mode encap segs 5f00:0:2:e000::,5f00:0:1:d400:: dev eth1"
+        - "ip route add 10.0.1.0/24 encap seg6 mode encap segs 5f00:0:2:e000::,5f00:0:1:dc04:: dev eth1"
 
     h2:
       image: nicolaka/netshoot:v0.13
@@ -93,6 +94,7 @@ topology:
         - "ip -6 addr add 3fff:0:2::20/64 dev eth1"
         - "ip addr add 10.0.2.20/24 dev eth1"
         - "ip -6 route add default via 3fff:0:2::1 dev eth1"
+        - "ip route flush default"
         - "ip route add default via 10.0.2.1 dev eth1"
 
   links:

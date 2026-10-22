@@ -8,9 +8,9 @@ Antes de empezar, lee la [teoría del módulo](README.md).
 ```mermaid
 graph LR
     h1("🖥️ <b>h1</b><br/>host · netshoot<br/>eth1: 3fff:0:1::10/64, 10.0.1.10/24")
-    r1("<b>r1</b><br/>router · FRR<br/>lo: 3fff:0:ff::1/128<br/>eth1: 3fff:0:1::1/64, 10.0.1.1/24<br/>eth2: 3fff:0:12::1/64<br/>locator 5f00:0:1::/48<br/>SID 5f00:0:1:d400:: End.DT4<br/>SID 5f00:0:1:d600:: End.DT6")
+    r1("<b>r1</b><br/>router · FRR<br/>lo: 3fff:0:ff::1/128<br/>eth1: 3fff:0:1::1/64, 10.0.1.1/24<br/>eth2: 3fff:0:12::1/64<br/>locator 5f00:0:1::/48<br/>SID 5f00:0:1:dc04:: End.DX4<br/>SID 5f00:0:1:d600:: End.DT6")
     r2("<b>r2</b><br/>router · FRR<br/>lo: 3fff:0:ff::2/128<br/>eth1: 3fff:0:12::2/64<br/>eth2: 3fff:0:23::2/64<br/>locator 5f00:0:2::/48<br/>SID 5f00:0:2:e000:: End")
-    r3("<b>r3</b><br/>router · FRR<br/>lo: 3fff:0:ff::3/128<br/>eth1: 3fff:0:23::3/64<br/>eth2: 3fff:0:2::1/64, 10.0.2.1/24<br/>locator 5f00:0:3::/48<br/>SID 5f00:0:3:d400:: End.DT4<br/>SID 5f00:0:3:d600:: End.DT6")
+    r3("<b>r3</b><br/>router · FRR<br/>lo: 3fff:0:ff::3/128<br/>eth1: 3fff:0:23::3/64<br/>eth2: 3fff:0:2::1/64, 10.0.2.1/24<br/>locator 5f00:0:3::/48<br/>SID 5f00:0:3:dc04:: End.DX4<br/>SID 5f00:0:3:d600:: End.DT6")
     h2("🖥️ <b>h2</b><br/>host · netshoot<br/>eth1: 3fff:0:2::20/64, 10.0.2.20/24")
 
     h1 -- "eth1 ⟷ eth1<br/>3fff:0:1::/64" --- r1
@@ -30,7 +30,7 @@ graph LR
 
 - **h1** y **h2** son dual-stack: IPv6 (`3fff:0:1::10`, `3fff:0:2::20`) e IPv4 (`10.0.1.10`, `10.0.2.20`).
 - El núcleo **r1–r2–r3** solo habla IPv6 (IS-IS). El tráfico IPv4 entre h1 y h2 viaja **encapsulado en SRv6**.
-- Al arrancar ya están puestos: `End` en r2, `End.DT4` y `End.DT6` en r1 y r3, y las rutas de encap. Tú los inspeccionarás y añadirás más.
+- Al arrancar ya están puestos: `End` en r2, `End.DX4` (entrega IPv4) y `End.DT6` (entrega IPv6) en r1 y r3, y las rutas de encap. Tú los inspeccionarás y añadirás más.
 
 ## Parte A · Ejercicios en papel
 
@@ -42,7 +42,7 @@ Hazlos sin ordenador. Las soluciones están en [soluciones.md](soluciones.md).
 
 **A3.** Quieres que el tráfico IPv6 de h1 a h2 vaya por un camino explícito r1→r2→r3 usando **End.X** en cada salto (no End). Escribe la lista de segmentos (conceptual) y di qué behavior tendría el SID de r2 y el de r3.
 
-**A4.** En el laboratorio, un `ping` de `10.0.1.10` a `10.0.2.20`. Enumera, en orden, qué behavior ejecuta cada router (r1, r2, r3) y qué le pasa a la cabecera en cada uno.
+**A4.** En el laboratorio, un `ping` de `10.0.1.10` a `10.0.2.20`. Enumera, en orden, qué behavior ejecuta cada router (r1 encap, r2, r3 entrega) y qué le pasa a la cabecera en cada uno. (El SID final es un End.DX4.)
 
 **A5.** ¿Por qué `End.DT4` usa la palabra clave `vrftable` y no `table`? ¿Qué papel juega ese número en una VPN real?
 
@@ -105,7 +105,7 @@ $ docker exec clab-m08-r2 ip -6 route show 5f00:0:2:e100::/128
 
    ```bash
    $ docker exec clab-m08-r1 ip route replace 10.0.2.0/24 \
-       encap seg6 mode encap segs 5f00:0:2:e100::,5f00:0:3:d400:: dev eth2
+       encap seg6 mode encap segs 5f00:0:2:e100::,5f00:0:3:dc04:: dev eth2
    $ docker exec clab-m08-h1 ping -c2 10.0.2.20
    ```
 
@@ -114,7 +114,7 @@ $ docker exec clab-m08-r2 ip -6 route show 5f00:0:2:e100::/128
 
    ```bash
    $ docker exec clab-m08-r1 ip route replace 10.0.2.0/24 \
-       encap seg6 mode encap segs 5f00:0:2:e000::,5f00:0:3:d400:: dev eth2
+       encap seg6 mode encap segs 5f00:0:2:e000::,5f00:0:3:dc04:: dev eth2
    ```
 
 ### B4. IPv6 sobre SRv6 con End.DT6
@@ -177,13 +177,27 @@ $ docker exec clab-m08-h1 ping -c2 -M do -s 1440 10.0.2.20
 $ sudo containerlab destroy -t lab.clab.yml --cleanup
 ```
 
-## Reto
+## Reto: End.DT4 con una VRF
 
-Monta un **End.DT46** en r3: un solo SID que sirva tanto para IPv4 como para IPv6. Instálalo, haz que r1 lo use como SID final para las dos familias (una ruta de encap para `10.0.2.0/24` y otra para `3fff:0:2::20/128`, las dos terminando en el mismo SID End.DT46) y comprueba que los dos pings funcionan.
+En el laboratorio, la entrega de IPv4 se hace con **End.DX4** porque, en Linux, **End.DT4 exige una VRF** (no vale la tabla main). Monta esa VRF en r3 y haz funcionar un End.DT4 de verdad:
 
 ```bash
-$ docker exec clab-m08-r3 ip -6 route add 5f00:0:3:d046::/128 \
-    encap seg6local action End.DT46 vrftable 254 dev eth1
+# En r3: crear una VRF ligada a la tabla 100 y meter en ella la red de h2
+docker exec clab-m08-r3 ip link add vrf-cust type vrf table 100
+docker exec clab-m08-r3 ip link set vrf-cust up
+docker exec clab-m08-r3 ip link set eth2 master vrf-cust
+docker exec clab-m08-r3 ip addr add 10.0.2.1/24 dev eth2
+# El SID End.DT4 que busca en la tabla 100 de la VRF
+docker exec clab-m08-r3 ip -6 route add 5f00:0:3:d400::/128 \
+    encap seg6local action End.DT4 vrftable 100 dev eth2
+# r1 encapsula hacia ese SID
+docker exec clab-m08-r1 ip route replace 10.0.2.0/24 \
+    encap seg6 mode encap segs 5f00:0:2:e000::,5f00:0:3:d400:: dev eth2
+docker exec clab-m08-h1 ping -c2 10.0.2.20
 ```
 
-¿Por qué un solo SID puede servir para las dos familias? ¿Qué mira End.DT46 para decidir en qué tabla buscar? Si tu kernel no soporta `End.DT46`, anótalo y razónalo con la teoría.
+1. ¿Se instala ahora el SID End.DT4 sin error? ¿Funciona el ping?
+2. ¿Qué diferencia hay entre esta entrega (End.DT4 con VRF, búsqueda en la tabla 100) y la que había antes (End.DX4, cross-connect directo)?
+3. ¿Por qué una VRF es justo lo que se necesita para una L3VPN multicliente? (Piensa en dos clientes con las mismas IPv4 privadas.)
+
+Si al meter eth2 en la VRF se te cae la conectividad IPv6 de h2, ten en cuenta que mover una interfaz a una VRF afecta a **todas** sus rutas; en una red real, el diseño de VRF se hace con más cuidado (módulo 12). Para volver al estado inicial, lo más limpio es redesplegar: `sudo containerlab deploy -t lab.clab.yml --reconfigure`.

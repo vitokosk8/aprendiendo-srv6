@@ -7,12 +7,12 @@ check() { if eval "$2" >/dev/null 2>&1; then echo "  ✅ $1"; ok=$((ok+1)); else
 echo "Esperando a IS-IS y a los SID (máx. 60 s)..."
 for i in $(seq 1 30); do
   docker exec $L-r1 vtysh -c "show ipv6 route isis" 2>/dev/null | grep -q '5f00:0:3::/48' &&
-  docker exec $L-r3 ip -6 route show 5f00:0:3:d400::/128 2>/dev/null | grep -q seg6local && break
+  docker exec $L-r3 ip -6 route show 5f00:0:3:dc04::/128 2>/dev/null | grep -q seg6local && break
   sleep 2
 done
 
 check "r2 tiene el SID End"                        "docker exec $L-r2 ip -6 route show 5f00:0:2:e000::/128 | grep -q 'action End'"
-check "r3 tiene el SID End.DT4"                     "docker exec $L-r3 ip -6 route show 5f00:0:3:d400::/128 | grep -q 'End.DT4'"
+check "r3 tiene el SID End.DX4 (entrega IPv4)"      "docker exec $L-r3 ip -6 route show 5f00:0:3:dc04::/128 | grep -q 'End.DX4'"
 check "r3 tiene el SID End.DT6"                     "docker exec $L-r3 ip -6 route show 5f00:0:3:d600::/128 | grep -q 'End.DT6'"
 check "r1 tiene la ruta de encap hacia 10.0.2.0/24" "docker exec $L-r1 ip route show 10.0.2.0/24 | grep -q 'encap seg6'"
 check "h1 → h2 IPv6 (plano, por el IGP)"            "docker exec $L-h1 ping -c2 -W2 3fff:0:2::20"

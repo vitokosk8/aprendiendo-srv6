@@ -10,9 +10,9 @@
 ```mermaid
 graph LR
     h1("🖥️ <b>h1</b><br/>host · netshoot<br/>eth1: 3fff:0:1::10/64, 10.0.1.10/24")
-    r1("<b>r1</b><br/>router · FRR<br/>lo: 3fff:0:ff::1/128<br/>eth1: 3fff:0:1::1/64, 10.0.1.1/24<br/>eth2: 3fff:0:12::1/64<br/>locator 5f00:0:1::/48<br/>SID 5f00:0:1:d400:: End.DT4<br/>SID 5f00:0:1:d600:: End.DT6")
+    r1("<b>r1</b><br/>router · FRR<br/>lo: 3fff:0:ff::1/128<br/>eth1: 3fff:0:1::1/64, 10.0.1.1/24<br/>eth2: 3fff:0:12::1/64<br/>locator 5f00:0:1::/48<br/>SID 5f00:0:1:dc04:: End.DX4<br/>SID 5f00:0:1:d600:: End.DT6")
     r2("<b>r2</b><br/>router · FRR<br/>lo: 3fff:0:ff::2/128<br/>eth1: 3fff:0:12::2/64<br/>eth2: 3fff:0:23::2/64<br/>locator 5f00:0:2::/48<br/>SID 5f00:0:2:e000:: End")
-    r3("<b>r3</b><br/>router · FRR<br/>lo: 3fff:0:ff::3/128<br/>eth1: 3fff:0:23::3/64<br/>eth2: 3fff:0:2::1/64, 10.0.2.1/24<br/>locator 5f00:0:3::/48<br/>SID 5f00:0:3:d400:: End.DT4<br/>SID 5f00:0:3:d600:: End.DT6")
+    r3("<b>r3</b><br/>router · FRR<br/>lo: 3fff:0:ff::3/128<br/>eth1: 3fff:0:23::3/64<br/>eth2: 3fff:0:2::1/64, 10.0.2.1/24<br/>locator 5f00:0:3::/48<br/>SID 5f00:0:3:dc04:: End.DX4<br/>SID 5f00:0:3:d600:: End.DT6")
     h2("🖥️ <b>h2</b><br/>host · netshoot<br/>eth1: 3fff:0:2::20/64, 10.0.2.20/24")
 
     h1 -- "eth1 ⟷ eth1<br/>3fff:0:1::/64" --- r1
@@ -57,7 +57,7 @@ Todo empieza en el **headend**. H.Encaps toma el paquete del cliente (IPv4 o IPv
 # pasando por el SID End de r2 y terminando en el End.DT4 de r3.
 ip sr tunsrc set 3fff:0:ff::1          # dirección de origen del túnel
 ip route add 10.0.2.0/24 \
-   encap seg6 mode encap segs 5f00:0:2:e000::,5f00:0:3:d400:: dev eth2
+   encap seg6 mode encap segs 5f00:0:2:e000::,5f00:0:3:dc04:: dev eth2
 ```
 
 - `mode encap` = modo encapsulado (el que viste en el módulo 07): el paquete original viaja entero dentro.
@@ -102,9 +102,10 @@ La diferencia **DT vs DX**:
 - **DX** (*cross-connect*) **no busca**: entrega el paquete directamente a un vecino fijo. Es más rápido y se usa cuando el SID representa "este cliente concreto en esta interfaz".
 
 ```bash
-# En r3: End.DT4 — desencapsula IPv4 y busca en la tabla main (254)
-ip -6 route add 5f00:0:3:d400::/128 \
-   encap seg6local action End.DT4 vrftable 254 dev eth1
+# En r3: End.DX4 — desencapsula IPv4 y lo entrega directo a h2 (sin VRF)
+ip -6 route add 5f00:0:3:dc04::/128 \
+   encap seg6local action End.DX4 nh4 10.0.2.20 dev eth2
+# (End.DT4 sería 'action End.DT4 vrftable <tabla-de-una-VRF>'; necesita una VRF, ver el reto)
 
 # En r3: End.DT6 — desencapsula IPv6 y busca en la tabla main
 ip -6 route add 5f00:0:3:d600::/128 \
@@ -115,7 +116,7 @@ ip -6 route add 5f00:0:3:dc06::/128 \
    encap seg6local action End.DX6 nh6 3fff:0:2::20 dev eth2
 ```
 
-> **Ojo con la sintaxis.** End.DT6 usa `table`, pero End.DT4 y End.DT46 usan `vrftable` (por razones históricas: estos behaviors se pensaron para VRF). En este laboratorio usamos la tabla **254** (la *main*), así que el destino interior se busca en la tabla de rutas normal del router.
+> **Ojo: End.DT4 necesita una VRF en Linux.** End.DT6 funciona con una tabla normal (`table 254`, la *main*), pero la implementación de **End.DT4 y End.DT46** en el kernel de Linux **exige una VRF de verdad** (`vrftable`), no vale la tabla main. Por eso, en el laboratorio, la **entrega de IPv4** se hace con **End.DX4** (cross-connect, que no necesita tabla ni VRF) y la de IPv6 con End.DT6. Montar End.DT4 con su VRF es el reto del final.
 
 ### La tabla y las VRF
 
@@ -129,11 +130,11 @@ Junta todas las piezas. El núcleo r1–r2–r3 no sabe enrutar IPv4. Aun así, 
 h1 (10.0.1.10) ──IPv4──> r1
    r1: H.Encaps  →  [IPv6 ext | SRH: 5f00:0:2:e000::, 5f00:0:3:d400:: | IPv4 interior]
    r2: End       →  avanza al SID de r3
-   r3: End.DT4   →  desencapsula, busca 10.0.2.20 en la tabla, entrega
+   r3: End.DX4   →  desencapsula y entrega el IPv4 directo a h2 (sin búsqueda)
 h2 (10.0.2.20) <──IPv4── r3
 ```
 
-El paquete IPv4 **nunca se enruta como IPv4 en el núcleo**: viaja como carga de un paquete IPv6 con SRH. r2, que solo habla IPv6, lo reenvía sin enterarse de que dentro hay IPv4. Esto es, literalmente, una L3VPN IPv4 sobre SRv6, montada con cuatro comandos de iproute2.
+El paquete IPv4 **nunca se enruta como IPv4 en el núcleo**: viaja como carga de un paquete IPv6 con SRH. r2, que solo habla IPv6, lo reenvía sin enterarse de que dentro hay IPv4. Esto es, literalmente, IPv4 sobre SRv6, montado con cuatro comandos de iproute2. (Usamos End.DX4 para la entrega; con una VRF sería End.DT4, una L3VPN completa.)
 
 ## 6. El catálogo completo (resumen)
 
