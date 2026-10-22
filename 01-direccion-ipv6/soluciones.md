@@ -55,23 +55,28 @@ aa:c1:ab:00:00:01
 
 ### B1
 
-Salida aproximada:
+Salida real de una ejecución (tus direcciones serán distintas):
 
 ```
-3: eth1@if4: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9500 ...
-    inet6 2001:db8:1::a8c1:abff:fe5d:2f10/64 scope global dynamic
-       valid_lft 2591998sec preferred_lft 604798sec
-    inet6 fe80::a8c1:abff:fe5d:2f10/64 scope link
+eth1@if723: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9500 ...
+    inet6 2001:db8:1:0:a8c1:abff:fe7a:e37f/64 scope global dynamic mngtmpaddr proto kernel_ra
+       valid_lft 2591993sec preferred_lft 604793sec
+    inet6 fe80::a8c1:abff:fe7a:e37f/64 scope link proto kernel_ll
        valid_lft forever preferred_lft forever
 ```
 
-1. Dos: una **global** (`2001:db8:1::…`) y una **link-local** (`fe80::…`).
+1. Dos: una **global** (`2001:db8:1:…`) y una **link-local** (`fe80::…`).
 2. `scope link` significa que solo vale en este enlace; `scope global`, que puede usarse para comunicarse con cualquier red.
-3. Por **SLAAC**: r1 anunció el prefijo `2001:db8:1::/64` en un *Router Advertisement* y h1 le añadió su propio identificador de interfaz. El `dynamic` y los tiempos `valid_lft`/`preferred_lft` indican que la dirección se obtuvo de un anuncio y que caduca si deja de renovarse.
+3. Por **SLAAC**: r1 anunció el prefijo `2001:db8:1::/64` en un *Router Advertisement* y h1 le añadió su propio identificador de interfaz. Lo dicen varios detalles de la salida:
+   - `proto kernel_ra`: la dirección la creó el kernel a partir de un RA. La link-local dice `proto kernel_ll`: el kernel la generó él solo al activar IPv6.
+   - `dynamic` y los tiempos `valid_lft`/`preferred_lft`: la dirección caduca si deja de renovarse.
+   - `mngtmpaddr`: indica que, si se activaran las direcciones temporales de privacidad, se generarían a partir de esta. Aquí no tiene efecto.
+
+> **Fíjate en cómo escribe Linux la dirección global**: `2001:db8:1:0:a8c1:…`, sin `::`. Solo hay un grupo a cero, y la forma canónica (RFC 5952) no permite usar `::` para un solo grupo. Si buscas la dirección con `grep 2001:db8:1::`, no la encontrarás.
 
 ### B2
 
-Con una MAC como `aa:c1:ab:5d:2f:10`, el identificador EUI-64 es `a8c1:abff:fe5d:2f10`. **Sí coinciden**: la link-local y la global comparten exactamente la misma segunda mitad, porque las dos se construyen con el mismo identificador de interfaz; solo cambia el prefijo.
+En la ejecución anterior la MAC era `aa:c1:ab:7a:e3:7f`, así que el identificador EUI-64 es `a8c1:abff:fe7a:e37f`. **Sí coinciden**: la link-local y la global comparten exactamente la misma segunda mitad, porque las dos se construyen con el mismo identificador de interfaz; solo cambia el prefijo.
 
 Containerlab asigna MACs que empiezan por `aa:c1:ab`, y por eso todas las link-local del curso empiezan por `fe80::a8c1:abff:fe…`. Ya lo viste en el laboratorio SRv6.
 
@@ -82,17 +87,21 @@ Containerlab asigna MACs que empiezan por `aa:c1:ab`, y por eso todas las link-l
 
 ### B4
 
-Salida aproximada:
+Salida real:
 
 ```
-2001:db8:1::/64 dev eth1 proto ra metric 256 expires 2591995sec pref medium
+2001:db8:1::/64 dev eth1 proto kernel metric 256 expires 2591992sec pref medium
 fe80::/64 dev eth1 proto kernel metric 256 pref medium
-default via fe80::a8c1:abff:fe1e:9b3c dev eth1 proto ra metric 1024 expires 1795sec hoplimit 64 pref medium
+default via fe80::a8c1:abff:feec:3203 dev eth1 proto ra metric 1024 expires 22sec hoplimit 64 pref medium
 ```
+
+(También verás rutas por `eth0`, la red de gestión de containerlab; ignóralas.)
 
 1. El siguiente salto es la **link-local de r1**. En IPv6 es lo habitual: el RA llega desde la link-local del router, y h1 la usa como puerta de enlace.
-2. `proto ra` indica que la ruta la instaló un *Router Advertisement*, no un administrador ni un protocolo de enrutamiento.
+2. `proto ra` indica que la ruta la instaló un *Router Advertisement*, no un administrador ni un protocolo de enrutamiento. La ruta al prefijo `2001:db8:1::/64` aparece como `proto kernel` porque el kernel la crea al configurar la dirección, aunque caduca (`expires`) con ella.
 3. Toda interfaz con IPv6 tiene una ruta al prefijo link-local `fe80::/64` para poder hablar con sus vecinos de enlace.
+
+Fíjate en `expires 22sec` de la ruta por defecto. El RA anuncia un **router lifetime**: cuánto tiempo puede usarse ese router como puerta de enlace. FRR lo calcula como 3 × `ra-interval`, es decir, 30 s en este laboratorio. Cada RA, que llega cada 10 s, lo renueva. Si r1 dejara de anunciarse, a los 30 s h1 se quedaría sin ruta por defecto.
 
 ### B5
 
@@ -103,7 +112,7 @@ default via fe80::a8c1:abff:fe1e:9b3c dev eth1 proto ra metric 1024 expires 1795
 
 1. Responden dos direcciones link-local: la de **h1** (él mismo forma parte del grupo) y la de **r1**. `ping` en IPv6 usa la link-local como origen al enviar a un multicast de alcance de enlace.
 2. No. `ff02::1` tiene alcance de **enlace** (el `2` de `ff02`), y r1 no reenvía multicast de enlace.
-3. Si la global de h1 es `2001:db8:1::a8c1:abff:fe5d:2f10`, los últimos 24 bits son `5d:2f10` y el grupo es `ff02::1:ff5d:2f10`.
+3. Si la global de h1 es `2001:db8:1:0:a8c1:abff:fe7a:e37f`, los últimos 24 bits son `7a:e37f` y el grupo es `ff02::1:ff7a:e37f`.
 4. Porque la link-local y la global tienen **el mismo identificador de interfaz** (EUI-64), y por tanto los mismos últimos 24 bits. Un único grupo *solicited-node* sirve para las dos.
 
 ### B7
@@ -116,11 +125,11 @@ default via fe80::a8c1:abff:fe1e:9b3c dev eth1 proto ra metric 1024 expires 1795
 Salida aproximada:
 
 ```
-IP6 (hlim 255, next-header ICMPv6 (58), payload length 56) fe80::a8c1:abff:fe1e:9b3c > ff02::1:
+IP6 (hlim 255, next-header ICMPv6 (58), payload length 56) fe80::a8c1:abff:feec:3203 > ff02::1:
   [icmp6 sum ok] ICMP6, router advertisement, length 56
-    hop limit 64, Flags [none], pref medium, router lifetime 1800s, ...
+    hop limit 64, Flags [none], pref medium, router lifetime 30s, ...
       prefix info option (3), length 32 (4): 2001:db8:1::/64, Flags [onlink, auto], valid time 2592000s, pref. time 604800s
-      source link-address option (1), length 8 (1): aa:c1:ab:1e:9b:3c
+      source link-address option (1), length 8 (1): aa:c1:ab:ec:32:03
 ```
 
 1. Origen: la **link-local de r1**. Destino: **`ff02::1`**, todos los nodos del enlace.

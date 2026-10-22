@@ -6,15 +6,15 @@ check() { if eval "$2" >/dev/null 2>&1; then echo "  ✅ $1"; ok=$((ok+1)); else
 
 echo "Esperando direcciones SLAAC (máx. 60 s)..."
 for i in $(seq 1 30); do
-  docker exec $L-h1 ip -6 addr show dev eth1 scope global | grep -q 2001:db8:1:: &&
-  docker exec $L-h2 ip -6 addr show dev eth1 scope global | grep -q 2001:db8:2:: && break
+  docker exec $L-h1 ip -6 addr show dev eth1 scope global | grep -q 'inet6 2001:db8:1:' &&
+  docker exec $L-h2 ip -6 addr show dev eth1 scope global | grep -q 'inet6 2001:db8:2:' && break
   sleep 2
 done
 
 H2=$(docker exec $L-h2 ip -6 -o addr show dev eth1 scope global | awk '{print $4}' | cut -d/ -f1 | head -1)
 R1LL=$(docker exec $L-r1 ip -6 -o addr show dev eth1 scope link | awk '{print $4}' | cut -d/ -f1)
 
-check "h1 tiene dirección SLAAC en 2001:db8:1::/64" "docker exec $L-h1 ip -6 addr show dev eth1 | grep -q 'inet6 2001:db8:1::'"
+check "h1 tiene dirección SLAAC en 2001:db8:1::/64" "docker exec $L-h1 ip -6 addr show dev eth1 | grep -q 'inet6 2001:db8:1:'"
 check "h2 tiene dirección SLAAC en 2001:db8:2::/64" "[ -n '$H2' ]"
 check "h1 tiene ruta por defecto aprendida por RA"   "docker exec $L-h1 ip -6 route show default | grep -q 'proto ra'"
 check "h1 no tiene ruta por defecto por eth0"        "! docker exec $L-h1 ip -6 route show default | grep -q eth0"
