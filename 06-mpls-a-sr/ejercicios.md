@@ -2,7 +2,7 @@
 
 Este módulo es conceptual, así que los ejercicios son de razonamiento, no de laboratorio. Hazlos sin mirar; las soluciones están en [soluciones.md](soluciones.md).
 
-**1.** Una red de operador ya tiene IS-IP funcionando y mueve el tráfico por el camino más corto. Nombra **dos** cosas que todavía no puede hacer y para las que, históricamente, se usó MPLS.
+**1.** Una red de operador ya tiene IS-IS funcionando y mueve el tráfico por el camino más corto. Nombra **dos** cosas que todavía no puede hacer y para las que, históricamente, se usó MPLS.
 
 **2.** ¿Qué trabajo hace LDP en una red MPLS clásica? ¿Por qué se dice que su información está "duplicada" respecto al IGP?
 
