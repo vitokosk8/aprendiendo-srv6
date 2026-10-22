@@ -6,6 +6,11 @@
 # r1 anuncia cada prefijo con Router Advertisements (SLAAC).
 # h1 y h2 no tienen ninguna dirección configurada: se la construyen ellos solos.
 #
+# Las etiquetas (labels) de cada nodo describen el esquema de conexionado:
+# orden, icono, direcciones y SIDs. A partir de ellas se generan
+# topologia.drawio y el diagrama de practica.md:
+#   python3 herramientas/topologia.py 01-direccion-ipv6/lab/lab.clab.yml
+#
 # Probado con containerlab 0.74.3, FRR 10.2.1, netshoot v0.13, kernel 7.2 (OrbStack).
 
 name: m01
@@ -20,6 +25,11 @@ topology:
   nodes:
     r1:
       image: quay.io/frrouting/frr:10.2.1
+      labels:
+        graph-level: 2
+        graph-icon: router
+        ip.eth1: "2001:db8:1::1/64"
+        ip.eth2: "2001:db8:2::1/64"
       sysctls:
         net.ipv6.conf.all.forwarding: 1
       binds:
@@ -32,6 +42,10 @@ topology:
 
     h1:
       image: nicolaka/netshoot:v0.13
+      labels:
+        graph-level: 1
+        graph-icon: host
+        ip.eth1: "SLAAC"
       cmd: sleep infinity
       exec: &host
         - ip -6 route del default dev eth0
@@ -40,6 +54,10 @@ topology:
 
     h2:
       image: nicolaka/netshoot:v0.13
+      labels:
+        graph-level: 3
+        graph-icon: host
+        ip.eth1: "SLAAC"
       cmd: sleep infinity
       exec: *host
 

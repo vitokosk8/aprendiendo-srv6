@@ -4,13 +4,24 @@ Antes de empezar, lee la [teoría del módulo](README.md).
 
 ## Topología
 
+<!-- topologia:inicio -->
+```mermaid
+graph LR
+    h1("🖥️ <b>h1</b><br/>host · netshoot<br/>eth1: SLAAC")
+    r1("<b>r1</b><br/>router · FRR<br/>eth1: 2001:db8:1::1/64<br/>eth2: 2001:db8:2::1/64")
+    h2("🖥️ <b>h2</b><br/>host · netshoot<br/>eth1: SLAAC")
+
+    h1 -- "eth1 ⟷ eth1<br/>2001:db8:1::/64" --- r1
+    r1 -- "eth2 ⟷ eth1<br/>2001:db8:2::/64" --- h2
+
+    classDef router fill:#ddf4ff,stroke:#0969da,stroke-width:2px,color:#1f2328
+    classDef host fill:#dafbe1,stroke:#1a7f37,stroke-width:2px,color:#1f2328
+    class r1 router
+    class h1,h2 host
 ```
-        2001:db8:1::/64              2001:db8:2::/64
-  ┌────┐               ┌────┐                ┌────┐
-  │ h1 │eth1 ──── eth1│ r1 │eth2 ──── eth1│ h2 │
-  └────┘               └────┘                └────┘
-  (SLAAC)          ::1 en cada enlace         (SLAAC)
-```
+<!-- topologia:fin -->
+
+> El fichero editable para draw.io está en [`lab/topologia.drawio`](lab/topologia.drawio).
 
 - **r1** es un router FRR con una dirección fija en cada enlace (`2001:db8:1::1` y `2001:db8:2::1`). Anuncia cada prefijo con *Router Advertisements*.
 - **h1** y **h2** son hosts sin ninguna dirección configurada. Al arrancar, solo tendrán lo que se construyan ellos mismos.

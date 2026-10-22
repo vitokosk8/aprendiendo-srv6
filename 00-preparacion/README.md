@@ -61,6 +61,40 @@ $ sudo containerlab destroy -t lab.clab.yml --cleanup   # destruir
 
 Los contenedores se llaman `clab-<nombre-del-lab>-<nodo>`, por ejemplo `clab-m01-h1`.
 
+## Dibujar la topología
+
+Cada laboratorio incluye su esquema de conexionado en dos formatos:
+
+- **Mermaid**, dentro de `practica.md`: GitHub lo dibuja directamente.
+- **draw.io**, en `lab/topologia.drawio`: se abre en [app.diagrams.net](https://app.diagrams.net) o en VS Code (extensión *Draw.io Integration*) para recolocar nodos, retocarlo o exportarlo a PNG/PDF.
+
+Los dos se generan con [`herramientas/topologia.py`](../herramientas/topologia.py) a partir de las etiquetas (`labels`) de cada nodo en `lab.clab.yml`, que es la única fuente de verdad:
+
+```yaml
+r2:
+  labels:
+    graph-level: 2                 # columna, de izquierda a derecha
+    graph-row: 1                   # fila dentro de la columna (opcional)
+    graph-icon: router             # router | host
+    ip.lo: "3fff:0:ff::2/128"      # dirección de cada interfaz: ip.<interfaz>
+    ip.eth1: "3fff:0:12::2/64"
+    srv6.locator: "5f00:0:2::/48"
+    srv6.sids: "5f00:0:2:e000:: End; 5f00:0:2:e001:: End.DT6"
+```
+
+Para regenerarlos después de cambiar un laboratorio (necesita PyYAML):
+
+```bash
+$ sudo apt install -y python3-yaml          # en la máquina Linux de OrbStack, una sola vez
+$ python3 herramientas/topologia.py 01-direccion-ipv6/lab/lab.clab.yml
+✔ 01-direccion-ipv6/lab/topologia.drawio
+✔ 01-direccion-ipv6/practica.md (bloque Mermaid actualizado)
+```
+
+El script sustituye el diagrama de `practica.md` que está entre los marcadores `<!-- topologia:inicio -->` y `<!-- topologia:fin -->`.
+
+Containerlab también sabe dibujar topologías por sí mismo (`containerlab graph --drawio` o `--mermaid`), pero no muestra direcciones ni SIDs; por eso el curso usa su propio generador.
+
 ## Capturar tráfico
 
 Los hosts usan la imagen `netshoot`, que ya incluye `tcpdump` y `tshark`. Para capturar en un router FRR, que no trae `tcpdump`, se "engancha" un contenedor netshoot a su espacio de red:

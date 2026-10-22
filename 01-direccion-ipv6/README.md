@@ -145,7 +145,7 @@ Los protocolos de enrutamiento (IS-IS, OSPFv3, BGP *unnumbered*) usan las link-l
 | `ff02::2` | Todos los routers del enlace |
 | `ff02::1:ffXX:XXXX` | *Solicited-node*: se forma con los últimos 24 bits de una dirección unicast. Lo usa Neighbor Discovery (módulo 03) |
 
-Ejemplo de *solicited-node*: para `2001:db8:1::a8c1:abff:fe12:3456`, los últimos 24 bits son `12:3456`, así que el grupo es `ff02::1:ff12:3456`.
+Ejemplo de *solicited-node*: para `2001:db8:1:0:a8c1:abff:fe12:3456`, los últimos 24 bits son `12:3456`, así que el grupo es `ff02::1:ff12:3456`.
 
 ## 6. Una interfaz, varias direcciones
 
@@ -184,7 +184,7 @@ MAC:            aa:c1:ab:12:34:56
    IID = a8c1:abff:fe12:3456
 ```
 
-Así, con el prefijo `2001:db8:1::/64` la dirección SLAAC es `2001:db8:1::a8c1:abff:fe12:3456`, y la link-local es `fe80::a8c1:abff:fe12:3456`.
+Así, con el prefijo `2001:db8:1::/64` la dirección SLAAC es `2001:db8:1:0:a8c1:abff:fe12:3456`, y la link-local es `fe80::a8c1:abff:fe12:3456`.
 
 EUI-64 tiene un problema: la MAC viaja dentro de la dirección, y un equipo puede ser rastreado allá donde se conecte. Por eso los sistemas operativos de escritorio usan hoy identificadores aleatorios o *stable privacy* ([RFC 7217](https://www.rfc-editor.org/rfc/rfc7217), [RFC 8981](https://www.rfc-editor.org/rfc/rfc8981)). Linux en un contenedor usa EUI-64 por defecto, y en el laboratorio lo podrás comprobar con tus propios ojos.
 
