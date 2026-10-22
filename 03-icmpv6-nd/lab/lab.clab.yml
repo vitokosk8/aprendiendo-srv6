@@ -1,0 +1,86 @@
+# Módulo 03 · ICMPv6 y Neighbor Discovery
+#
+#   h1 ─┐
+#   h2 ─┼─ sw1 ── r1 ── h4
+#   h3 ─┘
+#   LAN 3fff:0:10::/64        red 3fff:0:40::/64
+#
+# sw1 es un switch: un contenedor con un bridge de Linux que une h1, h2, h3 y r1
+# en la misma LAN. No tiene IPv6: solo reenvía tramas.
+# Los hosts de la LAN tienen dirección fija y aprenden su router por defecto
+# con los Router Advertisements de r1 (la autoconfiguración SLAAC está desactivada
+# para que las direcciones sean fáciles de recordar: ::10, ::20, ::30).
+#
+# Esquema de conexionado:
+#   python3 herramientas/topologia.py 03-icmpv6-nd/lab/lab.clab.yml
+#
+# Probado con containerlab 0.74.3, FRR 10.2.1, netshoot v0.13, kernel 7.2 (OrbStack).
+
+name: m03
+
+topology:
+  defaults:
+    kind: linux
+    image: nicolaka/netshoot:v0.13
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: 0
+      net.ipv6.conf.default.disable_ipv6: 0
+      net.ipv6.conf.default.autoconf: 0
+
+  nodes:
+    h1:
+      cmd: sleep infinity
+      labels: {graph-level: 1, graph-row: 1, graph-icon: host, ip.eth1: "3fff:0:10::10/64"}
+      exec:
+        - ip -6 route del default dev eth0
+        - ip -6 addr add 3fff:0:10::10/64 dev eth1
+    h2:
+      cmd: sleep infinity
+      labels: {graph-level: 1, graph-row: 2, graph-icon: host, ip.eth1: "3fff:0:10::20/64"}
+      exec:
+        - ip -6 route del default dev eth0
+        - ip -6 addr add 3fff:0:10::20/64 dev eth1
+    h3:
+      cmd: sleep infinity
+      labels: {graph-level: 1, graph-row: 3, graph-icon: host, ip.eth1: "3fff:0:10::30/64"}
+      exec:
+        - ip -6 route del default dev eth0
+        - ip -6 addr add 3fff:0:10::30/64 dev eth1
+
+    sw1:
+      cmd: sleep infinity
+      labels: {graph-level: 2, graph-row: 2, graph-icon: switch, graph-desc: "switch · Linux bridge"}
+      sysctls:
+        net.ipv6.conf.all.disable_ipv6: 1
+        net.ipv6.conf.default.disable_ipv6: 1
+      exec:
+        - ip link add br0 type bridge mcast_snooping 0
+        - sh -c "for p in eth1 eth2 eth3 eth4; do ip link set $p master br0; ip link set $p up; done"
+        - ip link set br0 up
+
+    r1:
+      image: quay.io/frrouting/frr:10.2.1
+      labels: {graph-level: 3, graph-row: 2, graph-icon: router, ip.eth1: "3fff:0:10::1/64", ip.eth2: "3fff:0:40::1/64"}
+      sysctls:
+        net.ipv6.conf.all.forwarding: 1
+      binds:
+        - r1/daemons:/etc/frr/daemons
+        - r1/frr.conf:/etc/frr/frr.conf
+        - r1/vtysh.conf:/etc/frr/vtysh.conf
+      exec:
+        - ip -6 route del default dev eth0
+
+    h4:
+      cmd: sleep infinity
+      labels: {graph-level: 4, graph-row: 2, graph-icon: host, ip.eth1: "3fff:0:40::40/64"}
+      exec:
+        - ip -6 route del default dev eth0
+        - ip -6 addr add 3fff:0:40::40/64 dev eth1
+        - ip -6 route add default via 3fff:0:40::1 dev eth1
+
+  links:
+    - endpoints: ["h1:eth1", "sw1:eth1"]
+    - endpoints: ["h2:eth1", "sw1:eth2"]
+    - endpoints: ["h3:eth1", "sw1:eth3"]
+    - endpoints: ["r1:eth1", "sw1:eth4"]
+    - endpoints: ["r1:eth2", "h4:eth1"]

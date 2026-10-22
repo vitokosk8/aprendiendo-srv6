@@ -16,7 +16,8 @@ Los datos se leen de las etiquetas (labels) de cada nodo en lab.clab.yml:
 
   graph-level: 2                      orden de izquierda a derecha
   graph-row: 1                        fila dentro de su columna (opcional, por defecto 1, 2, 3…)
-  graph-icon: router | host           icono
+  graph-icon: router | host | switch  icono
+  graph-desc: "switch · Linux bridge" descripción bajo el nombre (opcional)
   ip.lo: "3fff:0:ff::1/128"           dirección de cada interfaz (ip.<interfaz>)
   ip.eth1: "3fff:0:1::1/64"           varias direcciones separadas por comas;
   ip.eth2: "SLAAC"                    o un texto libre, como "SLAAC"
@@ -47,14 +48,15 @@ def load_lab(path):
         labels = {str(k): str(v) for k, v in (n.get("labels") or {}).items()}
         image = n.get("image", defaults.get("image", ""))
         icon = labels.get("graph-icon") or ("router" if "frr" in image else "host")
-        role = {"router": "router", "host": "host"}.get(icon, icon)
+        role = {"router": "router", "host": "host", "switch": "switch"}.get(icon, icon)
         soft = "FRR" if "frr" in image else image.split("/")[-1].split(":")[0]
+        desc = labels.get("graph-desc") or f"{role} · {soft}"
         ips = {k[3:]: [a.strip() for a in v.split(",")] for k, v in labels.items() if k.startswith("ip.")}
         sids = [s.strip() for s in labels.get("srv6.sids", "").split(";") if s.strip()]
         nodes[name] = {
             "name": name,
             "icon": icon,
-            "desc": f"{role} · {soft}",
+            "desc": desc,
             "level": int(labels.get("graph-level", 1)),
             "row": int(labels["graph-row"]) if "graph-row" in labels else None,
             "ips": ips,
@@ -99,6 +101,10 @@ ICONS = {
 <rect x="2" y="2" width="60" height="60" rx="14" fill="#dafbe1" stroke="#1a7f37" stroke-width="2.5"/>
 <g fill="none" stroke="#1a7f37" stroke-width="2.8" stroke-linecap="round">
 <rect x="14" y="16" width="36" height="24" rx="3"/><path d="M32 40 V47 M23 49 H41"/></g></svg>""",
+    "switch": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<rect x="2" y="12" width="60" height="40" rx="8" fill="#f6f8fa" stroke="#57606a" stroke-width="2.5"/>
+<g fill="none" stroke="#57606a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+<path d="M14 26 H46 M40 21 L46 26 L40 31"/><path d="M50 38 H18 M24 33 L18 38 L24 43"/></g></svg>""",
 }
 
 
@@ -208,8 +214,9 @@ def mermaid(nodes, links):
         out.append(f'    {a} -- "{txt}" --- {b}')
     out += ["",
             "    classDef router fill:#ddf4ff,stroke:#0969da,stroke-width:2px,color:#1f2328",
-            "    classDef host fill:#dafbe1,stroke:#1a7f37,stroke-width:2px,color:#1f2328"]
-    for kind in ("router", "host"):
+            "    classDef host fill:#dafbe1,stroke:#1a7f37,stroke-width:2px,color:#1f2328",
+            "    classDef switch fill:#f6f8fa,stroke:#57606a,stroke-width:2px,color:#1f2328"]
+    for kind in ("router", "host", "switch"):
         names = [n["name"] for n in nodes.values() if n["icon"] == kind]
         if names:
             out.append(f"    class {','.join(names)} {kind}")
