@@ -143,6 +143,10 @@ SPF elige el directo (10).
 
 Si bajas la métrica de un enlace, lo haces más "atractivo"; si la subes, SPF lo evita. Cuando dos caminos tienen el **mismo** coste, IS-IS instala los dos y hace **ECMP**, como viste en el módulo 04.
 
+> **El coste de un prefijo lleva un salto más.** SPF calcula el coste a cada **nodo** (r3 está a 10 de r1 por el enlace directo). Pero el coste de una **red** incluye además la métrica de la interfaz que la anuncia. Como el loopback y las redes de host se anuncian por interfaces pasivas con métrica 10, su coste total desde r1 es 10 (llegar a r3) + 10 (interfaz pasiva) = **20**. Por eso `show isis route` dirá "r3 a coste 10" y `show ipv6 route isis` dirá "loopback de r3 a coste 20": miden cosas distintas, el nodo y el prefijo.
+>
+> **IS-IS usa next-hop link-local.** Fíjate en que las rutas que instala IS-IS salen `via fe80::…`, no por la dirección global del vecino. Es lo normal en IPv6: el IGP usa las link-local como siguiente salto, igual que hacía Neighbor Discovery (módulo 03). Lo verás otra vez en SRv6: el siguiente salto de un SID End.X es una link-local.
+
 > **Métricas estrechas y anchas.** La métrica original de IS-IS era de 6 bits (máximo 63 por enlace, 1023 por camino): son las *narrow metrics*. Hoy se usan las *wide metrics* (32 bits), imprescindibles para Segment Routing y para Flex-Algo. FRR las usa por defecto.
 
 ## 8. La reconvergencia: lo que las rutas estáticas no podían hacer

@@ -18,18 +18,18 @@ El System ID `0000.0000.0002` corresponde a **r2**.
 
 **A2.** Porque IS-IS no viaja dentro de IP: va directamente sobre la capa 2 y transporta las direcciones (IPv4, IPv6…) como datos dentro de sus TLV. El protocolo no necesita cambiar para encaminar un tipo de dirección u otro. La ventaja para SRv6 es que **añadir SRv6 es solo definir TLV nuevos** (locator, SID), sin tocar el motor del protocolo; por eso IS-IS fue el primero y el más cómodo para Segment Routing.
 
-**A3.** Métrica 10 por enlace:
+**A3.** El coste de una **red** es el coste hasta el nodo que la anuncia **más** la métrica de la interfaz pasiva por la que la anuncia (10). Así que todos salen a **20**. El siguiente salto es la **link-local** del vecino, no su dirección global:
 
-| Destino | Caminos | Coste | Sale por |
-|---------|---------|-------|----------|
-| loopback de r2 | r1→r2 (10) · r1→r3→r2 (20) | **10** | enlace directo r1–r2 (`3fff:0:12::2`) |
-| loopback de r3 | r1→r3 (10) · r1→r2→r3 (20) | **10** | enlace directo r1–r3 (`3fff:0:13::3`) |
-| red de h2 | r1→r2 (10) + la pasiva | **10** (+ coste de la pasiva, normalmente 10) | hacia r2 |
-| red de h3 | r1→r3 (10) + la pasiva | **10** (+ pasiva) | hacia r3 |
+| Destino | Camino más corto | Coste | Sale por |
+|---------|------------------|-------|----------|
+| loopback de r2 | r1→r2 (10) + lo pasiva (10) | **20** | link-local de r2, por eth2 |
+| loopback de r3 | r1→r3 (10) + lo pasiva (10) | **20** | link-local de r3, por eth3 |
+| red de h2 | r1→r2 (10) + eth3 pasiva (10) | **20** | link-local de r2, por eth2 |
+| red de h3 | r1→r3 (10) + eth3 pasiva (10) | **20** | link-local de r3, por eth3 |
 
-(Las interfaces pasivas también aportan su métrica al prefijo que anuncian; lo que importa aquí es el siguiente salto.)
+(El coste al **nodo** r2 o r3 sí es 10; lo que suma 20 es el coste al **prefijo**, por la métrica de la interfaz pasiva. Son dos medidas distintas, como explica la teoría.)
 
-**A4.** Con el enlace r1–r3 a métrica 30, el camino directo cuesta 30 y el camino por r2 cuesta 10 + 10 = **20**. Gana el de r2: r1 llegará al loopback de r3 **por r2** (`3fff:0:12::2`), con coste 20.
+**A4.** Con el enlace r1–r3 a métrica 30, el camino directo al loopback de r3 cuesta 30 + 10 (pasiva) = **40**; el camino por r2 cuesta 10 + 10 + 10 = **30**. Gana el de r2: r1 llegará al loopback de r3 **por r2** (link-local de r2, eth2), con coste 30.
 
 **A5.** Porque IS-IS hace que **todos** los routers reconverjan, no solo uno. Al caer un enlace, los routers afectados generan un LSP nuevo sin ese enlace y lo inundan; r1, r2 y r3 actualizan su LSDB y recalculan SPF. El camino de vuelta se recalcula igual que el de ida, porque cada router rehace **todas** sus rutas. En el módulo 04, las rutas estáticas de r2 no se recalculaban solas, así que la vuelta quedaba rota.
 
@@ -58,20 +58,31 @@ Area CORE:
 
 ### B3
 
-1. r1 aprende por IS-IS (`I>*`): los loopbacks `3fff:0:ff::2/128` y `3fff:0:ff::3/128`, las redes de host `3fff:0:2::/64` y `3fff:0:3::/64`, y el enlace `3fff:0:23::/64` (r2–r3). La métrica aparece como el segundo número de `[115/X]` (115 es la distancia administrativa de IS-IS; X es el coste SPF). Para los loopboks de r2 y r3, X = 10; para las redes de host, 20 (10 del enlace + 10 de la pasiva).
-2. Al loopback de r3 llega **vía `3fff:0:13::3` (enlace directo), coste 10**, como en A3: es más barato que los 20 del camino por r2.
-3. `show isis route` muestra el árbol SPF con el coste a cada nodo: **r3 a coste 10**, **r2 a coste 10** (los dos a un salto directo).
+```
+I>* 3fff:0:2::/64   [115/20] via fe80::...(r2), eth2
+I>* 3fff:0:3::/64   [115/20] via fe80::...(r3), eth3
+I>* 3fff:0:23::/64  [115/20] via fe80::...(r2), eth2
+  *                          via fe80::...(r3), eth3
+I>* 3fff:0:ff::2/128 [115/20] via fe80::...(r2), eth2
+I>* 3fff:0:ff::3/128 [115/20] via fe80::...(r3), eth3
+```
+
+1. r1 aprende por IS-IS (`I>*`): los loopbacks `3fff:0:ff::2/128` y `3fff:0:ff::3/128`, las redes de host `3fff:0:2::/64` y `3fff:0:3::/64`, y el enlace `3fff:0:23::/64`. **Todas con coste 20**: el `115` de `[115/X]` es la distancia administrativa de IS-IS y el `20` es el coste SPF (10 del enlace + 10 de la interfaz pasiva que anuncia cada prefijo). El siguiente salto es siempre una **link-local** (`fe80::…`), no la dirección global del vecino.
+2. Al loopback de r3 llega **por eth3**, el enlace directo (coste 20), que es más barato que el camino por r2 (30). Coincide con A3.
+3. `show isis route` muestra el árbol SPF con el coste a cada **nodo**: **r3 a coste 10** y **r2 a coste 10** (los dos a un salto directo). Fíjate en la diferencia con el punto 1: al nodo r3 se llega a 10, pero a su loopback (un prefijo) a 20, porque el prefijo añade la métrica de la interfaz pasiva.
+
+> **Un ECMP que ya está ahí.** La red `3fff:0:23::/64` (el enlace r2–r3) aparece con **dos** siguientes saltos de coste 20: por r2 (r1→r2→enlace) y por r3 (r1→r3→enlace), los dos a 10 + 10. IS-IS instala las dos y reparte: es el mismo ECMP del módulo 04, calculado solo.
 
 ### B4
 
-1. Con el enlace r1–r3 a métrica 30, r1 llega al loopback de r3 **vía `3fff:0:12::2` (por r2)**, con coste **20** (10 + 10), que ahora es más barato que los 30 del enlace directo.
-2. Sí: el traceroute a `3fff:0:3::30` pasa ahora por r2 (`3fff:0:12::2` y después `3fff:0:23::3`). Coincide con A4.
+1. Con el enlace r1–r3 a métrica 30, r1 llega al loopback de r3 **por r2** (link-local de r2, eth2), con coste **30** (10 + 10 + 10 de la pasiva), más barato que los 40 del enlace directo (30 + 10).
+2. Sí: el traceroute a `3fff:0:3::30` pasa ahora por r2 (`3fff:0:12::2` y después `3fff:0:23::3`). Coincide con A4 (la conclusión: va por r2).
 3. —
 
 ### B5
 
 1. El ping **no se interrumpe**; como mucho pierde **uno o dos paquetes** mientras IS-IS reconverge, y sigue. (La reconvergencia tarda un instante: detectar el fallo, inundar el LSP y recalcular SPF.)
-2. Ahora h1 llega a h3 **por r2**: el traceroute pasa por `3fff:0:12::2` y `3fff:0:23::3`. La ruta en r1 es `3fff:0:3::/64 via 3fff:0:12::2`. Recalcularon **todos**: r1 (perdió un vecino), y también r2 y r3 al recibir los LSP nuevos.
+2. Ahora h1 llega a h3 **por r2**: el traceroute pasa por `3fff:0:12::2` y `3fff:0:23::3`. La ruta en r1 es `3fff:0:3::/64 via fe80::…(r2), eth2`, con coste 30. Recalcularon **todos**: r1 (perdió un vecino), y también r2 y r3 al recibir los LSP nuevos.
 3. La vuelta de h3 a h1 también pasa ahora por r2 y **funciona**, porque r3 recalculó su ruta a `3fff:0:1::/64` igual que r1 recalculó la suya. Esto es exactamente lo que fallaba en el módulo 04: allí las rutas estáticas de r2/r3 no se recalculaban y la vuelta se rompía.
 4. Al levantar el enlace, el camino directo (coste 10) vuelve a ganar y h1→h3 vuelve a ir por r1→r3. En todo el proceso (caída + recuperación) se pierden solo unos pocos paquetes.
 
@@ -85,8 +96,8 @@ Area CORE:
 El camino por r2 (`r1→r2→r3`) cuesta 10 + 10 = **20**. Para igualarlo, el enlace directo r1–r3 debe costar también **20**. Configura `isis metric 20` en eth3 de r1 y en eth1 de r3. Entonces los dos caminos a la red de h3 cuestan 20, e IS-IS instala **dos** siguientes saltos:
 
 ```
-I>* 3fff:0:3::/64 [115/30] via fe80::... (r3), eth3
-  *                        via fe80::... (r2), eth2
+I>* 3fff:0:3::/64 [115/30] via fe80::...(r3), eth3
+  *                        via fe80::...(r2), eth2
 ```
 
-(El coste total hasta la red de h3 incluye además la métrica de la interfaz pasiva, por eso puede verse 30 en vez de 20; lo que importa es que hay **dos** caminos de igual coste.) `show ipv6 route 3fff:0:3::/64` muestra las dos líneas con `*`, y el kernel lo instala como ruta multipath. Es el mismo ECMP del módulo 04, pero calculado solo por IS-IS.
+Con el directo a 20, el camino directo a la red de h3 cuesta 20 + 10 (pasiva) = 30, y el camino por r2 cuesta 10 + 10 + 10 = 30: los dos a **30**, de ahí el `[115/30]` con dos siguientes saltos. `show ipv6 route 3fff:0:3::/64` muestra las dos líneas con `*`, y el kernel lo instala como ruta multipath. Es el mismo ECMP del módulo 04, pero calculado solo por IS-IS.
