@@ -10,9 +10,9 @@ for i in $(seq 1 15); do
   sleep 2
 done
 
-check "r1: ruta conectada a 3fff:0:1::/64"          "docker exec $L-r1 vtysh -c 'show ipv6 route 3fff:0:1::/64' | grep -qE 'C>?\\*'"
-check "r1: ruta estática a 3fff:0:2::/64 vía r2"     "docker exec $L-r1 vtysh -c 'show ipv6 route 3fff:0:2::/64' | grep -q 'S>'"
-check "r1: ruta estática a 3fff:0:3::/64 vía r3"     "docker exec $L-r1 vtysh -c 'show ipv6 route 3fff:0:3::/64' | grep -q '3fff:0:13::3'"
+check "r1: ruta conectada a 3fff:0:1::/64"          "docker exec $L-r1 ip -6 route show 3fff:0:1::/64 | grep -q 'proto kernel'"
+check "r1: ruta estática a 3fff:0:2::/64 vía r2"     "docker exec $L-r1 vtysh -c 'show ipv6 route static' | grep -A1 '3fff:0:2::/64' | grep -q '3fff:0:12::2'"
+check "r1: ruta estática a 3fff:0:3::/64 vía r3"     "docker exec $L-r1 vtysh -c 'show ipv6 route static' | grep -A1 '3fff:0:3::/64' | grep -q '3fff:0:13::3'"
 check "h1 → h2 (red tras r2)"                        "docker exec $L-h1 ping -c2 -W2 3fff:0:2::20"
 check "h1 → h3 (red tras r3)"                        "docker exec $L-h1 ping -c2 -W2 3fff:0:3::30"
 check "h2 → h3 (r2 llega a r3 directo)"              "docker exec $L-h2 ping -c2 -W2 3fff:0:3::30"
