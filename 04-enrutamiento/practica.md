@@ -122,14 +122,14 @@ $ docker exec clab-m04-r1 vtysh -c "show ipv6 route 3fff:0:3::99"
 
 ### B3. Métrica y failover
 
-En r1 hay una sola ruta a la red de h2 (`3fff:0:2::/64`), vía r2. Añade una de **reserva** por el camino largo (r1→r3→r2), con métrica peor:
+En r1 hay una sola ruta a la red de h2 (`3fff:0:2::/64`), vía r2. Añade una de **reserva** por el camino largo (r1→r3→r2), con peor **distancia administrativa** (en FRR, el número final de una ruta estática es la distancia, no la métrica; cuanto más baja, más preferida):
 
 ```bash
 $ docker exec clab-m04-r1 vtysh -c "configure terminal" -c "ipv6 route 3fff:0:2::/64 3fff:0:13::3 200"
 $ docker exec clab-m04-r1 vtysh -c "show ipv6 route 3fff:0:2::/64"
 ```
 
-1. ¿Cuántas rutas a `3fff:0:2::/64` ve FRR? ¿Cuál está activa (`>*`)? ¿Por qué esa?
+1. ¿Cuántas rutas a `3fff:0:2::/64` ve FRR (`show ipv6 route 3fff:0:2::/64` muestra las dos entradas)? ¿Cuál está marcada como `best`? ¿Por qué esa?
 
 Ahora simula que se cae el enlace r1–r2, apagando la interfaz eth2 de r1:
 
@@ -139,8 +139,8 @@ $ docker exec clab-m04-r1 vtysh -c "show ipv6 route 3fff:0:2::/64"
 $ docker exec clab-m04-h1 ping -c2 3fff:0:2::20
 ```
 
-2. ¿Qué ruta está activa ahora? ¿Sigue funcionando el ping de h1 a h2?
-3. ¿Por qué la ruta de métrica 200 no se usaba antes y ahora sí?
+2. ¿Qué ruta está activa ahora en r1? ¿Por qué la de distancia 200 no se usaba antes y ahora sí?
+3. **Sorpresa**: el ping de h1 a h2 **falla**, aunque r1 ya tiene camino hacia la red de h2. ¿Por qué? Piensa en el camino de **vuelta**: ¿cómo llega la respuesta de h2 hasta h1? ¿Qué ruta usa r2 para la red de h1 y qué le ha pasado a esa ruta? (Este fallo es la mejor motivación para el módulo 05.)
 
 Levanta la interfaz y quita la ruta de reserva:
 

@@ -42,9 +42,22 @@ Vuelta h2→h1: h2 envía a r2; r2 tiene `3fff:0:1::/64 via 3fff:0:12::1`, así 
 
 ### B3
 
-1. FRR ve **dos** rutas a `3fff:0:2::/64`: la de `metric 20` (vía r2) y la de `metric 200` (vía r3). Solo la de **métrica 20** está activa (`>*`), porque entre rutas del mismo prefijo gana la de menor métrica.
-2. Al apagar eth2, la red conectada `3fff:0:12::/64` desaparece y con ella la posibilidad de alcanzar `3fff:0:12::2`. FRR retira la ruta de métrica 20 (su siguiente salto ya no es resoluble) e instala la de **métrica 200 vía 3fff:0:13::3**. El ping de h1 a h2 **sigue funcionando**, ahora por el camino r1→r3→r2.
-3. Antes no se usaba porque su métrica (200) era peor que la de la ruta principal (20), y entre rutas del mismo prefijo solo la mejor baja a la FIB. Cuando la principal deja de ser válida, la de reserva pasa a ser la mejor disponible. Eso es el failover.
+1. FRR ve **dos** entradas para `3fff:0:2::/64`: una con `distance 1` (vía r2) y otra con `distance 200` (vía r3). Solo la de **distancia 1** está activa (lleva el `*` y la marca `best`), porque entre rutas del mismo prefijo gana la de menor distancia administrativa.
+
+   ```
+   Routing entry for 3fff:0:2::/64
+     Known via "static", distance 200, metric 0
+       3fff:0:13::3, via eth3, weight 1
+   Routing entry for 3fff:0:2::/64
+     Known via "static", distance 1, metric 0, best
+     * 3fff:0:12::2, via eth2, weight 1
+   ```
+
+   (En FRR, el número final de `ipv6 route PREFIJO SALTO [N]` es la **distancia administrativa**. Para elegir entre rutas del mismo prefijo cumple el mismo papel que la métrica: menor valor, más preferida.)
+2. Al apagar eth2, la red conectada `3fff:0:12::/64` desaparece y `3fff:0:12::2` deja de ser alcanzable. FRR retira la ruta de distancia 1 e instala la de **distancia 200 vía 3fff:0:13::3**, que pasa a ser `best`. El reenvío de ida en r1 se ha recuperado solo.
+3. **Pero el ping falla** (`100% packet loss`), y esto es lo más importante del ejercicio. El failover arregló la **ida** (r1 ya llega a la red de h2, ahora por r1→r3→r2), pero no la **vuelta**. La respuesta de h2 va a r2, y r2 tiene una sola ruta hacia la red de h1: `3fff:0:1::/64 via 3fff:0:12::1`, es decir, por el enlace r1–r2… que es justo el que hemos apagado. r2 ya no puede devolver nada a h1.
+
+   La lección: con **rutas estáticas**, recalcular el camino en un router no basta. Cuando se cae un enlace, hay que rehacer a mano las rutas de **todos** los routers afectados. En una red real eso es inviable. Justo para esto existen los protocolos de enrutamiento dinámico como **IS-IS** (módulo 05): detectan el cambio y **todos** los routers recalculan sus tablas automáticamente, ida y vuelta.
 
 ### B4
 
@@ -55,10 +68,10 @@ Vuelta h2→h1: h2 envía a r2; r2 tiene `3fff:0:1::/64 via 3fff:0:12::1`, así 
      *                     via 3fff:0:12::2, eth2, weight 1
    ```
 
-   El kernel la muestra como una ruta **multipath** con varios `nexthop`:
+   El kernel la muestra como una ruta **multipath** (`nhid`, un identificador de grupo de siguientes saltos) con varios `nexthop`:
 
    ```
-   3fff:0:3::/64 metric 1024
+   3fff:0:3::/64 nhid 36 proto 196 metric 20 pref medium
        nexthop via 3fff:0:13::3 dev eth3 weight 1
        nexthop via 3fff:0:12::2 dev eth2 weight 1
    ```

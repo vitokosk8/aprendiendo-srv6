@@ -109,6 +109,8 @@ Dos rutas al **mismo** prefijo compiten por la métrica:
 
 ### Distinta métrica: una activa, otra de reserva
 
+> **Métrica y distancia administrativa.** "Métrica" es el término general para el coste de una ruta. Cada origen (estático, IS-IS, BGP…) tiene además una **distancia administrativa**, que decide qué origen gana cuando dos protocolos ofrecen una ruta al mismo prefijo. En las rutas estáticas de FRR, el número que escribes (`ipv6 route PREFIJO SALTO 200`) es la distancia administrativa, y hace de métrica para elegir entre estáticas del mismo prefijo: menor valor, más preferida.
+
 ```
 3fff:0:2::/64 via 3fff:0:12::2  metric 20    ← activa
 3fff:0:2::/64 via 3fff:0:13::3  metric 200   ← reserva

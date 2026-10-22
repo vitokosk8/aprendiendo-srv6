@@ -1,0 +1,82 @@
+# Módulo 05 · IS-IS para IPv6
+#
+#   h1 ── r1 ──── r2 ── h2
+#          \     /
+#           \   /
+#            r3 ── h3
+#
+# El mismo triángulo del módulo 04, pero ahora los routers usan IS-IS en vez de
+# rutas estáticas. Cada router tiene un loopback (3fff:0:ff::N/128) anunciado por
+# IS-IS, y las redes de los hosts se anuncian como interfaces pasivas. Los enlaces
+# entre routers son punto a punto. Al caer un enlace, TODA la red reconverge sola.
+#
+# Esquema de conexionado:
+#   python3 herramientas/topologia.py 05-isis/lab/lab.clab.yml
+#
+# Probado con containerlab 0.74.3, FRR 10.2.1, netshoot v0.13, kernel 7.2 (OrbStack).
+
+name: m05
+
+topology:
+  defaults:
+    kind: linux
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: 0
+      net.ipv6.conf.default.disable_ipv6: 0
+
+  nodes:
+    h1:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 1, graph-row: 1, graph-icon: host, ip.eth1: "3fff:0:1::10/64"}
+      exec:
+        - ip -6 route del default dev eth0
+        - ip -6 addr add 3fff:0:1::10/64 dev eth1
+        - ip -6 route add default via 3fff:0:1::1 dev eth1
+
+    r1:
+      image: quay.io/frrouting/frr:10.2.1
+      labels: {graph-level: 2, graph-row: 1, graph-icon: router, ip.lo: "3fff:0:ff::1/128", ip.eth1: "3fff:0:1::1/64", ip.eth2: "3fff:0:12::1/64", ip.eth3: "3fff:0:13::1/64"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1}
+      binds: [r1/daemons:/etc/frr/daemons, r1/frr.conf:/etc/frr/frr.conf, r1/vtysh.conf:/etc/frr/vtysh.conf]
+      exec: ["ip -6 route del default dev eth0"]
+
+    r2:
+      image: quay.io/frrouting/frr:10.2.1
+      labels: {graph-level: 3, graph-row: 1, graph-icon: router, ip.lo: "3fff:0:ff::2/128", ip.eth1: "3fff:0:12::2/64", ip.eth2: "3fff:0:23::2/64", ip.eth3: "3fff:0:2::1/64"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1}
+      binds: [r2/daemons:/etc/frr/daemons, r2/frr.conf:/etc/frr/frr.conf, r2/vtysh.conf:/etc/frr/vtysh.conf]
+      exec: ["ip -6 route del default dev eth0"]
+
+    r3:
+      image: quay.io/frrouting/frr:10.2.1
+      labels: {graph-level: 2, graph-row: 3, graph-icon: router, ip.lo: "3fff:0:ff::3/128", ip.eth1: "3fff:0:13::3/64", ip.eth2: "3fff:0:23::3/64", ip.eth3: "3fff:0:3::1/64"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1}
+      binds: [r3/daemons:/etc/frr/daemons, r3/frr.conf:/etc/frr/frr.conf, r3/vtysh.conf:/etc/frr/vtysh.conf]
+      exec: ["ip -6 route del default dev eth0"]
+
+    h2:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 4, graph-row: 1, graph-icon: host, ip.eth1: "3fff:0:2::20/64"}
+      exec:
+        - ip -6 route del default dev eth0
+        - ip -6 addr add 3fff:0:2::20/64 dev eth1
+        - ip -6 route add default via 3fff:0:2::1 dev eth1
+
+    h3:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 3, graph-row: 3, graph-icon: host, ip.eth1: "3fff:0:3::30/64"}
+      exec:
+        - ip -6 route del default dev eth0
+        - ip -6 addr add 3fff:0:3::30/64 dev eth1
+        - ip -6 route add default via 3fff:0:3::1 dev eth1
+
+  links:
+    - endpoints: ["h1:eth1", "r1:eth1"]
+    - endpoints: ["r1:eth2", "r2:eth1"]
+    - endpoints: ["r1:eth3", "r3:eth1"]
+    - endpoints: ["r2:eth2", "r3:eth2"]
+    - endpoints: ["r2:eth3", "h2:eth1"]
+    - endpoints: ["r3:eth3", "h3:eth1"]
