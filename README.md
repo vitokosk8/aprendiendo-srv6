@@ -39,7 +39,7 @@ El estado indica qué módulos están ya escritos y probados.
 | [02](02-cabecera-ipv6/README.md) | La cabecera IPv6 y las cabeceras de extensión | ✅ |
 | [03](03-icmpv6-nd/README.md) | ICMPv6 y Neighbor Discovery | ✅ |
 | [04](04-enrutamiento/README.md) | Enrutamiento IPv6: rutas estáticas y longest-prefix match | ✅ |
-| [05](05-isis/README.md) | IS-IS para IPv6 | 🧪 |
+| [05](05-isis/README.md) | IS-IS para IPv6 | ✅ |
 
 ### Bloque II · Segment Routing sobre IPv6
 
