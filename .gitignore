@@ -1,0 +1,4 @@
+# Directorios y copias que crea containerlab al desplegar
+clab-*/
+*.clab.yml.bak
+.DS_Store

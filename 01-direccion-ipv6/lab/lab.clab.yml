@@ -1,0 +1,46 @@
+# Módulo 01 · La dirección IPv6
+#
+#   h1 ──eth1── r1 ──eth2── h2
+#   2001:db8:1::/64   2001:db8:2::/64
+#
+# r1 anuncia cada prefijo con Router Advertisements (SLAAC).
+# h1 y h2 no tienen ninguna dirección configurada: se la construyen ellos solos.
+
+name: m01
+
+topology:
+  defaults:
+    kind: linux
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: 0
+      net.ipv6.conf.default.disable_ipv6: 0
+
+  nodes:
+    r1:
+      image: quay.io/frrouting/frr:10.2.1
+      sysctls:
+        net.ipv6.conf.all.forwarding: 1
+      binds:
+        - r1/daemons:/etc/frr/daemons
+        - r1/frr.conf:/etc/frr/frr.conf
+        - r1/vtysh.conf:/etc/frr/vtysh.conf
+      exec:
+        # Sin ruta por defecto por la red de gestión (ver 00-preparacion)
+        - ip -6 route del default dev eth0
+
+    h1:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      exec: &host
+        - ip -6 route del default dev eth0
+        # Pedir un Router Advertisement en cuanto el enlace está listo
+        - sh -c "ip link set eth1 down; ip link set eth1 up"
+
+    h2:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      exec: *host
+
+  links:
+    - endpoints: ["h1:eth1", "r1:eth1"]
+    - endpoints: ["r1:eth2", "h2:eth1"]
