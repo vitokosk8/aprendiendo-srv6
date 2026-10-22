@@ -8,11 +8,11 @@ Todo funciona con software libre: no hace falta ninguna imagen de fabricante.
 
 ## Cómo usar este repositorio
 
-Cada módulo es una carpeta con la misma estructura:
+Cada módulo es una carpeta con la misma estructura (hay una plantilla en [`herramientas/plantilla-modulo`](herramientas/plantilla-modulo)):
 
 ```
 NN-tema/
-├── README.md        ← teoría
+├── README.md        ← teoría, con el esquema del laboratorio al principio
 ├── practica.md      ← ejercicios guiados sobre el laboratorio
 ├── soluciones.md    ← soluciones razonadas (¡inténtalo antes!)
 └── lab/             ← topología de Containerlab y configuraciones
@@ -74,7 +74,7 @@ El estado indica qué módulos están ya escritos y probados.
 
 - **Direccionamiento**: se usa `3fff::/20`, el bloque reservado para documentación por el [RFC 9637](https://www.rfc-editor.org/rfc/rfc9637), evitando `3fff:172::/32`, que usa la red de gestión de containerlab. El módulo 01 usa además el bloque clásico `2001:db8::/32` ([RFC 3849](https://www.rfc-editor.org/rfc/rfc3849)). Para los SIDs se usa `5f00::/16` ([RFC 9602](https://www.rfc-editor.org/rfc/rfc9602)).
 - **Nombres**: `hN` para hosts y `rN` para routers.
-- **Esquemas de conexionado**: cada práctica incluye la topología con direcciones y SIDs en [Mermaid](https://mermaid.js.org), que GitHub dibuja directamente, y en un fichero `lab/topologia.drawio` editable. Ambos se generan desde `lab.clab.yml` con [`herramientas/topologia.py`](herramientas/topologia.py) (ver [módulo 00](00-preparacion/README.md#dibujar-la-topología)).
+- **Esquemas de conexionado**: cada módulo muestra su laboratorio con direcciones y SIDs al principio de la teoría y en el enunciado de la práctica, en [Mermaid](https://mermaid.js.org), que GitHub dibuja directamente, y en un fichero `lab/topologia.drawio` editable. Ambos se generan desde `lab.clab.yml` con [`herramientas/topologia.py`](herramientas/topologia.py) (ver [módulo 00](00-preparacion/README.md#dibujar-la-topología)).
 - **Versiones fijadas**: cada laboratorio indica la imagen exacta con la que se probó.
 - **Entorno de pruebas**: containerlab 0.74.3 sobre OrbStack (kernel Linux 7.2), FRR 10.2.1 y netshoot v0.13.
 - Los comandos que empiezan por `$` se ejecutan en tu máquina; los que empiezan por `h1#`, `r1#`… dentro del contenedor indicado.

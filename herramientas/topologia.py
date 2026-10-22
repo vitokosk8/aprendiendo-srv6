@@ -4,8 +4,8 @@
 Produce dos salidas con la misma información (nodos, interfaces, direcciones y SIDs):
 
   * lab/topologia.drawio  → editable en draw.io / VS Code, exportable a PNG/PDF
-  * el bloque Mermaid de practica.md, entre los marcadores
-      <!-- topologia:inicio --> y <!-- topologia:fin -->
+  * el bloque Mermaid del README.md del módulo y de su practica.md,
+    entre los marcadores <!-- topologia:inicio --> y <!-- topologia:fin -->
 
 Uso:
   python3 herramientas/topologia.py 01-direccion-ipv6/lab/lab.clab.yml
@@ -232,17 +232,20 @@ def main():
         f.write(drawio(title, nodes, links))
     print(f"✔ {os.path.relpath(out)}")
 
-    practica = os.path.join(os.path.dirname(labdir), "practica.md")
-    if os.path.exists(practica):
-        txt = open(practica).read()
-        pat = re.compile(r"(<!-- topologia:inicio -->\n)(?:.*?\n)?(<!-- topologia:fin -->)", re.S)
+    # README.md (portada del módulo) y practica.md (enunciado): mismo diagrama
+    moddir = os.path.dirname(labdir)
+    pat = re.compile(r"(<!-- topologia:inicio -->\n)(?:.*?\n)?(<!-- topologia:fin -->)", re.S)
+    block = mermaid(nodes, links)
+    for fname in ("README.md", "practica.md"):
+        path = os.path.join(moddir, fname)
+        if not os.path.exists(path):
+            continue
+        txt = open(path).read()
         if pat.search(txt):
-            txt = pat.sub(lambda m: m.group(1) + mermaid(nodes, links) + "\n" + m.group(2), txt)
-            open(practica, "w").write(txt)
-            print(f"✔ {os.path.relpath(practica)} (bloque Mermaid actualizado)")
+            open(path, "w").write(pat.sub(lambda m: m.group(1) + block + "\n" + m.group(2), txt))
+            print(f"✔ {os.path.relpath(path)} (diagrama actualizado)")
         else:
-            print(f"· {os.path.relpath(practica)} no tiene marcadores <!-- topologia:inicio/fin -->")
-
+            print(f"· {os.path.relpath(path)} no tiene marcadores <!-- topologia:inicio/fin -->")
 
 if __name__ == "__main__":
     main()

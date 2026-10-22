@@ -65,7 +65,7 @@ Los contenedores se llaman `clab-<nombre-del-lab>-<nodo>`, por ejemplo `clab-m01
 
 Cada laboratorio incluye su esquema de conexionado en dos formatos:
 
-- **Mermaid**, dentro de `practica.md`: GitHub lo dibuja directamente.
+- **Mermaid**, en la portada del módulo (`README.md`) y en el enunciado de la práctica (`practica.md`): GitHub lo dibuja directamente.
 - **draw.io**, en `lab/topologia.drawio`: se abre en [app.diagrams.net](https://app.diagrams.net) o en VS Code (extensión *Draw.io Integration*) para recolocar nodos, retocarlo o exportarlo a PNG/PDF.
 
 Los dos se generan con [`herramientas/topologia.py`](../herramientas/topologia.py) a partir de las etiquetas (`labels`) de cada nodo en `lab.clab.yml`, que es la única fuente de verdad:
@@ -88,10 +88,11 @@ Para regenerarlos después de cambiar un laboratorio (necesita PyYAML):
 $ sudo apt install -y python3-yaml          # en la máquina Linux de OrbStack, una sola vez
 $ python3 herramientas/topologia.py 01-direccion-ipv6/lab/lab.clab.yml
 ✔ 01-direccion-ipv6/lab/topologia.drawio
-✔ 01-direccion-ipv6/practica.md (bloque Mermaid actualizado)
+✔ 01-direccion-ipv6/README.md (diagrama actualizado)
+✔ 01-direccion-ipv6/practica.md (diagrama actualizado)
 ```
 
-El script sustituye el diagrama de `practica.md` que está entre los marcadores `<!-- topologia:inicio -->` y `<!-- topologia:fin -->`.
+El script sustituye el diagrama de `README.md` y de `practica.md` que está entre los marcadores `<!-- topologia:inicio -->` y `<!-- topologia:fin -->`.
 
 Containerlab también sabe dibujar topologías por sí mismo (`containerlab graph --drawio` o `--mermaid`), pero no muestra direcciones ni SIDs; por eso el curso usa su propio generador.
 

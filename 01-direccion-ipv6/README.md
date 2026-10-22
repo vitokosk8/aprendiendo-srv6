@@ -1,7 +1,29 @@
 # 01 · La dirección IPv6
 
 > **Objetivo**: entender qué es una dirección IPv6, saber leerla y escribirla, reconocer sus tipos y saber cómo la obtiene un equipo.
+>
 > **Por qué importa para SRv6**: en SRv6 *cada instrucción es una dirección IPv6*. Si no lees las direcciones con soltura, no podrás leer un paquete SRv6.
+
+## El laboratorio de este módulo
+
+<!-- topologia:inicio -->
+```mermaid
+graph LR
+    h1("🖥️ <b>h1</b><br/>host · netshoot<br/>eth1: SLAAC")
+    r1("<b>r1</b><br/>router · FRR<br/>eth1: 2001:db8:1::1/64<br/>eth2: 2001:db8:2::1/64")
+    h2("🖥️ <b>h2</b><br/>host · netshoot<br/>eth1: SLAAC")
+
+    h1 -- "eth1 ⟷ eth1<br/>2001:db8:1::/64" --- r1
+    r1 -- "eth2 ⟷ eth1<br/>2001:db8:2::/64" --- h2
+
+    classDef router fill:#ddf4ff,stroke:#0969da,stroke-width:2px,color:#1f2328
+    classDef host fill:#dafbe1,stroke:#1a7f37,stroke-width:2px,color:#1f2328
+    class r1 router
+    class h1,h2 host
+```
+<!-- topologia:fin -->
+
+Un router FRR (**r1**) une dos redes y anuncia sus prefijos con *Router Advertisements*. Los hosts **h1** y **h2** no tienen ninguna dirección configurada: al arrancar se la construyen ellos solos. Al terminar la teoría, la [práctica](practica.md) te guía paso a paso sobre este laboratorio ([`lab/`](lab/), editable en draw.io: [`lab/topologia.drawio`](lab/topologia.drawio)).
 
 ## 1. ¿Qué es una dirección IP?
 
