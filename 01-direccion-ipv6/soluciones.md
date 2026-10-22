@@ -34,6 +34,7 @@
 | `fd12:3456:789a::1` | ULA (dentro de `fc00::/7`) |
 | `::1` | Loopback |
 | `5f00:0:2::` | SID de SRv6 (dentro de `5f00::/16`) |
+| `3fff:0:1::10` | Documentación (dentro de `3fff::/20`). Ojo: también cae dentro de `2000::/3`, pero al estar reservado nunca debe verse en Internet |
 
 **A5.**
 

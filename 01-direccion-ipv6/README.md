@@ -108,11 +108,25 @@ Y estos son los rangos que hay que reconocer a simple vista:
 | `::/128` | No especificada | "Todavía no tengo dirección". Solo como origen, por ejemplo al arrancar |
 | `::1/128` | Loopback | El propio equipo, como `127.0.0.1` en IPv4 |
 | `2000::/3` | Unicast global (GUA) | Direcciones públicas, enrutables en Internet |
-| `2001:db8::/32` | Documentación | Reservado para ejemplos y laboratorios ([RFC 3849](https://www.rfc-editor.org/rfc/rfc3849)). Nunca se enruta en Internet |
+| `2001:db8::/32` | Documentación | Reservado para ejemplos ([RFC 3849](https://www.rfc-editor.org/rfc/rfc3849)). Nunca se enruta en Internet |
+| `3fff::/20` | Documentación | Segundo bloque de documentación, mucho mayor ([RFC 9637](https://www.rfc-editor.org/rfc/rfc9637)). **Es el que usamos en los laboratorios del curso** |
 | `fe80::/10` | Link-local | Válida solo en el enlace. **Toda interfaz IPv6 tiene una** |
 | `fc00::/7` | Unique Local (ULA) | Privadas, similares a `10.0.0.0/8`. En la práctica se usa `fd00::/8` |
 | `ff00::/8` | Multicast | Grupos. `ff02::` = alcance de enlace |
 | `5f00::/16` | SIDs de SRv6 | Reservado para identificadores de SRv6 ([RFC 9602](https://www.rfc-editor.org/rfc/rfc9602)) |
+
+### Los prefijos de documentación: `2001:db8::/32` y `3fff::/20`
+
+Para escribir ejemplos, manuales o laboratorios hacen falta direcciones que **nunca** vayan a coincidir con una red real. IPv6 tiene dos bloques reservados para eso:
+
+- **`2001:db8::/32`** ([RFC 3849](https://www.rfc-editor.org/rfc/rfc3849), 2004). Es el clásico y aparece en casi toda la documentación. Su problema es el tamaño: un /32 es lo que recibe un único operador, y se queda corto para documentar redes grandes, varios sistemas autónomos o planes de direccionamiento realistas.
+- **`3fff::/20`** ([RFC 9637](https://www.rfc-editor.org/rfc/rfc9637), 2024). Es 4.096 veces mayor que el anterior (2¹² bloques /32), así que permite repartir prefijos como lo haría un registro regional: un /32 para cada operador, un /48 para cada sede…
+
+Ninguno de los dos debe aparecer nunca en Internet: si ves uno de estos prefijos en una tabla BGP, es un error de configuración o una fuga, y los filtros de entrada deben descartarlo.
+
+En este curso usamos **`3fff::/20`** a partir del módulo 02. El laboratorio del módulo 01 conserva `2001:db8::/32` para que conozcas los dos.
+
+> **Ojo con containerlab**: la red de gestión de containerlab también usa este bloque, `3fff:172:20:20::/64` (lo habrás visto en la columna *IPv4/6 Address* al desplegar). Por eso en los laboratorios nunca usaremos prefijos dentro de `3fff:172::/32`, para no mezclar el tráfico del laboratorio con el de gestión.
 
 ### Link-local: la que siempre está
 

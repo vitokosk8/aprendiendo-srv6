@@ -5,6 +5,8 @@
 #
 # r1 anuncia cada prefijo con Router Advertisements (SLAAC).
 # h1 y h2 no tienen ninguna dirección configurada: se la construyen ellos solos.
+#
+# Probado con containerlab 0.74.3, FRR 10.2.1, netshoot v0.13, kernel 7.2 (OrbStack).
 
 name: m01
 

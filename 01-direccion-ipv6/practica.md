@@ -39,7 +39,7 @@ Hazlos sin ordenador. Las soluciones están en [soluciones.md](soluciones.md).
 3. `fe80::1%eth1`
 4. `2001:db8:g::1`
 
-**A4.** Clasifica cada dirección según su tipo: `fe80::1`, `2a00:1450:4003:80e::200e`, `ff02::2`, `fd12:3456:789a::1`, `::1`, `5f00:0:2::`.
+**A4.** Clasifica cada dirección según su tipo: `fe80::1`, `2a00:1450:4003:80e::200e`, `ff02::2`, `fd12:3456:789a::1`, `::1`, `5f00:0:2::`, `3fff:0:1::10`.
 
 **A5.** Calcula la dirección EUI-64 que generará una interfaz con MAC `aa:c1:ab:00:00:01` en el prefijo `2001:db8:1::/64`.
 

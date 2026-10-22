@@ -34,8 +34,8 @@ El estado indica qué módulos están ya escritos y probados.
 
 | Módulo | Tema | Estado |
 |--------|------|:------:|
-| [00](00-preparacion/README.md) | Preparación del entorno: Docker, Containerlab, FRR y netshoot | 🧪 |
-| [01](01-direccion-ipv6/README.md) | La dirección IPv6: formato, tipos y cómo la obtiene un equipo | 🧪 |
+| [00](00-preparacion/README.md) | Preparación del entorno: Docker, Containerlab, FRR y netshoot | ✅ |
+| [01](01-direccion-ipv6/README.md) | La dirección IPv6: formato, tipos y cómo la obtiene un equipo | ✅ |
 | 02 | La cabecera IPv6 y las cabeceras de extensión | ⏳ |
 | 03 | ICMPv6 y Neighbor Discovery | ⏳ |
 | 04 | Enrutamiento IPv6: rutas estáticas y longest-prefix match | ⏳ |
@@ -72,9 +72,10 @@ El estado indica qué módulos están ya escritos y probados.
 
 ## Convenciones
 
-- **Direccionamiento**: se usa `2001:db8::/32`, el prefijo reservado para documentación ([RFC 3849](https://www.rfc-editor.org/rfc/rfc3849)), y `fc00::/7` / `5f00::/16` para SIDs, según el módulo.
+- **Direccionamiento**: se usa `3fff::/20`, el bloque reservado para documentación por el [RFC 9637](https://www.rfc-editor.org/rfc/rfc9637), evitando `3fff:172::/32`, que usa la red de gestión de containerlab. El módulo 01 usa además el bloque clásico `2001:db8::/32` ([RFC 3849](https://www.rfc-editor.org/rfc/rfc3849)). Para los SIDs se usa `5f00::/16` ([RFC 9602](https://www.rfc-editor.org/rfc/rfc9602)).
 - **Nombres**: `hN` para hosts y `rN` para routers.
 - **Versiones fijadas**: cada laboratorio indica la imagen exacta con la que se probó.
+- **Entorno de pruebas**: containerlab 0.74.3 sobre OrbStack (kernel Linux 7.2), FRR 10.2.1 y netshoot v0.13.
 - Los comandos que empiezan por `$` se ejecutan en tu máquina; los que empiezan por `h1#`, `r1#`… dentro del contenedor indicado.
 
 ## Fuentes
