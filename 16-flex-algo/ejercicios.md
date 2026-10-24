@@ -1,4 +1,4 @@
-# 18 · Ejercicios de Flex-Algo
+# 16 · Ejercicios de Flex-Algo
 
 Este módulo no tiene laboratorio (FRR no soporta Flex-Algo con SRv6), así que los ejercicios se hacen **en papel**, sobre la red de ejemplo de la teoría. Hazlos sin mirar; las soluciones están en [soluciones.md](soluciones.md).
 

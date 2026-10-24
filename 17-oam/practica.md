@@ -1,4 +1,4 @@
-# 16 · Práctica: OAM y troubleshooting
+# 17 · Práctica: OAM y troubleshooting
 
 Antes de empezar, lee la [teoría del módulo](README.md).
 
@@ -50,7 +50,7 @@ Hazlos sin ordenador. Las soluciones están en [soluciones.md](soluciones.md).
 ### B0. Levantar el laboratorio
 
 ```bash
-$ cd 16-oam/lab
+$ cd 17-oam/lab
 $ sudo containerlab deploy -t lab.clab.yml
 $ ./verificar.sh
 ```
@@ -59,13 +59,13 @@ $ ./verificar.sh
 
 ```bash
 # 1) Ping de cliente (IPv4 sobre SRv6)
-$ docker exec clab-m16-h1 ping -c2 10.0.2.20
+$ docker exec clab-m17-h1 ping -c2 10.0.2.20
 # 2) Ping al loopback de r3 (alcanzabilidad normal)
-$ docker exec clab-m16-r1 ping -c2 3fff:0:ff::3
+$ docker exec clab-m17-r1 ping -c2 3fff:0:ff::3
 # 3) Ping a un SID de DECAP (End.DX4 de r3)
-$ docker exec clab-m16-r1 ping -c2 5f00:0:3:dc04::
+$ docker exec clab-m17-r1 ping -c2 5f00:0:3:dc04::
 # 4) Ping a un SID que NO existe
-$ docker exec clab-m16-r1 ping -c2 5f00:0:3:ffff::
+$ docker exec clab-m17-r1 ping -c2 5f00:0:3:ffff::
 ```
 
 1. El loopback de r3 responde (alcanzabilidad normal). En cambio, el ping al `End.DX4` (`5f00:0:3:dc04::`) **no** responde. ¿Por qué? (Pista: `End.DX4` es *desencapsular + cross-connect*; espera un paquete encapsulado con un IPv4 dentro, no un echo suelto.) ¿Cómo confirmarías entonces que ese SID está instalado? (Con `ip -6 route show 5f00:0:3:dc04::`.)
@@ -75,8 +75,8 @@ $ docker exec clab-m16-r1 ping -c2 5f00:0:3:ffff::
 ### B2. Traceroute: ver el camino
 
 ```bash
-$ docker exec clab-m16-h1 traceroute -n 10.0.2.20
-$ docker exec clab-m16-r1 traceroute -n 3fff:0:ff::3        # al loopback de r3
+$ docker exec clab-m17-h1 traceroute -n 10.0.2.20
+$ docker exec clab-m17-r1 traceroute -n 3fff:0:ff::3        # al loopback de r3
 ```
 
 1. ¿Qué saltos aparecen en el traceroute entre los routers? 
@@ -85,9 +85,9 @@ $ docker exec clab-m16-r1 traceroute -n 3fff:0:ff::3        # al loopback de r3
 ### B3. Capturar y leer la SRH
 
 ```bash
-$ docker run --rm -it --net container:clab-m16-r2 nicolaka/netshoot:v0.13 \
+$ docker run --rm -it --net container:clab-m17-r2 nicolaka/netshoot:v0.13 \
     tcpdump -ni eth1 -vv 'ip6[6]==43 or ip6[6]==4' &
-$ docker exec clab-m16-h1 ping -c2 10.0.2.20
+$ docker exec clab-m17-h1 ping -c2 10.0.2.20
 ```
 
 1. ¿Qué *Next Header* tiene el paquete de cliente en el núcleo: 43 (SRH) o 4 (IPv4 directo)? (Con un solo SID de servicio y encap reducido, ¿esperas SRH?)
@@ -98,12 +98,12 @@ $ docker exec clab-m16-h1 ping -c2 10.0.2.20
 
 ```bash
 # Transporte
-$ docker exec clab-m16-r1 vtysh -c "show isis segment-routing srv6 node"
-$ docker exec clab-m16-r1 ip -6 route show 5f00:0:3::/48
+$ docker exec clab-m17-r1 vtysh -c "show isis segment-routing srv6 node"
+$ docker exec clab-m17-r1 ip -6 route show 5f00:0:3::/48
 # SIDs en el plano de datos
-$ docker exec clab-m16-r3 ip -6 route show | grep seg6local
+$ docker exec clab-m17-r3 ip -6 route show | grep seg6local
 # Encaminamiento de un destino de cliente
-$ docker exec clab-m16-r1 ip route get 10.0.2.20
+$ docker exec clab-m17-r1 ip route get 10.0.2.20
 ```
 
 1. ¿Aprende r1 el locator de r3 por IS-IS? ¿Por qué interfaz?
@@ -115,16 +115,16 @@ $ docker exec clab-m16-r1 ip route get 10.0.2.20
 Rompe a propósito el `seg6_enabled` del núcleo en r2 y observa el efecto:
 
 ```bash
-$ docker exec clab-m16-r2 sysctl -w net.ipv6.conf.eth1.seg6_enabled=0
-$ docker exec clab-m16-h1 ping -c2 10.0.2.20      # ¿sigue yendo?
+$ docker exec clab-m17-r2 sysctl -w net.ipv6.conf.eth1.seg6_enabled=0
+$ docker exec clab-m17-h1 ping -c2 10.0.2.20      # ¿sigue yendo?
 ```
 
 1. ¿Falla el ping? (En esta topología, con un solo SID de servicio, r2 solo **reenvía** el IPv6 exterior y quizá no procese SRH; prueba también a forzar un SID de tránsito en r2 para notarlo.) 
 2. Arréglalo y confirma:
 
    ```bash
-   $ docker exec clab-m16-r2 sysctl -w net.ipv6.conf.eth1.seg6_enabled=1
-   $ docker exec clab-m16-h1 ping -c2 10.0.2.20
+   $ docker exec clab-m17-r2 sysctl -w net.ipv6.conf.eth1.seg6_enabled=1
+   $ docker exec clab-m17-h1 ping -c2 10.0.2.20
    ```
 
 ### B6. Diagnóstico de un fallo provocado (2): servicio caído
@@ -132,11 +132,11 @@ $ docker exec clab-m16-h1 ping -c2 10.0.2.20      # ¿sigue yendo?
 Borra el SID de servicio de r3 y diagnostícalo con el método transporte→SID→servicio:
 
 ```bash
-$ docker exec clab-m16-r3 ip -6 route del 5f00:0:3:dc04::/128
-$ docker exec clab-m16-h1 ping -c2 10.0.2.20        # falla
+$ docker exec clab-m17-r3 ip -6 route del 5f00:0:3:dc04::/128
+$ docker exec clab-m17-h1 ping -c2 10.0.2.20        # falla
 # Diagnóstico:
-$ docker exec clab-m16-r1 ip route get 10.0.2.20     # el encap sigue, apunta al SID...
-$ docker exec clab-m16-r3 ip -6 route show 5f00:0:3:dc04::/128   # ...pero en r3 ya no existe
+$ docker exec clab-m17-r1 ip route get 10.0.2.20     # el encap sigue, apunta al SID...
+$ docker exec clab-m17-r3 ip -6 route show 5f00:0:3:dc04::/128   # ...pero en r3 ya no existe
 ```
 
 1. ¿En qué paso del método (transporte / SID / servicio) está el fallo?
@@ -144,9 +144,9 @@ $ docker exec clab-m16-r3 ip -6 route show 5f00:0:3:dc04::/128   # ...pero en r3
 3. Restaura el servicio:
 
    ```bash
-   $ docker exec clab-m16-r3 ip -6 route add 5f00:0:3:dc04::/128 \
+   $ docker exec clab-m17-r3 ip -6 route add 5f00:0:3:dc04::/128 \
        encap seg6local action End.DX4 nh4 10.0.2.20 dev eth2
-   $ docker exec clab-m16-h1 ping -c2 10.0.2.20
+   $ docker exec clab-m17-h1 ping -c2 10.0.2.20
    ```
 
 ### B7. Limpieza

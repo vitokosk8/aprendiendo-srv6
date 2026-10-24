@@ -1,4 +1,4 @@
-# 18 · Soluciones
+# 16 · Soluciones
 
 **1.** No del todo. El número de algoritmo (128–255) **no tiene significado propio**: lo que define un algoritmo es su **FAD** (*Flexible Algorithm Definition*), que dice qué **métrica** usa y qué **restricciones** aplica. En esta red, el 128 es "baja latencia" porque su FAD dice "métrica de retardo". En otra red, el 128 podría significar "evita los enlaces amarillos". Lo correcto sería decir: "aquí, el algoritmo 128 está definido como el de menor retardo".
 

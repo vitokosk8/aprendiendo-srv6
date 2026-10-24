@@ -1,4 +1,4 @@
-# 18 · Flex-Algo: varios "caminos más cortos" sobre la misma red
+# 16 · Flex-Algo: varios "caminos más cortos" sobre la misma red
 
 > **Objetivo**: entender **Flex-Algo** (*IGP Flexible Algorithm*, [RFC 9350](https://www.rfc-editor.org/rfc/rfc9350)): cómo el IGP puede calcular, sobre la misma red física, **varios caminos más cortos a la vez**, cada uno con su propia métrica (coste IGP, retardo, métrica TE) y sus propias restricciones (evitar ciertos enlaces), y por qué en SRv6 basta con **un locator por algoritmo** para que el tráfico siga cada uno de ellos.
 >
@@ -250,7 +250,7 @@ Lo esencial está en las tres piezas que ya conoces: **definir** el algoritmo (F
 
 ## Siguiente paso
 
-Haz los [ejercicios](ejercicios.md) sobre la red de ejemplo: calcularás caminos por algoritmo, verás qué pasa cuando un router deja de participar o cae un enlace, y resolverás un conflicto entre definiciones.
+Haz los [ejercicios](ejercicios.md) sobre la red de ejemplo: calcularás caminos por algoritmo, verás qué pasa cuando un router deja de participar o cae un enlace, y resolverás un conflicto entre definiciones. Con esto cierras el **Bloque III**. En el **Bloque IV** llega la operación: OAM y troubleshooting ([módulo 17](../17-oam/README.md)) y MTU, seguridad y filtrado (módulo 18).
 
 ## Para saber más
 

@@ -27,9 +27,9 @@ Cada módulo combina **teoría**, un **laboratorio reproducible** con [Container
 - **El plano de datos SRv6**: el SID, la SRH, y todo el catálogo de *behaviors* (`End`, `End.X`, `End.DT4/DT6/DT46`, `End.DX4/DX6`, `H.Encaps`), montados **a mano** con `iproute2` para entender qué hace cada uno.
 - **Eficiencia**: reducción de cabeceras (`H.Encaps.Red`, flavors `PSP/USP/USD`) y **compresión uSID** (NEXT-C-SID).
 - **El plano de control con FRR**: IS-IS que anuncia *locators* e instala SIDs solo, y **BGP** que monta **L3VPN** IPv4, IPv6 y dual-stack (`End.DT4/DT6/DT46`).
-- **Ingeniería de tráfico y resiliencia**: listas de segmentos explícitas, SR Policy y TI-LFA.
+- **Ingeniería de tráfico y resiliencia**: listas de segmentos explícitas, SR Policy, TI-LFA y **Flex-Algo** (varios caminos más cortos sobre la misma red, la base del *network slicing*).
 - **Operación**: OAM, *troubleshooting*, MTU y seguridad/filtrado en el borde.
-- **SRv6 avanzado**: **Flex-Algo**, varios caminos más cortos sobre la misma red con un locator por algoritmo, la base del *network slicing*.
+- **Próximamente**: multicast en redes SRv6 (BIER) y un anexo de escenarios con casos de uso completos.
 
 Y, de propina, el **porqué** de cada cosa: de MPLS a SR, el modelo de confianza del dominio, y las trampas reales de montar SRv6 en Linux (que irás descubriendo lab a lab).
 
@@ -88,21 +88,42 @@ Los módulos se siguen **en orden**: cada uno se apoya en lo aprendido en los an
 | [13](13-l3vpn-dualstack/README.md) | L3VPN IPv6 y dual-stack (End.DT6 / End.DT46) | ✅ |
 | [14](14-te-srv6/README.md) | Ingeniería de tráfico con SRv6 | ✅ |
 | [15](15-tilfa/README.md) | Resiliencia: TI-LFA | ✅ |
+| [16](16-flex-algo/README.md) | Flex-Algo: varios caminos más cortos sobre la misma red (solo teoría: FRR no lo soporta con SRv6) | ✅ |
 
 ### Bloque IV · Operación
 
 | Módulo | Tema | Estado |
 |--------|------|:------:|
-| [16](16-oam/README.md) | OAM y troubleshooting: ping, traceroute y capturas | ✅ |
-| [17](17-mtu-seguridad/README.md) | MTU, seguridad y filtrado de SRv6 en el borde | ✅ |
+| [17](17-oam/README.md) | OAM y troubleshooting: ping, traceroute y capturas | ✅ |
+| [18](18-mtu-seguridad/README.md) | MTU, seguridad y filtrado de SRv6 en el borde | ✅ |
 
-### Bloque V · SRv6 avanzado
+### Bloque V · Multicast en redes SRv6 *(previsto)*
 
 | Módulo | Tema | Estado |
 |--------|------|:------:|
-| [18](18-flex-algo/README.md) | Flex-Algo: varios caminos más cortos sobre la misma red (solo teoría: FRR no lo soporta con SRv6) | ✅ |
+| 19 | El problema del multicast en Segment Routing y la replicación en el ingreso | ⏳ |
+| 20 | *Replication segments* y Tree-SID ([RFC 9524](https://www.rfc-editor.org/rfc/rfc9524)) | 🔍 |
+| 21 | BIER y BIERv6: teoría, simulador en Python y laboratorio P4 opcional | 🔍 |
 
-> ✅ escrito y probado · 🧪 escrito, pendiente de probar · ⏳ pendiente
+### Anexo · Escenarios: casos de uso con laboratorio *(previsto)*
+
+Casos de uso completos, inspirados en los que documentan los fabricantes y montados con FRR sobre una **topología común** (2 PE, núcleo de 4 P en rombo y CE). Cada escenario plantea el problema del cliente, el diseño y su solución primero con el camino más corto (**SRv6 BE**) y después con **ingeniería de tráfico**. Van numerados aparte (E0, E1…) para que los bloques de módulos puedan crecer sin renumerar nada.
+
+| Escenario | Caso de uso | Estado |
+|-----------|-------------|:------:|
+| E0 | Internet sobre SRv6: tabla global IPv4/IPv6 | ⏳ |
+| E1 | Cliente multisede: L3VPNv4, con UCMP, steering por color y P como route reflector | ⏳ |
+| E2 | Dos operadores: Inter-AS L3VPNv4 | ⏳ |
+| E3 | EVPN L3VPN IPv4 | 🔍 |
+| E4 | EVPN L3VPN IPv6 | 🔍 |
+| E5 | Línea punto a punto: EVPN VPWS | 🔍 |
+| E6 | LAN extendida: EVPN VPLS | 🔍 |
+| E7 | *Network slicing* | 🔍 |
+| E8 | Compresión uSID en TE y migración desde SIDs clásicos, con islas SRv6 sobre GRE | ⏳ |
+| E9 | *Service chaining* (SFC) | 🔍 |
+| — | Lo que FRR aún no hace: egress protection, shortcuts, slicing con HBH, interworking con MPLS | ⏳ |
+
+> ✅ escrito y probado · 🧪 escrito, pendiente de probar · ⏳ pendiente · 🔍 pendiente de verificar qué soporta FRR (si no lo soporta, solo teoría)
 
 ## 🧩 Convenciones
 

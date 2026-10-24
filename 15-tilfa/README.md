@@ -110,7 +110,7 @@ Fíjate en la elegancia del conjunto:
 
 ## Siguiente paso
 
-Haz la [práctica](practica.md): activarás TI-LFA, verás los respaldos que calcula FRR y **romperás el enlace primario** para comprobar que r1 sigue alcanzando a r4 por el respaldo. Con esto cierras el **Bloque III**. En el **Bloque IV** llega la operación: OAM y troubleshooting (módulo 16) y MTU/seguridad/filtrado (módulo 17).
+Haz la [práctica](practica.md): activarás TI-LFA, verás los respaldos que calcula FRR y **romperás el enlace primario** para comprobar que r1 sigue alcanzando a r4 por el respaldo. En el [módulo 16](../16-flex-algo/README.md), el último del **Bloque III**, verás **Flex-Algo**: cómo el IGP calcula varios "caminos más cortos" a la vez, y cómo TI-LFA calcula el respaldo dentro de cada uno.
 
 ## Para saber más
 

@@ -1,4 +1,4 @@
-# 17 · Práctica: MTU, seguridad y filtrado
+# 18 · Práctica: MTU, seguridad y filtrado
 
 Antes de empezar, lee la [teoría del módulo](README.md).
 
@@ -49,7 +49,7 @@ Hazlos sin ordenador. Las soluciones están en [soluciones.md](soluciones.md).
 ### B0. Levantar el laboratorio
 
 ```bash
-$ cd 17-mtu-seguridad/lab
+$ cd 18-mtu-seguridad/lab
 $ sudo containerlab deploy -t lab.clab.yml
 $ ./verificar.sh
 ```
@@ -58,11 +58,11 @@ $ ./verificar.sh
 
 ```bash
 # Paquete pequeño: cabe
-$ docker exec clab-m17-h1 ping -c2 -M do -s 1400 10.0.2.20
+$ docker exec clab-m18-h1 ping -c2 -M do -s 1400 10.0.2.20
 # Paquete grande con "no fragmentar": NO cabe (1440+28+40 > 1500)
-$ docker exec clab-m17-h1 ping -c2 -M do -s 1440 10.0.2.20
+$ docker exec clab-m18-h1 ping -c2 -M do -s 1440 10.0.2.20
 # El mismo grande, permitiendo fragmentar: ¿te salva la fragmentación?
-$ docker exec clab-m17-h1 ping -c2 -s 1440 10.0.2.20
+$ docker exec clab-m18-h1 ping -c2 -s 1440 10.0.2.20
 ```
 
 1. El pequeño pasa y el grande con `-M do` falla. Explícalo con los números (paquete de cliente + 40 de encap vs MTU 1500).
@@ -73,12 +73,12 @@ $ docker exec clab-m17-h1 ping -c2 -s 1440 10.0.2.20
 Sube la MTU en los dos enlaces del núcleo (los dos extremos de cada enlace) y repite:
 
 ```bash
-$ docker exec clab-m17-r1 ip link set eth2 mtu 9000
-$ docker exec clab-m17-r2 ip link set eth1 mtu 9000
-$ docker exec clab-m17-r2 ip link set eth2 mtu 9000
-$ docker exec clab-m17-r3 ip link set eth1 mtu 9000
+$ docker exec clab-m18-r1 ip link set eth2 mtu 9000
+$ docker exec clab-m18-r2 ip link set eth1 mtu 9000
+$ docker exec clab-m18-r2 ip link set eth2 mtu 9000
+$ docker exec clab-m18-r3 ip link set eth1 mtu 9000
 # Ahora el paquete grande con DF sí pasa
-$ docker exec clab-m17-h1 ping -c2 -M do -s 1440 10.0.2.20
+$ docker exec clab-m18-h1 ping -c2 -M do -s 1440 10.0.2.20
 ```
 
 1. ¿Funciona ahora el `ping -M do -s 1440`? ¿Por qué?
@@ -87,7 +87,7 @@ $ docker exec clab-m17-h1 ping -c2 -M do -s 1440 10.0.2.20
 
    ```bash
    $ for n in r1:eth2 r2:eth1 r2:eth2 r3:eth1; do
-       docker exec clab-m17-${n%:*} ip link set ${n#*:} mtu 1500; done
+       docker exec clab-m18-${n%:*} ip link set ${n#*:} mtu 1500; done
    ```
 
 ### B3. Seguridad: el borde filtra los SIDs internos
@@ -95,14 +95,14 @@ $ docker exec clab-m17-h1 ping -c2 -M do -s 1440 10.0.2.20
 Intenta, desde el cliente (h1), inyectar un paquete hacia un SID interno del operador:
 
 ```bash
-$ docker exec clab-m17-h1 ping -c2 5f00:0:3::        # un SID interno
-$ docker exec clab-m17-h1 ping -c2 10.0.2.20          # el servicio legítimo
+$ docker exec clab-m18-h1 ping -c2 5f00:0:3::        # un SID interno
+$ docker exec clab-m18-h1 ping -c2 10.0.2.20          # el servicio legítimo
 ```
 
 1. ¿Llega el ping de h1 al SID interno `5f00:0:3::`? ¿Por qué no? Mira la regla del borde:
 
    ```bash
-   $ docker exec clab-m17-r1 ip -6 rule show | grep 5f00
+   $ docker exec clab-m18-r1 ip -6 rule show | grep 5f00
    ```
 2. ¿Sigue funcionando el servicio legítimo (`10.0.2.20`)? ¿Por qué el filtro no lo afecta?
 
@@ -111,15 +111,15 @@ $ docker exec clab-m17-h1 ping -c2 10.0.2.20          # el servicio legítimo
 Quita el filtro del borde en r1 y comprueba que, sin él, el cliente **sí** alcanza los SIDs internos (el agujero de seguridad):
 
 ```bash
-$ docker exec clab-m17-r1 ip -6 rule del from 3fff:0:1::/64 to 5f00::/16 blackhole priority 100
-$ docker exec clab-m17-h1 ping -c2 5f00:0:3::         # ahora llega al núcleo
+$ docker exec clab-m18-r1 ip -6 rule del from 3fff:0:1::/64 to 5f00::/16 blackhole priority 100
+$ docker exec clab-m18-h1 ping -c2 5f00:0:3::         # ahora llega al núcleo
 ```
 
 1. ¿Cambia el resultado? ¿Qué podría hacer un atacante que pudiera mandar paquetes a tus `End.DX4` / `End.DT4`?
 2. Vuelve a poner el filtro:
 
    ```bash
-   $ docker exec clab-m17-r1 ip -6 rule add from 3fff:0:1::/64 to 5f00::/16 blackhole priority 100
+   $ docker exec clab-m18-r1 ip -6 rule add from 3fff:0:1::/64 to 5f00::/16 blackhole priority 100
    ```
 3. ¿Por qué, además del filtro, ayuda que `5f00::/16` **no se anuncie** a Internet?
 

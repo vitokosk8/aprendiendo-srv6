@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Comprueba el laboratorio del módulo 16 (OAM y troubleshooting). Uso: ./verificar.sh
-L=clab-m16
+# Comprueba el laboratorio del módulo 17 (OAM y troubleshooting). Uso: ./verificar.sh
+L=clab-m17
 ok=0; fail=0
 check() { if eval "$2" >/dev/null 2>&1; then echo "  ✅ $1"; ok=$((ok+1)); else echo "  ❌ $1"; fail=$((fail+1)); fi; }
 

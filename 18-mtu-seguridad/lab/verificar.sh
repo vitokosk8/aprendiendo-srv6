@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Comprueba el laboratorio del módulo 17 (MTU, seguridad y filtrado). Uso: ./verificar.sh
-L=clab-m17
+# Comprueba el laboratorio del módulo 18 (MTU, seguridad y filtrado). Uso: ./verificar.sh
+L=clab-m18
 ok=0; fail=0
 check() { if eval "$2" >/dev/null 2>&1; then echo "  ✅ $1"; ok=$((ok+1)); else echo "  ❌ $1"; fail=$((fail+1)); fi; }
 

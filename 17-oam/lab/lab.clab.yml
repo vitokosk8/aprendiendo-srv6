@@ -1,18 +1,21 @@
-# Módulo 17 · MTU, seguridad y filtrado de SRv6 en el borde
+# Módulo 17 · OAM y troubleshooting
 #
 #   h1 ── r1 ══════ r2 ══════ r3 ── h2
-#   cliente   (núcleo IPv6, IS-IS + SRv6, MTU 1500)   cliente
+#   dual-stack   (núcleo IPv6, IS-IS + SRv6)   dual-stack
 #
-# Red SRv6 que funciona (IS-IS+SRv6 + servicio End.DX4, como el módulo 16), con dos
-# añadidos para este módulo:
-#   1) MTU del núcleo puesta a 1500 a propósito, para ver el problema de la SOBRECARGA
-#      de SRv6: un paquete de cliente grande + la cabecera exterior supera la MTU.
-#   2) FILTRADO EN EL BORDE: cada PE bloquea que el cliente inyecte tráfico hacia los
-#      SIDs internos del operador (5f00::/16) con una regla 'ip -6 rule ... blackhole'
-#      en la interfaz de cliente. Es el principio de seguridad de SRv6: el SR domain es
-#      de confianza y el borde debe filtrar.
+# Red SRv6 que funciona (misma base que el módulo 11: IS-IS+SRv6 con locators y SIDs
+# automáticos sobre sr0), MÁS un servicio manual End.DX4 para tener tráfico IPv4 de
+# cliente de h1 a h2 sobre SRv6 que poder trazar y capturar.
 #
-#   python3 herramientas/topologia.py 17-mtu-seguridad/lab/lab.clab.yml
+# El módulo es de CONSOLIDACIÓN: aquí se usan las herramientas de OAM y diagnóstico
+# (ping, traceroute, captura y decodificación de la SRH, comandos show) sobre esta red,
+# y se recorre un catálogo de fallos típicos de SRv6 (los que fuimos encontrando en el
+# curso: seg6_enabled, locator no anunciado, strict_mode, dev en el encap, etc.).
+#
+# SIDs: FRR instala End/End.X automáticos; el servicio es manual:
+#   r1: 5f00:0:1:dc04:: [End.DX4]   r3: 5f00:0:3:dc04:: [End.DX4]
+#
+#   python3 herramientas/topologia.py 17-oam/lab/lab.clab.yml
 #
 # Probado con containerlab 0.74.3, FRR 10.2.1, netshoot v0.13, kernel 7.2 (OrbStack).
 
@@ -57,12 +60,6 @@ topology:
         - "ip sr tunsrc set 3fff:0:ff::1"
         - "ip -6 route add 5f00:0:1:dc04::/128 encap seg6local action End.DX4 nh4 10.0.1.10 dev eth1"
         - "ip route add 10.0.2.0/24 encap seg6 mode encap.red segs 5f00:0:3:dc04:: dev eth2"
-        # MTU del núcleo a 1500 (pequeña a propósito, para ver el problema de la sobrecarga SRv6)
-        - "ip link set eth2 mtu 1500"
-        # Filtrado en el BORDE: bloquear que el cliente inyecte tráfico hacia SIDs internos.
-        # Se acota por ORIGEN del cliente (no por iif): el encap del propio PE sale con tunsrc
-        # 3fff:0:ff::1 y no debe filtrarse; el cliente tiene origen en 3fff:0:1::/64.
-        - "ip -6 rule add from 3fff:0:1::/64 to 5f00::/16 blackhole priority 100"
 
     r2:
       image: quay.io/frrouting/frr:10.2.1
@@ -77,9 +74,6 @@ topology:
         - "ip link add sr0 type dummy"
         - "ip link set sr0 up"
         - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
-        # MTU del núcleo a 1500 en los dos enlaces de core
-        - "ip link set eth1 mtu 1500"
-        - "ip link set eth2 mtu 1500"
 
     r3:
       image: quay.io/frrouting/frr:10.2.1
@@ -99,9 +93,6 @@ topology:
         - "ip sr tunsrc set 3fff:0:ff::3"
         - "ip -6 route add 5f00:0:3:dc04::/128 encap seg6local action End.DX4 nh4 10.0.2.20 dev eth2"
         - "ip route add 10.0.1.0/24 encap seg6 mode encap.red segs 5f00:0:1:dc04:: dev eth1"
-        # MTU del núcleo a 1500 y filtrado en el borde (cliente con origen en 3fff:0:2::/64)
-        - "ip link set eth1 mtu 1500"
-        - "ip -6 rule add from 3fff:0:2::/64 to 5f00::/16 blackhole priority 100"
 
     h2:
       image: nicolaka/netshoot:v0.13

@@ -1,4 +1,4 @@
-# 16 · Soluciones
+# 17 · Soluciones
 
 > Las salidas son orientativas; los valores de función de los SIDs automáticos (End/End.X) los asigna FRR y variarán. El servicio `End.DX4` sí es fijo (`5f00:0:X:dc04::`).
 

@@ -1,4 +1,4 @@
-# 16 · OAM y troubleshooting
+# 17 · OAM y troubleshooting
 
 > **Objetivo**: saber **operar y diagnosticar** una red SRv6. Cómo se comportan `ping` y `traceroute` a través de SRv6, cómo **capturar y leer** una SRH, qué comandos `show` miran el estado, y un **catálogo de fallos típicos** con su síntoma y su arreglo (muchos los fuimos encontrando a lo largo del curso).
 >
@@ -58,7 +58,7 @@ Con `-vv`, tcpdump **decodifica** la SRH: verás `srcrt` / `rt6`, el `segleft`, 
 
 ```bash
 # En el núcleo (r2), ver la SRH del tráfico de cliente:
-docker run --rm -it --net container:clab-m16-r2 nicolaka/netshoot:v0.13 \
+docker run --rm -it --net container:clab-m17-r2 nicolaka/netshoot:v0.13 \
     tcpdump -ni eth1 -vv 'ip6[6]==43 or ip6[6]==4'
 ```
 
@@ -102,7 +102,7 @@ Estos son los tropiezos reales que da SRv6 en Linux/FRR. Teníalos a mano:
 | `End.DT4`/`DT46` no se instala | Falta `net.vrf.strict_mode=1`, o se puso antes de crear la VRF | `sysctl net.vrf.strict_mode`; mirar si el SID está en el kernel | Poner strict_mode tras crear la VRF y reaplicar el SID |
 | La ruta de encap no se instala | Falta `dev` en `ip route add ... encap seg6 …` | La ruta no aparece en `ip route show` | Añadir `dev <interfaz-de-salida>` |
 | Tras tocar la config, IS-IS pierde vecinos | Se reinició FRR dentro del contenedor | `show isis neighbor` vacío | No reiniciar FRR; dejar que zebra reaccione a los cambios |
-| MTU: pings grandes fallan, los pequeños van | La sobrecarga de SRv6 supera la MTU del núcleo | `ping -M do -s <grande>` falla | Subir la MTU del núcleo (módulo 17) |
+| MTU: pings grandes fallan, los pequeños van | La sobrecarga de SRv6 supera la MTU del núcleo | `ping -M do -s <grande>` falla | Subir la MTU del núcleo (módulo 18) |
 
 ## 7. Resumen
 
@@ -115,7 +115,7 @@ Estos son los tropiezos reales que da SRv6 en Linux/FRR. Teníalos a mano:
 
 ## Siguiente paso
 
-Haz la [práctica](practica.md): pingarás y trazarás el camino, capturarás y leerás la SRH, usarás los `show`, y **provocarás** un par de fallos del catálogo para diagnosticarlos y arreglarlos. En el módulo 17, el último, veremos **MTU, seguridad y filtrado** de SRv6 en el borde.
+Haz la [práctica](practica.md): pingarás y trazarás el camino, capturarás y leerás la SRH, usarás los `show`, y **provocarás** un par de fallos del catálogo para diagnosticarlos y arreglarlos. En el módulo 18, que cierra el Bloque IV, veremos **MTU, seguridad y filtrado** de SRv6 en el borde.
 
 ## Para saber más
 

@@ -1,4 +1,4 @@
-# 17 · MTU, seguridad y filtrado de SRv6 en el borde
+# 18 · MTU, seguridad y filtrado de SRv6 en el borde
 
 > **Objetivo**: cerrar el curso con los dos temas que separan un laboratorio de una red en producción: **dimensionar la MTU** para absorber la sobrecarga de SRv6, y **proteger el dominio SRv6 filtrando en el borde** para que nadie de fuera inyecte tráfico contra tus SIDs.
 >
@@ -102,7 +102,7 @@ ip -6 rule add from 3fff:0:1::/64 to 5f00::/16 blackhole priority 100
 
 Desde aquí, algunas direcciones para seguir: **uSID en profundidad** y despliegues de operador (donde la TE y la TI-LFA SRv6 completas viven en plataformas como IOS-XR), **EVPN sobre SRv6** (servicios de capa 2), e **integración con controladores/PCE** para SR Policy. Pero la base —la de verdad, la que se toca— ya la tienes.
 
-Y el curso sigue creciendo: el **Bloque V · SRv6 avanzado** empieza con el [módulo 18](../18-flex-algo/README.md), **Flex-Algo**, que te enseña a tener varios "caminos más cortos" sobre la misma red con un locator por algoritmo.
+Y el curso sigue creciendo: están previstos un **Bloque V** sobre **multicast en redes SRv6** (replicación en el ingreso, *replication segments* y BIER) y un **anexo de escenarios**, casos de uso completos con laboratorio sobre una topología común. Los tienes en el [temario](../README.md#-temario).
 
 ## Para saber más
 

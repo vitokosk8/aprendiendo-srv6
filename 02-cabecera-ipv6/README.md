@@ -188,7 +188,7 @@ El RFC original de IPv6 definía un Routing Header **tipo 0** que permitía a cu
 
 En la teoría, cualquier router reenvía un paquete con cabeceras de extensión. En la práctica, muchos operadores y cortafuegos los descartan: los mismos paquetes sin cabeceras de extensión llegan casi siempre, y con ellas se pierden en una proporción importante ([RFC 7872](https://www.rfc-editor.org/rfc/rfc7872), [RFC 9098](https://www.rfc-editor.org/rfc/rfc9098)). Los motivos son de rendimiento (algunos equipos tienen que mandar esos paquetes a la CPU) y de seguridad (son difíciles de inspeccionar).
 
-Por eso SRv6 se despliega **dentro del dominio de un operador**, donde él controla todos los equipos, y no a través de Internet. En el módulo 17 veremos cómo se filtra SRv6 en el borde.
+Por eso SRv6 se despliega **dentro del dominio de un operador**, donde él controla todos los equipos, y no a través de Internet. En el módulo 18 veremos cómo se filtra SRv6 en el borde.
 
 ## 5. Fragmentación y MTU del camino
 
@@ -218,7 +218,7 @@ Dos cifras que conviene recordar:
 - **1280 bytes** es la MTU mínima que todo enlace IPv6 debe soportar. Un paquete de 1280 bytes o menos llega siempre sin fragmentar.
 - **Si se filtra el ICMPv6 Packet Too Big, PMTUD se rompe**: los paquetes grandes se pierden sin aviso y las conexiones "se cuelgan" al transferir datos. Por eso nunca hay que bloquear todo el ICMPv6 en un cortafuegos ([RFC 4890](https://www.rfc-editor.org/rfc/rfc4890)).
 
-> **Conexión con SRv6**: SRv6 encapsula el paquete original dentro de otro IPv6, y con SRH añade aún más bytes. Un paquete de 1500 bytes del cliente puede convertirse en uno de 1580 o más dentro de la red. Por eso las redes SRv6 usan MTU grandes (9000 o más) en el núcleo. Lo veremos en el módulo 17.
+> **Conexión con SRv6**: SRv6 encapsula el paquete original dentro de otro IPv6, y con SRH añade aún más bytes. Un paquete de 1500 bytes del cliente puede convertirse en uno de 1580 o más dentro de la red. Por eso las redes SRv6 usan MTU grandes (9000 o más) en el núcleo. Lo veremos en el módulo 18.
 
 ## 6. Así se ve un paquete SRv6
 

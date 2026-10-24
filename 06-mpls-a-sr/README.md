@@ -96,7 +96,7 @@ Al ser el segmento una dirección IPv6, SRv6 consigue cosas que SR-MPLS no puede
 - **La red se vuelve programable.** Encadenar instrucciones (ir a este nodo, pasar por este firewall, entrar en esta VPN) es escribir un "programa de red" en la lista de SIDs ([RFC 8986](https://www.rfc-editor.org/rfc/rfc8986)). De ahí el nombre *network programming*.
 - **Los routers de tránsito solo necesitan IPv6.** Como viste en el módulo 02, un router que no entiende SRv6 reenvía el paquete igual, mirando la dirección de destino por *longest-prefix match*. SRv6 puede cruzar partes de la red que nunca han oído hablar de él.
 
-El precio a pagar lo estudiaste en los fundamentos y lo veremos en detalle en el módulo 17:
+El precio a pagar lo estudiaste en los fundamentos y lo veremos en detalle en el módulo 18:
 
 - **Sobrecarga de cabecera**: 40 bytes de IPv6 exterior + 8 de SRH + 16 por cada SID. Por eso las redes SRv6 usan MTU grandes, y por eso existe **uSID** (módulo 10), que mete varias instrucciones en una sola dirección y recorta muchísimo esa sobrecarga.
 - **Las cabeceras de extensión en Internet**: recuerda del módulo 02 que muchos equipos las descartan. Por eso SRv6 se despliega **dentro del dominio de un operador**, no a través de Internet abierto.
