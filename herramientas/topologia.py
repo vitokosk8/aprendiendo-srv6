@@ -75,11 +75,21 @@ def subnet(nodes, a, ai, b, bi):
     for n, i in ((a, ai), (b, bi)):
         for addr in nodes[n]["ips"].get(i, []):
             try:
-                net = ipaddress.ip_interface(addr).network
+                net = ipaddress.ip_interface(addr.split()[0]).network
                 if net.prefixlen < 128:
                     return str(net)
             except ValueError:
                 pass
+    return ""
+
+
+def metric(nodes, a, ai, b, bi):
+    """Métrica IGP del enlace, si la etiqueta de la interfaz lleva "(m=N)"."""
+    for n, i in ((a, ai), (b, bi)):
+        for addr in nodes[n]["ips"].get(i, []):
+            m = re.search(r"\(m=(\d+)\)", addr)
+            if m:
+                return m.group(1)
     return ""
 
 
@@ -173,8 +183,9 @@ def drawio(title, nodes, links):
                 f'<mxCell id="{eid}-{node}" value="{esc(v)}" style="{lab_style}" vertex="1" connectable="0" parent="{eid}">'
                 f'<mxGeometry x="{pos}" y="0" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry></mxCell>')
         net = subnet(nodes, a, ai, b, bi)
+        m = metric(nodes, a, ai, b, bi)
         if net:
-            v = f'<span style="{MONO};color:#0969da">{net}</span>'
+            v = f'<span style="{MONO};color:#0969da">{net}</span>' + (f' · m={m}' if m else '')
             cells.append(
                 f'<mxCell id="{eid}-net" value="{esc(v)}" style="{lab_style}labelBackgroundColor=#ddf4ff;" vertex="1" connectable="0" parent="{eid}">'
                 f'<mxGeometry x="0" y="-26" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry></mxCell>')
@@ -210,7 +221,8 @@ def mermaid(nodes, links):
     out.append("")
     for a, ai, b, bi in links:
         net = subnet(nodes, a, ai, b, bi)
-        txt = f"{ai} ⟷ {bi}" + (f"<br/>{net}" if net else "")
+        m = metric(nodes, a, ai, b, bi)
+        txt = f"{ai} ⟷ {bi}" + (f"<br/>{net}" if net else "") + (f" · m={m}" if m else "")
         out.append(f'    {a} -- "{txt}" --- {b}')
     out += ["",
             "    classDef router fill:#ddf4ff,stroke:#0969da,stroke-width:2px,color:#1f2328",

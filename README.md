@@ -105,12 +105,13 @@ Los módulos se siguen **en orden**: cada uno se apoya en lo aprendido en los an
 | 20 | *Replication segments* y Tree-SID ([RFC 9524](https://www.rfc-editor.org/rfc/rfc9524)) | 🔍 |
 | 21 | BIER y BIERv6: teoría, simulador en Python y laboratorio P4 opcional | 🔍 |
 
-### Anexo · Escenarios: casos de uso con laboratorio *(previsto)*
+### [Anexo · Escenarios: casos de uso con laboratorio](anexo-escenarios/README.md) *(en preparación)*
 
-Casos de uso completos, inspirados en los que documentan los fabricantes y montados con FRR sobre una **topología común** (2 PE, núcleo de 4 P en rombo y CE). Cada escenario plantea el problema del cliente, el diseño y su solución primero con el camino más corto (**SRv6 BE**) y después con **ingeniería de tráfico**. Van numerados aparte (E0, E1…) para que los bloques de módulos puedan crecer sin renumerar nada.
+Casos de uso completos, inspirados en los que documentan los fabricantes y montados con FRR sobre una **[topología común](anexo-escenarios/topologia-base/README.md)** (2 PE y un núcleo de 4 P en malla parcial, con sedes de capa 3 y de capa 2). Cada escenario plantea el problema del cliente, el diseño y su solución primero con el camino más corto (**SRv6 BE**) y después con **ingeniería de tráfico**. Van numerados aparte (E0, E1…) para que los bloques de módulos puedan crecer sin renumerar nada.
 
 | Escenario | Caso de uso | Estado |
 |-----------|-------------|:------:|
+| [Base](anexo-escenarios/topologia-base/README.md) | Topología común: núcleo SRv6 de 6 routers, sedes BLUE y VLAN 100 | 🧪 |
 | E0 | Internet sobre SRv6: tabla global IPv4/IPv6 | ⏳ |
 | E1 | Cliente multisede: L3VPNv4, con UCMP, steering por color y P como route reflector | ⏳ |
 | E2 | Dos operadores: Inter-AS L3VPNv4 | ⏳ |
