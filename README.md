@@ -11,7 +11,7 @@ De *"¿qué es una dirección IPv6?"* a montar **L3VPN multicliente con ingenier
 ![Lab](https://img.shields.io/badge/lab-Containerlab-00b0f0)
 ![Routing](https://img.shields.io/badge/routing-FRRouting%2010.2-cc0000)
 ![Data plane](https://img.shields.io/badge/data%20plane-SRv6%20(Linux%20kernel)-5f3aa6)
-![Módulos](https://img.shields.io/badge/módulos-18%20(00→17)-success)
+![Módulos](https://img.shields.io/badge/módulos-19%20(00→18)-success)
 
 </div>
 
@@ -19,7 +19,7 @@ De *"¿qué es una dirección IPv6?"* a montar **L3VPN multicliente con ingenier
 
 Cada módulo combina **teoría**, un **laboratorio reproducible** con [Containerlab](https://containerlab.dev) y [FRRouting](https://frrouting.org), y **prácticas con soluciones**. No hace falta ninguna imagen de fabricante: SRv6 vive en el **kernel de Linux** y el plano de control en **FRR**. Todo lo que se explica, se monta y se comprueba.
 
-> 💡 El curso es **honesto** con lo que el software libre soporta hoy: cuando FRR/Linux no cubre algo (p. ej. SR-TE o TI-LFA sobre SRv6), se explica la teoría completa, se demuestra lo que **sí** es practicable, y se indica con qué plataforma se haría en producción.
+> 💡 El curso es **honesto** con lo que el software libre soporta hoy: cuando FRR/Linux no cubre algo (p. ej. SR-TE, TI-LFA o Flex-Algo sobre SRv6), se explica la teoría completa, se demuestra lo que **sí** es practicable, y se indica con qué plataforma se haría en producción.
 
 ## 🎯 Qué vas a aprender
 
@@ -29,6 +29,7 @@ Cada módulo combina **teoría**, un **laboratorio reproducible** con [Container
 - **El plano de control con FRR**: IS-IS que anuncia *locators* e instala SIDs solo, y **BGP** que monta **L3VPN** IPv4, IPv6 y dual-stack (`End.DT4/DT6/DT46`).
 - **Ingeniería de tráfico y resiliencia**: listas de segmentos explícitas, SR Policy y TI-LFA.
 - **Operación**: OAM, *troubleshooting*, MTU y seguridad/filtrado en el borde.
+- **SRv6 avanzado**: **Flex-Algo**, varios caminos más cortos sobre la misma red con un locator por algoritmo, la base del *network slicing*.
 
 Y, de propina, el **porqué** de cada cosa: de MPLS a SR, el modelo de confianza del dominio, y las trampas reales de montar SRv6 en Linux (que irás descubriendo lab a lab).
 
@@ -95,6 +96,12 @@ Los módulos se siguen **en orden**: cada uno se apoya en lo aprendido en los an
 | [16](16-oam/README.md) | OAM y troubleshooting: ping, traceroute y capturas | ✅ |
 | [17](17-mtu-seguridad/README.md) | MTU, seguridad y filtrado de SRv6 en el borde | ✅ |
 
+### Bloque V · SRv6 avanzado
+
+| Módulo | Tema | Estado |
+|--------|------|:------:|
+| [18](18-flex-algo/README.md) | Flex-Algo: varios caminos más cortos sobre la misma red (solo teoría: FRR no lo soporta con SRv6) | ✅ |
+
 > ✅ escrito y probado · 🧪 escrito, pendiente de probar · ⏳ pendiente
 
 ## 🧩 Convenciones
@@ -147,6 +154,11 @@ Todo lo que se cita en los módulos, reunido aquí.
 - [RFC 9256](https://www.rfc-editor.org/rfc/rfc9256) — Segment Routing Policy Architecture
 - [RFC 9855](https://www.rfc-editor.org/rfc/rfc9855) — Topology Independent Loop-Free Alternate (TI-LFA)
 - [RFC 5286](https://www.rfc-editor.org/rfc/rfc5286) — Basic Specification for IP Fast Reroute: LFA
+- [RFC 9350](https://www.rfc-editor.org/rfc/rfc9350) — IGP Flexible Algorithm (Flex-Algo)
+- [RFC 9843](https://www.rfc-editor.org/rfc/rfc9843) — IGP Flex-Algorithms: Bandwidth, Delay, Metrics and Constraints
+- [RFC 8570](https://www.rfc-editor.org/rfc/rfc8570) — IS-IS Traffic Engineering Metric Extensions (retardo de enlace)
+- [RFC 8919](https://www.rfc-editor.org/rfc/rfc8919) — IS-IS Application-Specific Link Attributes
+- [RFC 7308](https://www.rfc-editor.org/rfc/rfc7308) — Extended Administrative Groups (afinidades)
 
 ### Operación (OAM)
 - [RFC 9259](https://www.rfc-editor.org/rfc/rfc9259) — OAM in SRv6 Networks

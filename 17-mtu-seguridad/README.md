@@ -96,11 +96,13 @@ ip -6 rule add from 3fff:0:1::/64 to 5f00::/16 blackhole priority 100
 - Como **un SID es una dirección IPv6 enrutable**, quien le envíe un paquete puede activar su behavior. El modelo de SRv6 es un **SR domain de confianza con filtrado obligatorio en el borde**.
 - El borde **descarta** todo tráfico entrante desde fuera hacia el **bloque de SIDs** del operador (`5f00::/16`): *anti-spoofing* de SIDs. Se complementa con un bloque no anunciado a Internet, HMAC en la SRH y filtrado de la propia SRH.
 
-## Fin del curso
+## Fin del recorrido principal
 
-¡Enhorabuena! Has recorrido SRv6 **desde una dirección IPv6 hasta una L3VPN multicliente con ingeniería de tráfico, resiliencia y operación segura**. En el camino montaste, a mano y con FRR, todo el repertorio de behaviors, viste cómo el plano de control (IS-IS y BGP) lo automatiza, y aprendiste a diagnosticar y a proteger el dominio.
+¡Enhorabuena! Con este módulo cierras los cuatro bloques principales: has recorrido SRv6 **desde una dirección IPv6 hasta una L3VPN multicliente con ingeniería de tráfico, resiliencia y operación segura**. En el camino montaste, a mano y con FRR, todo el repertorio de behaviors, viste cómo el plano de control (IS-IS y BGP) lo automatiza, y aprendiste a diagnosticar y a proteger el dominio.
 
 Desde aquí, algunas direcciones para seguir: **uSID en profundidad** y despliegues de operador (donde la TE y la TI-LFA SRv6 completas viven en plataformas como IOS-XR), **EVPN sobre SRv6** (servicios de capa 2), e **integración con controladores/PCE** para SR Policy. Pero la base —la de verdad, la que se toca— ya la tienes.
+
+Y el curso sigue creciendo: el **Bloque V · SRv6 avanzado** empieza con el [módulo 18](../18-flex-algo/README.md), **Flex-Algo**, que te enseña a tener varios "caminos más cortos" sobre la misma red con un locator por algoritmo.
 
 ## Para saber más
 
