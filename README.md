@@ -55,7 +55,7 @@ El estado indica qué módulos están ya escritos y probados.
 
 | Módulo | Tema | Estado |
 |--------|------|:------:|
-| 11 | IS-IS con SRv6: locators y SIDs End.X | ⏳ |
+| [11](11-isis-srv6/README.md) | IS-IS con SRv6: locators y SIDs End.X | ✅ |
 | 12 | L3VPN IPv4 sobre SRv6 con BGP (End.DT4) | ⏳ |
 | 13 | L3VPN IPv6 y dual-stack (End.DT6 / End.DT46) | ⏳ |
 | 14 | Ingeniería de tráfico con SRv6 en FRR | 🔍 |
