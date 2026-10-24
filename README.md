@@ -49,7 +49,7 @@ El estado indica qué módulos están ya escritos y probados.
 | [07](07-sid-srh/README.md) | El SID y la Segment Routing Header (SRH) | ✅ |
 | [08](08-network-programming/README.md) | Network programming con iproute2: End, End.X, End.DT4/DT6/DT46, H.Encaps | ✅ |
 | [09](09-reduccion-cabeceras/README.md) | Reducción de cabeceras: H.Encaps.Red y los flavors PSP/USP/USD | ✅ |
-| 10 | uSID: SIDs comprimidos | ⏳ |
+| [10](10-usid/README.md) | uSID: SIDs comprimidos (NEXT-C-SID) | ✅ |
 
 ### Bloque III · Plano de control con FRR
 
