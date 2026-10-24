@@ -1,0 +1,127 @@
+# Módulo 14 · Ingeniería de tráfico con SRv6
+#
+#            ┌──── r2 ────┐            (camino CORTO: coste 20)
+#   h1 ── r1 │            │ r4 ── h2
+#            └──── r3 ────┘            (camino LARGO: coste 30, enlace r1-r3 métrica 20)
+#
+# Topología en DIAMANTE: hay DOS caminos de r1 a r4. El IGP elige el corto (por r2).
+# La ingeniería de tráfico consiste en FORZAR el otro (por r3) con una lista de segmentos
+# explícita, aunque no sea el más corto.
+#
+# Plano de control (FRR): IS-IS+SRv6 instala los locators y los SIDs End/End.X (módulo 11).
+# IMPORTANTE: FRR solo automatiza políticas SR para SR-MPLS, NO para SRv6. Así que la TE SRv6
+# se hace aquí a mano, en el plano de datos, con una lista de segmentos (como en IOS-XR/otros
+# sería una SR Policy automática). Ver la teoría.
+#
+# SIDs usados para el steering (puestos a mano, con valores deterministas):
+#   r3: 5f00:0:3:e000::  [End]     waypoint que fuerza el paso por r3
+#   r1: 5f00:0:1:dc04::  [End.DX4] entrega el IPv4 de vuelta a h1
+#   r4: 5f00:0:4:dc04::  [End.DX4] entrega el IPv4 a h2
+# Por defecto, r1 y r4 encapsulan el tráfico de cliente por el camino LARGO (vía r3):
+#   r1: 10.0.2.0/24 -> segs 5f00:0:3:e000:: , 5f00:0:4:dc04::
+#   r4: 10.0.1.0/24 -> segs 5f00:0:3:e000:: , 5f00:0:1:dc04::
+#
+#   python3 herramientas/topologia.py 14-te-srv6/lab/lab.clab.yml
+#
+# Probado con containerlab 0.74.3, FRR 10.2.1, netshoot v0.13, kernel 7.2 (OrbStack).
+
+name: m14
+
+topology:
+  defaults:
+    kind: linux
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: 0
+      net.ipv6.conf.all.seg6_enabled: 1
+      net.ipv6.conf.default.seg6_enabled: 1
+
+  nodes:
+    h1:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 1, graph-icon: host, graph-desc: "host · netshoot", ip.eth1: "10.0.1.10/24"}
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "ip route flush default"
+        - "ip addr add 10.0.1.10/24 dev eth1"
+        - "ip route add default via 10.0.1.1 dev eth1"
+
+    r1:
+      image: quay.io/frrouting/frr:10.2.1
+      labels: {graph-level: 2, graph-row: 1, graph-icon: router, graph-desc: "borde · FRR", ip.lo: "3fff:0:ff::1/128", ip.eth1: "10.0.1.1/24", ip.eth2: "3fff:0:12::1/64", ip.eth3: "3fff:0:13::1/64 (m=20)", srv6.locator: "5f00:0:1::/48", srv6.sids: "5f00:0:1:dc04:: End.DX4 (manual)"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.conf.all.forwarding: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r1/daemons:/etc/frr/daemons, r1/frr.conf:/etc/frr/frr.conf, r1/vtysh.conf:/etc/frr/vtysh.conf]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "ip addr add 10.0.1.1/24 dev eth1"
+        - "sysctl -w net.ipv6.conf.eth2.seg6_enabled=1 net.ipv6.conf.eth3.seg6_enabled=1"
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+        - "ip sr tunsrc set 3fff:0:ff::1"
+        # Servicio (vuelta): entrega el IPv4 a h1
+        - "ip -6 route add 5f00:0:1:dc04::/128 encap seg6local action End.DX4 nh4 10.0.1.10 dev eth1"
+        # TE: el IPv4 hacia h2 se fuerza por r3 (camino largo) con una lista de 2 segmentos
+        - "ip route add 10.0.2.0/24 encap seg6 mode encap.red segs 5f00:0:3:e000::,5f00:0:4:dc04:: dev eth3"
+
+    r2:
+      image: quay.io/frrouting/frr:10.2.1
+      labels: {graph-level: 3, graph-row: 1, graph-icon: router, graph-desc: "núcleo (corto)", ip.lo: "3fff:0:ff::2/128", ip.eth1: "3fff:0:12::2/64", ip.eth2: "3fff:0:24::2/64", srv6.locator: "5f00:0:2::/48", srv6.sids: "End/End.X automáticos"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r2/daemons:/etc/frr/daemons, r2/frr.conf:/etc/frr/frr.conf, r2/vtysh.conf:/etc/frr/vtysh.conf]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1 net.ipv6.conf.eth2.seg6_enabled=1"
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+
+    r3:
+      image: quay.io/frrouting/frr:10.2.1
+      labels: {graph-level: 3, graph-row: 2, graph-icon: router, graph-desc: "núcleo (TE)", ip.lo: "3fff:0:ff::3/128", ip.eth1: "3fff:0:13::3/64 (m=20)", ip.eth2: "3fff:0:34::3/64", srv6.locator: "5f00:0:3::/48", srv6.sids: "5f00:0:3:e000:: End (waypoint, manual)"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r3/daemons:/etc/frr/daemons, r3/frr.conf:/etc/frr/frr.conf, r3/vtysh.conf:/etc/frr/vtysh.conf]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1 net.ipv6.conf.eth2.seg6_enabled=1"
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+        # Waypoint de TE: un End con un valor de función conocido, para poder referirlo en la lista
+        - "ip -6 route add 5f00:0:3:e000::/128 encap seg6local action End dev eth1"
+
+    r4:
+      image: quay.io/frrouting/frr:10.2.1
+      labels: {graph-level: 4, graph-row: 1, graph-icon: router, graph-desc: "borde · FRR", ip.lo: "3fff:0:ff::4/128", ip.eth1: "3fff:0:24::4/64", ip.eth2: "3fff:0:34::4/64", ip.eth3: "10.0.2.1/24", srv6.locator: "5f00:0:4::/48", srv6.sids: "5f00:0:4:dc04:: End.DX4 (manual)"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.conf.all.forwarding: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r4/daemons:/etc/frr/daemons, r4/frr.conf:/etc/frr/frr.conf, r4/vtysh.conf:/etc/frr/vtysh.conf]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "ip addr add 10.0.2.1/24 dev eth3"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1 net.ipv6.conf.eth2.seg6_enabled=1"
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+        - "ip sr tunsrc set 3fff:0:ff::4"
+        # Servicio (ida): entrega el IPv4 a h2
+        - "ip -6 route add 5f00:0:4:dc04::/128 encap seg6local action End.DX4 nh4 10.0.2.20 dev eth3"
+        # TE: el IPv4 de vuelta hacia h1 también se fuerza por r3
+        - "ip route add 10.0.1.0/24 encap seg6 mode encap.red segs 5f00:0:3:e000::,5f00:0:1:dc04:: dev eth2"
+
+    h2:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 5, graph-icon: host, graph-desc: "host · netshoot", ip.eth1: "10.0.2.20/24"}
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "ip route flush default"
+        - "ip addr add 10.0.2.20/24 dev eth1"
+        - "ip route add default via 10.0.2.1 dev eth1"
+
+  links:
+    - endpoints: ["h1:eth1", "r1:eth1"]
+    - endpoints: ["r1:eth2", "r2:eth1"]
+    - endpoints: ["r1:eth3", "r3:eth1"]
+    - endpoints: ["r2:eth2", "r4:eth1"]
+    - endpoints: ["r3:eth2", "r4:eth2"]
+    - endpoints: ["r4:eth3", "h2:eth1"]

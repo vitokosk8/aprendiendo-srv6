@@ -58,7 +58,7 @@ El estado indica qué módulos están ya escritos y probados.
 | [11](11-isis-srv6/README.md) | IS-IS con SRv6: locators y SIDs End.X | ✅ |
 | [12](12-l3vpn-bgp/README.md) | L3VPN IPv4 sobre SRv6 con BGP (End.DT4) | ✅ |
 | [13](13-l3vpn-dualstack/README.md) | L3VPN IPv6 y dual-stack (End.DT6 / End.DT46) | ✅ |
-| 14 | Ingeniería de tráfico con SRv6 en FRR | 🔍 |
+| [14](14-te-srv6/README.md) | Ingeniería de tráfico con SRv6 | ✅ |
 | 15 | Resiliencia: TI-LFA | 🔍 |
 
 ### Bloque IV · Operación
