@@ -1,14 +1,40 @@
-# Aprendiendo SRv6
+<div align="center">
 
-Curso práctico de **Segment Routing over IPv6 (SRv6)** en español, desde cero.
+# 🧭 Aprendiendo SRv6
 
-Empieza explicando qué es una dirección IPv6 y termina montando servicios VPN sobre SRv6. Cada módulo combina **teoría**, un **laboratorio** reproducible con [Containerlab](https://containerlab.dev) y [FRRouting](https://frrouting.org), y **prácticas** con sus soluciones.
+**Curso práctico de Segment Routing over IPv6 (SRv6), en español y desde cero.**
 
-Todo funciona con software libre: no hace falta ninguna imagen de fabricante.
+De *"¿qué es una dirección IPv6?"* a montar **L3VPN multicliente con ingeniería de tráfico, resiliencia y operación segura** — todo con software libre, en tu portátil.
 
-## Cómo usar este repositorio
+![Licencia](https://img.shields.io/badge/licencia-CC%20BY--SA%204.0-blue)
+![Idioma](https://img.shields.io/badge/idioma-español-green)
+![Lab](https://img.shields.io/badge/lab-Containerlab-00b0f0)
+![Routing](https://img.shields.io/badge/routing-FRRouting%2010.2-cc0000)
+![Data plane](https://img.shields.io/badge/data%20plane-SRv6%20(Linux%20kernel)-5f3aa6)
+![Módulos](https://img.shields.io/badge/módulos-18%20(00→17)-success)
 
-Cada módulo es una carpeta con la misma estructura (hay una plantilla en [`herramientas/plantilla-modulo`](herramientas/plantilla-modulo)):
+</div>
+
+---
+
+Cada módulo combina **teoría**, un **laboratorio reproducible** con [Containerlab](https://containerlab.dev) y [FRRouting](https://frrouting.org), y **prácticas con soluciones**. No hace falta ninguna imagen de fabricante: SRv6 vive en el **kernel de Linux** y el plano de control en **FRR**. Todo lo que se explica, se monta y se comprueba.
+
+> 💡 El curso es **honesto** con lo que el software libre soporta hoy: cuando FRR/Linux no cubre algo (p. ej. SR-TE o TI-LFA sobre SRv6), se explica la teoría completa, se demuestra lo que **sí** es practicable, y se indica con qué plataforma se haría en producción.
+
+## 🎯 Qué vas a aprender
+
+- **IPv6 a fondo**: direcciones, cabecera y cabeceras de extensión, ICMPv6/ND, enrutamiento e IS-IS.
+- **El plano de datos SRv6**: el SID, la SRH, y todo el catálogo de *behaviors* (`End`, `End.X`, `End.DT4/DT6/DT46`, `End.DX4/DX6`, `H.Encaps`), montados **a mano** con `iproute2` para entender qué hace cada uno.
+- **Eficiencia**: reducción de cabeceras (`H.Encaps.Red`, flavors `PSP/USP/USD`) y **compresión uSID** (NEXT-C-SID).
+- **El plano de control con FRR**: IS-IS que anuncia *locators* e instala SIDs solo, y **BGP** que monta **L3VPN** IPv4, IPv6 y dual-stack (`End.DT4/DT6/DT46`).
+- **Ingeniería de tráfico y resiliencia**: listas de segmentos explícitas, SR Policy y TI-LFA.
+- **Operación**: OAM, *troubleshooting*, MTU y seguridad/filtrado en el borde.
+
+Y, de propina, el **porqué** de cada cosa: de MPLS a SR, el modelo de confianza del dominio, y las trampas reales de montar SRv6 en Linux (que irás descubriendo lab a lab).
+
+## 🚀 Cómo usar este repositorio
+
+Cada módulo es una carpeta con la misma estructura (plantilla en [`herramientas/plantilla-modulo`](herramientas/plantilla-modulo)):
 
 ```
 NN-tema/
@@ -16,19 +42,20 @@ NN-tema/
 ├── practica.md      ← ejercicios guiados sobre el laboratorio
 ├── soluciones.md    ← soluciones razonadas (¡inténtalo antes!)
 └── lab/             ← topología de Containerlab y configuraciones
+    ├── lab.clab.yml
+    ├── verificar.sh ← comprueba que el laboratorio hace lo que debe
+    └── rN/…         ← configuraciones de FRR por router
 ```
 
-1. Prepara el entorno una sola vez: [00 · Preparación del entorno](00-preparacion/README.md).
-2. Lee la teoría del módulo.
-3. Levanta el laboratorio y haz la práctica.
-4. Compara con las soluciones.
-5. Destruye el laboratorio antes de pasar al siguiente.
+1. Prepara el entorno una sola vez: **[00 · Preparación del entorno](00-preparacion/README.md)**.
+2. Lee la teoría del módulo (`README.md`).
+3. Levanta el laboratorio (`sudo containerlab deploy -t lab/lab.clab.yml`) y pásale `lab/verificar.sh`.
+4. Haz la práctica y compárala con las soluciones.
+5. Destruye el laboratorio (`sudo containerlab destroy ... --cleanup`) antes del siguiente.
 
-Los módulos están pensados para seguirse en orden: cada uno usa lo aprendido en los anteriores.
+Los módulos se siguen **en orden**: cada uno se apoya en lo aprendido en los anteriores.
 
-## Temario
-
-El estado indica qué módulos están ya escritos y probados.
+## 📚 Temario
 
 ### Bloque I · Fundamentos de IPv6
 
@@ -68,23 +95,73 @@ El estado indica qué módulos están ya escritos y probados.
 | [16](16-oam/README.md) | OAM y troubleshooting: ping, traceroute y capturas | ✅ |
 | [17](17-mtu-seguridad/README.md) | MTU, seguridad y filtrado de SRv6 en el borde | ✅ |
 
-✅ escrito y probado · 🧪 escrito, pendiente de probar · ⏳ pendiente · 🔍 pendiente de verificar qué soporta FRR (si no lo soporta, se explicará la teoría y se indicará con qué plataforma practicarlo)
+> ✅ escrito y probado · 🧪 escrito, pendiente de probar · ⏳ pendiente
 
-## Convenciones
+## 🧩 Convenciones
 
-- **Direccionamiento**: se usa `3fff::/20`, el bloque reservado para documentación por el [RFC 9637](https://www.rfc-editor.org/rfc/rfc9637), evitando `3fff:172::/32`, que usa la red de gestión de containerlab. El módulo 01 usa además el bloque clásico `2001:db8::/32` ([RFC 3849](https://www.rfc-editor.org/rfc/rfc3849)). Para los SIDs se usa `5f00::/16` ([RFC 9602](https://www.rfc-editor.org/rfc/rfc9602)).
-- **Nombres**: `hN` para hosts y `rN` para routers.
-- **Esquemas de conexionado**: cada módulo muestra su laboratorio con direcciones y SIDs al principio de la teoría y en el enunciado de la práctica, en [Mermaid](https://mermaid.js.org), que GitHub dibuja directamente, y en un fichero `lab/topologia.drawio` editable. Ambos se generan desde `lab.clab.yml` con [`herramientas/topologia.py`](herramientas/topologia.py) (ver [módulo 00](00-preparacion/README.md#dibujar-la-topología)).
-- **Versiones fijadas**: cada laboratorio indica la imagen exacta con la que se probó.
-- **Entorno de pruebas**: containerlab 0.74.3 sobre OrbStack (kernel Linux 7.2), FRR 10.2.1 y netshoot v0.13.
-- Los comandos que empiezan por `$` se ejecutan en tu máquina; los que empiezan por `h1#`, `r1#`… dentro del contenedor indicado.
+- **Direccionamiento**: `3fff::/20`, bloque de documentación del [RFC 9637](https://www.rfc-editor.org/rfc/rfc9637) (evitando `3fff:172::/32`, que usa la red de gestión de Containerlab). El módulo 01 usa además el clásico `2001:db8::/32` ([RFC 3849](https://www.rfc-editor.org/rfc/rfc3849)). Para los **SIDs**, `5f00::/16` ([RFC 9602](https://www.rfc-editor.org/rfc/rfc9602)).
+- **Nombres**: `hN` para hosts, `rN` para routers.
+- **Esquemas de red**: cada módulo muestra su topología con direcciones y SIDs en [Mermaid](https://mermaid.js.org) (que GitHub dibuja solo) y en un `lab/topologia.drawio` editable. Ambos se generan desde el `lab.clab.yml` con [`herramientas/topologia.py`](herramientas/topologia.py).
+- **Prompts**: los comandos con `$` se ejecutan en tu máquina; los que empiezan por `h1#`, `r1#`… dentro del contenedor indicado.
+- **Entorno de pruebas**: Containerlab 0.74.3 sobre OrbStack (kernel Linux 7.2), FRR 10.2.1 y netshoot v0.13. Cada laboratorio fija la imagen exacta con la que se probó.
 
-## Fuentes
+## 🛠️ Herramientas usadas
 
+| Herramienta | Para qué |
+|-------------|----------|
+| [Containerlab](https://containerlab.dev) | Orquestar las topologías de laboratorio |
+| [FRRouting](https://frrouting.org) (FRR 10.2) | Plano de control: IS-IS, BGP, SRv6 |
+| Kernel Linux (`iproute2`, `seg6`/`seg6local`) | Plano de datos SRv6 |
+| [netshoot](https://github.com/nicolaka/netshoot) | Hosts y herramientas de red (ping, traceroute, tcpdump, scapy) |
+| [Mermaid](https://mermaid.js.org) + [draw.io](https://www.drawio.com) | Diagramas de topología |
+
+## 📖 Referencias
+
+Todo lo que se cita en los módulos, reunido aquí.
+
+### IPv6 (fundamentos)
+- [RFC 8200](https://www.rfc-editor.org/rfc/rfc8200) — Internet Protocol, Version 6 (IPv6) Specification
+- [RFC 4291](https://www.rfc-editor.org/rfc/rfc4291) — IPv6 Addressing Architecture
+- [RFC 4443](https://www.rfc-editor.org/rfc/rfc4443) — ICMPv6
+- [RFC 4861](https://www.rfc-editor.org/rfc/rfc4861) — Neighbor Discovery for IPv6
+- [RFC 4862](https://www.rfc-editor.org/rfc/rfc4862) — IPv6 Stateless Address Autoconfiguration (SLAAC)
+- [RFC 8201](https://www.rfc-editor.org/rfc/rfc8201) — Path MTU Discovery for IPv6
+- [RFC 3849](https://www.rfc-editor.org/rfc/rfc3849) — IPv6 Address Prefix Reserved for Documentation (`2001:db8::/32`)
+- [RFC 9637](https://www.rfc-editor.org/rfc/rfc9637) — IPv6 Documentation Prefix (`3fff::/20`)
+
+### Segment Routing y SRv6
+- [RFC 8402](https://www.rfc-editor.org/rfc/rfc8402) — Segment Routing Architecture
+- [RFC 8754](https://www.rfc-editor.org/rfc/rfc8754) — IPv6 Segment Routing Header (SRH)
+- [RFC 8986](https://www.rfc-editor.org/rfc/rfc8986) — SRv6 Network Programming (catálogo de *behaviors*)
+- [RFC 9602](https://www.rfc-editor.org/rfc/rfc9602) — SRv6 SID block (`5f00::/16`)
+- [draft-ietf-spring-srv6-srh-compression](https://datatracker.ietf.org/doc/draft-ietf-spring-srv6-srh-compression/) — Compressed SRv6 Segment List Encoding (uSID / NEXT-C-SID)
+
+### Plano de control (IS-IS / BGP)
+- [RFC 9352](https://www.rfc-editor.org/rfc/rfc9352) — IS-IS Extensions to Support SRv6
+- [RFC 8667](https://www.rfc-editor.org/rfc/rfc8667) — IS-IS Extensions for Segment Routing (SR-MPLS)
+- [RFC 4364](https://www.rfc-editor.org/rfc/rfc4364) — BGP/MPLS IP VPNs (modelo CE/PE/P, RD/RT)
+- [RFC 9252](https://www.rfc-editor.org/rfc/rfc9252) — BGP Overlay Services over SRv6
+- [RFC 8950](https://www.rfc-editor.org/rfc/rfc8950) — Advertising IPv4 NLRI with IPv6 Next Hop (*extended-nexthop*)
+
+### Ingeniería de tráfico y resiliencia
+- [RFC 9256](https://www.rfc-editor.org/rfc/rfc9256) — Segment Routing Policy Architecture
+- [RFC 9855](https://www.rfc-editor.org/rfc/rfc9855) — Topology Independent Loop-Free Alternate (TI-LFA)
+- [RFC 5286](https://www.rfc-editor.org/rfc/rfc5286) — Basic Specification for IP Fast Reroute: LFA
+
+### Operación (OAM)
+- [RFC 9259](https://www.rfc-editor.org/rfc/rfc9259) — OAM in SRv6 Networks
+
+### Comunidad y laboratorios
 - [SRv6.md](https://srv6.md) — wiki comunitaria sobre SRv6 ([repositorio](https://github.com/eldaninavas/srv6.md))
 - [segmentrouting/srv6-labs](https://github.com/segmentrouting/srv6-labs) — laboratorios SRv6 de referencia
-- RFC citados en cada módulo
+- [SRv6 en el kernel de Linux (netdev 0x19, 2025)](https://www.segment-routing.net/images/20250311-srv6-usid-linux-netdev-0x19.pdf)
+- [FRR · ISIS](https://docs.frrouting.org/en/latest/isisd.html) · [FRR · BGP](https://docs.frrouting.org/en/latest/bgp.html) · [FRR · PATH](https://docs.frrouting.org/en/latest/pathd.html)
+- [Documentación del kernel: SRv6](https://docs.kernel.org/networking/seg6-sysctl.html)
 
-## Licencia
+## 👤 Autor
 
-El contenido se publica bajo [CC BY-SA 4.0](LICENSE): puedes reutilizarlo y adaptarlo citando la fuente y manteniendo la misma licencia.
+Creado por **Victor Bolaños Guerra** ([@vitokosk8](https://github.com/vitokosk8)) como material de formación abierta sobre SRv6.
+
+## 📜 Licencia
+
+Publicado bajo [**CC BY-SA 4.0**](LICENSE): puedes reutilizarlo y adaptarlo citando la fuente y manteniendo la misma licencia.
