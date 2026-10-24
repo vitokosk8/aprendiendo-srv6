@@ -65,7 +65,7 @@ El estado indica qué módulos están ya escritos y probados.
 
 | Módulo | Tema | Estado |
 |--------|------|:------:|
-| 16 | OAM y troubleshooting: ping, traceroute y capturas | ⏳ |
+| [16](16-oam/README.md) | OAM y troubleshooting: ping, traceroute y capturas | ✅ |
 | 17 | MTU, seguridad y filtrado de SRv6 en el borde | ⏳ |
 
 ✅ escrito y probado · 🧪 escrito, pendiente de probar · ⏳ pendiente · 🔍 pendiente de verificar qué soporta FRR (si no lo soporta, se explicará la teoría y se indicará con qué plataforma practicarlo)
