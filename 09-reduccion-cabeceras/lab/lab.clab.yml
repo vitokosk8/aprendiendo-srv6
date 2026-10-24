@@ -1,0 +1,109 @@
+# Módulo 09 · Reducción de cabeceras: H.Encaps.Red y flavors PSP/USP/USD
+#
+#   h1 ── r1 ══════ r2 ══════ r3 ── h2
+#   dual-stack   (núcleo solo IPv6, SRv6)   dual-stack
+#
+# Misma topología que el módulo 08, pero cambiando CÓMO se encapsula para gastar
+# menos cabecera:
+#   * r1 y r3 encapsulan en modo ENCAP.RED (reducido): el primer SID va en el
+#     destino exterior y NO se repite en la SRH. Con un solo SID, no hay SRH.
+#   * r2 ejecuta End con el flavor PSP: al ser el penúltimo segmento, QUITA la
+#     SRH antes de reenviar al último nodo.
+#
+# Resultado observable en el núcleo:
+#   r1 → r2 : IPv6 exterior + SRH con 1 SID (reducida)      [ip6[6]==43]
+#   r2 → r3 : IPv6 exterior SIN SRH, con el IPv4 dentro     [ip6[6]==4]   ← PSP
+#   r3      : End.DX4 desencapsula y entrega el IPv4 a h2
+#
+# SID instalados (función entre corchetes):
+#   r2: 5f00:0:2:e000::  [End + flavor PSP]
+#   r1: 5f00:0:1:dc04::  [End.DX4]   5f00:0:1:d600:: [End.DT6]
+#   r3: 5f00:0:3:dc04::  [End.DX4]   5f00:0:3:d600:: [End.DT6]
+#
+#   python3 herramientas/topologia.py 09-reduccion-cabeceras/lab/lab.clab.yml
+#
+# Requiere iproute2 reciente (soporte de 'mode encap.red' y 'flavors').
+# Probado con containerlab 0.74.3, FRR 10.2.1, netshoot v0.13, kernel 7.2 (OrbStack).
+
+name: m09
+
+topology:
+  defaults:
+    kind: linux
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: 0
+      net.ipv6.conf.all.seg6_enabled: 1
+      net.ipv6.conf.default.seg6_enabled: 1
+
+  nodes:
+    h1:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 1, graph-icon: host, ip.eth1: "3fff:0:1::10/64, 10.0.1.10/24"}
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "ip -6 addr add 3fff:0:1::10/64 dev eth1"
+        - "ip addr add 10.0.1.10/24 dev eth1"
+        - "ip -6 route add default via 3fff:0:1::1 dev eth1"
+        - "ip route flush default"
+        - "ip route add default via 10.0.1.1 dev eth1"
+
+    r1:
+      image: quay.io/frrouting/frr:10.2.1
+      labels: {graph-level: 2, graph-icon: router, ip.lo: "3fff:0:ff::1/128", ip.eth1: "3fff:0:1::1/64, 10.0.1.1/24", ip.eth2: "3fff:0:12::1/64", srv6.locator: "5f00:0:1::/48", srv6.sids: "5f00:0:1:dc04:: End.DX4; 5f00:0:1:d600:: End.DT6"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.conf.all.forwarding: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r1/daemons:/etc/frr/daemons, r1/frr.conf:/etc/frr/frr.conf, r1/vtysh.conf:/etc/frr/vtysh.conf]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "ip addr add 10.0.1.1/24 dev eth1"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1 net.ipv6.conf.eth2.seg6_enabled=1"
+        - "ip sr tunsrc set 3fff:0:ff::1"
+        # SID locales de r1 (para el tráfico de vuelta de h2 hacia h1)
+        - "ip -6 route add 5f00:0:1:dc04::/128 encap seg6local action End.DX4 nh4 10.0.1.10 dev eth1"
+        - "ip -6 route add 5f00:0:1:d600::/128 encap seg6local action End.DT6 table 254 dev eth1"
+        # Encap REDUCIDO: el IPv4 de h1 hacia la red de h2 entra en SRv6 (por r2 y r3)
+        - "ip route add 10.0.2.0/24 encap seg6 mode encap.red segs 5f00:0:2:e000::,5f00:0:3:dc04:: dev eth2"
+
+    r2:
+      image: quay.io/frrouting/frr:10.2.1
+      labels: {graph-level: 3, graph-icon: router, ip.lo: "3fff:0:ff::2/128", ip.eth1: "3fff:0:12::2/64", ip.eth2: "3fff:0:23::2/64", srv6.locator: "5f00:0:2::/48", srv6.sids: "5f00:0:2:e000:: End+PSP"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r2/daemons:/etc/frr/daemons, r2/frr.conf:/etc/frr/frr.conf, r2/vtysh.conf:/etc/frr/vtysh.conf]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1 net.ipv6.conf.eth2.seg6_enabled=1"
+        # End con flavor PSP: como es el penúltimo segmento, quita la SRH al reenviar
+        - "ip -6 route add 5f00:0:2:e000::/128 encap seg6local action End flavors psp dev eth1"
+
+    r3:
+      image: quay.io/frrouting/frr:10.2.1
+      labels: {graph-level: 4, graph-icon: router, ip.lo: "3fff:0:ff::3/128", ip.eth1: "3fff:0:23::3/64", ip.eth2: "3fff:0:2::1/64, 10.0.2.1/24", srv6.locator: "5f00:0:3::/48", srv6.sids: "5f00:0:3:dc04:: End.DX4; 5f00:0:3:d600:: End.DT6"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.conf.all.forwarding: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r3/daemons:/etc/frr/daemons, r3/frr.conf:/etc/frr/frr.conf, r3/vtysh.conf:/etc/frr/vtysh.conf]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "ip addr add 10.0.2.1/24 dev eth2"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1 net.ipv6.conf.eth2.seg6_enabled=1"
+        - "ip sr tunsrc set 3fff:0:ff::3"
+        - "ip -6 route add 5f00:0:3:dc04::/128 encap seg6local action End.DX4 nh4 10.0.2.20 dev eth2"
+        - "ip -6 route add 5f00:0:3:d600::/128 encap seg6local action End.DT6 table 254 dev eth1"
+        # Encap REDUCIDO de vuelta: el tráfico hacia la red de h1 entra en SRv6 (por r2 y r1)
+        - "ip route add 10.0.1.0/24 encap seg6 mode encap.red segs 5f00:0:2:e000::,5f00:0:1:dc04:: dev eth1"
+
+    h2:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 5, graph-icon: host, ip.eth1: "3fff:0:2::20/64, 10.0.2.20/24"}
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "ip -6 addr add 3fff:0:2::20/64 dev eth1"
+        - "ip addr add 10.0.2.20/24 dev eth1"
+        - "ip -6 route add default via 3fff:0:2::1 dev eth1"
+        - "ip route flush default"
+        - "ip route add default via 10.0.2.1 dev eth1"
+
+  links:
+    - endpoints: ["h1:eth1", "r1:eth1"]
+    - endpoints: ["r1:eth2", "r2:eth1"]
+    - endpoints: ["r2:eth2", "r3:eth1"]
+    - endpoints: ["r3:eth2", "h2:eth1"]
