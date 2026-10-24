@@ -1,0 +1,111 @@
+# Módulo 12 · L3VPN IPv4 sobre SRv6 con BGP (End.DT4)
+#
+#   h1(CE) ── r1(PE) ══════ r2(P) ══════ r3(PE) ── h2(CE)
+#   cliente     VRF CUST   (núcleo IPv6, IS-IS+SRv6)   VRF CUST    cliente
+#
+# El servicio que en el módulo 11 pusiste a mano (End.DX4) ahora lo automatiza BGP:
+#   * r1 y r3 son PE: tienen una VRF de cliente (CUST, tabla 10) con la interfaz del CE.
+#   * r2 es P (provider core): solo transporta, no sabe nada de la VPN.
+#   * BGP (iBGP entre loopbacks, familia IPv4 VPN) anuncia las redes del cliente con su
+#     SID End.DT4; IS-IS+SRv6 (módulo 11) da el transporte hasta el PE de destino.
+#
+# Camino de h1 a h2 (IPv4 privado del cliente):
+#   r1(PE): busca 10.0.2.0/24 en la VRF -> aprendida por BGP con el End.DT4 de r3
+#           -> encapsula en SRv6 hacia ese SID
+#   r2(P):  reenvía el IPv6 exterior hacia el locator de r3 (IGP), sin mirar dentro
+#   r3(PE): End.DT4 -> desencapsula y busca en la tabla de la VRF -> entrega a h2
+#
+#   python3 herramientas/topologia.py 12-l3vpn-bgp/lab/lab.clab.yml
+#
+# Requiere FRR con SRv6 L3VPN en BGP (>= 8.1) y kernel con VRF (strict_mode).
+# Probado con containerlab 0.74.3, FRR 10.2.1, netshoot v0.13, kernel 7.2 (OrbStack).
+
+name: m12
+
+topology:
+  defaults:
+    kind: linux
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: 0
+      net.ipv6.conf.all.seg6_enabled: 1
+      net.ipv6.conf.default.seg6_enabled: 1
+
+  nodes:
+    h1:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 1, graph-icon: host, graph-desc: "CE1 · cliente", ip.eth1: "10.0.1.10/24"}
+      exec:
+        - "ip route flush default"
+        - "ip addr add 10.0.1.10/24 dev eth1"
+        - "ip route add default via 10.0.1.1 dev eth1"
+
+    r1:
+      image: quay.io/frrouting/frr:10.2.1
+      labels: {graph-level: 2, graph-icon: router, graph-desc: "PE1 · FRR", ip.lo: "3fff:0:ff::1/128", ip.eth1: "10.0.1.1/24 (VRF CUST)", ip.eth2: "3fff:0:12::1/64", srv6.locator: "5f00:0:1::/48", srv6.sids: "End.DT4 por BGP (VRF CUST)"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.conf.all.forwarding: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r1/daemons:/etc/frr/daemons, r1/frr.conf:/etc/frr/frr.conf, r1/vtysh.conf:/etc/frr/vtysh.conf]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth2.seg6_enabled=1"
+        # Interfaz dummy para los SIDs de transporte (como en el módulo 11; sin reiniciar FRR)
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+        # VRF del cliente (tabla 10) con la interfaz del CE (eth1) dentro
+        - "ip link add CUST type vrf table 10"
+        - "ip link set CUST up"
+        - "ip link set eth1 master CUST"
+        - "ip addr add 10.0.1.1/24 dev eth1"
+        # strict_mode es necesario para End.DT4 y se resetea al crear una VRF: se pone después
+        - "sysctl -w net.vrf.strict_mode=1"
+        # BGP intentó instalar el End.DT4 cuando strict_mode aún estaba a 0 (reset por la VRF) y falló.
+        # Reaplicamos la asignación del SID, ya con strict_mode=1, para que FRR lo instale (sin reiniciar).
+        - "bash -c 'for i in $(seq 1 20); do vtysh -c \"configure terminal\" -c \"router bgp 65000 vrf CUST\" -c \"address-family ipv4 unicast\" -c \"no sid vpn export auto\" -c \"sid vpn export auto\" 2>/dev/null && break; sleep 2; done'"
+
+    r2:
+      image: quay.io/frrouting/frr:10.2.1
+      labels: {graph-level: 3, graph-icon: router, graph-desc: "P · FRR (núcleo)", ip.lo: "3fff:0:ff::2/128", ip.eth1: "3fff:0:12::2/64", ip.eth2: "3fff:0:23::2/64", srv6.locator: "5f00:0:2::/48", srv6.sids: "solo transporte (End/End.X)"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r2/daemons:/etc/frr/daemons, r2/frr.conf:/etc/frr/frr.conf, r2/vtysh.conf:/etc/frr/vtysh.conf]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1 net.ipv6.conf.eth2.seg6_enabled=1"
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+
+    r3:
+      image: quay.io/frrouting/frr:10.2.1
+      labels: {graph-level: 4, graph-icon: router, graph-desc: "PE2 · FRR", ip.lo: "3fff:0:ff::3/128", ip.eth1: "3fff:0:23::3/64", ip.eth2: "10.0.2.1/24 (VRF CUST)", srv6.locator: "5f00:0:3::/48", srv6.sids: "End.DT4 por BGP (VRF CUST)"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.conf.all.forwarding: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r3/daemons:/etc/frr/daemons, r3/frr.conf:/etc/frr/frr.conf, r3/vtysh.conf:/etc/frr/vtysh.conf]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1"
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+        - "ip link add CUST type vrf table 10"
+        - "ip link set CUST up"
+        - "ip link set eth2 master CUST"
+        - "ip addr add 10.0.2.1/24 dev eth2"
+        # strict_mode es necesario para End.DT4 y se resetea al crear una VRF: se pone después
+        - "sysctl -w net.vrf.strict_mode=1"
+        # Reaplicamos la asignación del SID, ya con strict_mode=1, para que FRR instale el End.DT4 (sin reiniciar).
+        - "bash -c 'for i in $(seq 1 20); do vtysh -c \"configure terminal\" -c \"router bgp 65000 vrf CUST\" -c \"address-family ipv4 unicast\" -c \"no sid vpn export auto\" -c \"sid vpn export auto\" 2>/dev/null && break; sleep 2; done'"
+
+    h2:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 5, graph-icon: host, graph-desc: "CE2 · cliente", ip.eth1: "10.0.2.20/24"}
+      exec:
+        - "ip route flush default"
+        - "ip addr add 10.0.2.20/24 dev eth1"
+        - "ip route add default via 10.0.2.1 dev eth1"
+
+  links:
+    - endpoints: ["h1:eth1", "r1:eth1"]
+    - endpoints: ["r1:eth2", "r2:eth1"]
+    - endpoints: ["r2:eth2", "r3:eth1"]
+    - endpoints: ["r3:eth2", "h2:eth1"]
