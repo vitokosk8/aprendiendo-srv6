@@ -59,7 +59,7 @@ topology:
         - ip link set br0 up
 
     r1:
-      image: quay.io/frrouting/frr:10.2.1
+      image: quay.io/frrouting/frr:10.7.1
       labels: {graph-level: 3, graph-row: 2, graph-icon: router, ip.eth1: "3fff:0:10::1/64", ip.eth2: "3fff:0:40::1/64"}
       sysctls:
         net.ipv6.conf.all.forwarding: 1

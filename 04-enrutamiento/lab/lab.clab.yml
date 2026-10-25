@@ -35,21 +35,21 @@ topology:
         - ip -6 route add default via 3fff:0:1::1 dev eth1
 
     r1:
-      image: quay.io/frrouting/frr:10.2.1
+      image: quay.io/frrouting/frr:10.7.1
       labels: {graph-level: 2, graph-row: 1, graph-icon: router, ip.eth1: "3fff:0:1::1/64", ip.eth2: "3fff:0:12::1/64", ip.eth3: "3fff:0:13::1/64"}
       sysctls: {net.ipv6.conf.all.forwarding: 1}
       binds: [r1/daemons:/etc/frr/daemons, r1/frr.conf:/etc/frr/frr.conf, r1/vtysh.conf:/etc/frr/vtysh.conf]
       exec: ["ip -6 route del default dev eth0"]
 
     r2:
-      image: quay.io/frrouting/frr:10.2.1
+      image: quay.io/frrouting/frr:10.7.1
       labels: {graph-level: 3, graph-row: 1, graph-icon: router, ip.eth1: "3fff:0:12::2/64", ip.eth2: "3fff:0:23::2/64", ip.eth3: "3fff:0:2::1/64"}
       sysctls: {net.ipv6.conf.all.forwarding: 1}
       binds: [r2/daemons:/etc/frr/daemons, r2/frr.conf:/etc/frr/frr.conf, r2/vtysh.conf:/etc/frr/vtysh.conf]
       exec: ["ip -6 route del default dev eth0"]
 
     r3:
-      image: quay.io/frrouting/frr:10.2.1
+      image: quay.io/frrouting/frr:10.7.1
       labels: {graph-level: 2, graph-row: 3, graph-icon: router, ip.eth1: "3fff:0:13::3/64", ip.eth2: "3fff:0:23::3/64", ip.eth3: "3fff:0:3::1/64"}
       sysctls: {net.ipv6.conf.all.forwarding: 1}
       binds: [r3/daemons:/etc/frr/daemons, r3/frr.conf:/etc/frr/frr.conf, r3/vtysh.conf:/etc/frr/vtysh.conf]

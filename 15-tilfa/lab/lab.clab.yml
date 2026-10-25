@@ -33,7 +33,7 @@ topology:
 
   nodes:
     r1:
-      image: quay.io/frrouting/frr:10.2.1
+      image: quay.io/frrouting/frr:10.7.1
       labels: {graph-level: 1, graph-icon: router, graph-desc: "PLR · FRR", ip.lo: "3fff:0:ff::1/128", ip.eth2: "3fff:0:12::1/64", ip.eth3: "3fff:0:13::1/64 (m=20)", srv6.locator: "5f00:0:1::/48", srv6.sids: "End/End.X automáticos + fast-reroute"}
       sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
       binds: [r1/daemons:/etc/frr/daemons, r1/frr.conf:/etc/frr/frr.conf, r1/vtysh.conf:/etc/frr/vtysh.conf]
@@ -45,7 +45,7 @@ topology:
         - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
 
     r2:
-      image: quay.io/frrouting/frr:10.2.1
+      image: quay.io/frrouting/frr:10.7.1
       labels: {graph-level: 2, graph-row: 1, graph-icon: router, graph-desc: "núcleo (primario)", ip.lo: "3fff:0:ff::2/128", ip.eth1: "3fff:0:12::2/64", ip.eth2: "3fff:0:24::2/64", srv6.locator: "5f00:0:2::/48", srv6.sids: "End/End.X automáticos"}
       sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
       binds: [r2/daemons:/etc/frr/daemons, r2/frr.conf:/etc/frr/frr.conf, r2/vtysh.conf:/etc/frr/vtysh.conf]
@@ -57,7 +57,7 @@ topology:
         - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
 
     r3:
-      image: quay.io/frrouting/frr:10.2.1
+      image: quay.io/frrouting/frr:10.7.1
       labels: {graph-level: 2, graph-row: 2, graph-icon: router, graph-desc: "núcleo (respaldo)", ip.lo: "3fff:0:ff::3/128", ip.eth1: "3fff:0:13::3/64 (m=20)", ip.eth2: "3fff:0:34::3/64", srv6.locator: "5f00:0:3::/48", srv6.sids: "End/End.X automáticos"}
       sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
       binds: [r3/daemons:/etc/frr/daemons, r3/frr.conf:/etc/frr/frr.conf, r3/vtysh.conf:/etc/frr/vtysh.conf]
@@ -69,7 +69,7 @@ topology:
         - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
 
     r4:
-      image: quay.io/frrouting/frr:10.2.1
+      image: quay.io/frrouting/frr:10.7.1
       labels: {graph-level: 3, graph-icon: router, graph-desc: "destino · FRR", ip.lo: "3fff:0:ff::4/128", ip.eth1: "3fff:0:24::4/64", ip.eth2: "3fff:0:34::4/64", srv6.locator: "5f00:0:4::/48", srv6.sids: "End/End.X automáticos"}
       sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
       binds: [r4/daemons:/etc/frr/daemons, r4/frr.conf:/etc/frr/frr.conf, r4/vtysh.conf:/etc/frr/vtysh.conf]

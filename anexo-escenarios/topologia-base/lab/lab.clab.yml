@@ -70,7 +70,7 @@ topology:
         - "ip link set br0 up"
 
     r1:
-      image: quay.io/frrouting/frr:10.2.1
+      image: quay.io/frrouting/frr:10.7.1
       labels: {graph-level: 3, graph-icon: router, graph-desc: "PE1 · FRR", ip.lo: "3fff:0:ff::1/128", ip.eth1: "3fff:0:12::1/64 (m=10)", ip.eth2: "3fff:0:13::1/64 (m=15)", ip.eth3: "→ h1 · sede BLUE-1 (según escenario)", ip.eth4: "→ sw1 · VLAN 100 (según escenario)", srv6.locator: "5f00:0:1::/48", srv6.sids: "End/End.X automáticos"}
       sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
       binds: [r1/daemons:/etc/frr/daemons, r1/frr.conf:/etc/frr/frr.conf, r1/vtysh.conf:/etc/frr/vtysh.conf]
@@ -82,7 +82,7 @@ topology:
         - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
 
     r2:
-      image: quay.io/frrouting/frr:10.2.1
+      image: quay.io/frrouting/frr:10.7.1
       labels: {graph-level: 4, graph-row: 1, graph-icon: router, graph-desc: "P · FRR", ip.lo: "3fff:0:ff::2/128", ip.eth1: "3fff:0:12::2/64 (m=10)", ip.eth2: "3fff:0:23::2/64 (m=10)", ip.eth3: "3fff:0:24::2/64 (m=10)", ip.eth4: "3fff:0:25::2/64 (m=25)", srv6.locator: "5f00:0:2::/48", srv6.sids: "End/End.X automáticos"}
       sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
       binds: [r2/daemons:/etc/frr/daemons, r2/frr.conf:/etc/frr/frr.conf, r2/vtysh.conf:/etc/frr/vtysh.conf]
@@ -94,7 +94,7 @@ topology:
         - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
 
     r3:
-      image: quay.io/frrouting/frr:10.2.1
+      image: quay.io/frrouting/frr:10.7.1
       labels: {graph-level: 4, graph-row: 2, graph-icon: router, graph-desc: "P · FRR", ip.lo: "3fff:0:ff::3/128", ip.eth1: "3fff:0:13::3/64 (m=15)", ip.eth2: "3fff:0:23::3/64 (m=10)", ip.eth3: "3fff:0:35::3/64 (m=10)", ip.eth4: "3fff:0:34::3/64 (m=25)", srv6.locator: "5f00:0:3::/48", srv6.sids: "End/End.X automáticos"}
       sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
       binds: [r3/daemons:/etc/frr/daemons, r3/frr.conf:/etc/frr/frr.conf, r3/vtysh.conf:/etc/frr/vtysh.conf]
@@ -106,7 +106,7 @@ topology:
         - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
 
     r4:
-      image: quay.io/frrouting/frr:10.2.1
+      image: quay.io/frrouting/frr:10.7.1
       labels: {graph-level: 5, graph-row: 1, graph-icon: router, graph-desc: "P · FRR", ip.lo: "3fff:0:ff::4/128", ip.eth1: "3fff:0:24::4/64 (m=10)", ip.eth2: "3fff:0:45::4/64 (m=15)", ip.eth3: "3fff:0:46::4/64 (m=10)", ip.eth4: "3fff:0:34::4/64 (m=25)", srv6.locator: "5f00:0:4::/48", srv6.sids: "End/End.X automáticos"}
       sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
       binds: [r4/daemons:/etc/frr/daemons, r4/frr.conf:/etc/frr/frr.conf, r4/vtysh.conf:/etc/frr/vtysh.conf]
@@ -118,7 +118,7 @@ topology:
         - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
 
     r5:
-      image: quay.io/frrouting/frr:10.2.1
+      image: quay.io/frrouting/frr:10.7.1
       labels: {graph-level: 5, graph-row: 2, graph-icon: router, graph-desc: "P · FRR", ip.lo: "3fff:0:ff::5/128", ip.eth1: "3fff:0:35::5/64 (m=10)", ip.eth2: "3fff:0:45::5/64 (m=15)", ip.eth3: "3fff:0:56::5/64 (m=10)", ip.eth4: "3fff:0:25::5/64 (m=25)", srv6.locator: "5f00:0:5::/48", srv6.sids: "End/End.X automáticos"}
       sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
       binds: [r5/daemons:/etc/frr/daemons, r5/frr.conf:/etc/frr/frr.conf, r5/vtysh.conf:/etc/frr/vtysh.conf]
@@ -130,7 +130,7 @@ topology:
         - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
 
     r6:
-      image: quay.io/frrouting/frr:10.2.1
+      image: quay.io/frrouting/frr:10.7.1
       labels: {graph-level: 6, graph-icon: router, graph-desc: "PE2 · FRR", ip.lo: "3fff:0:ff::6/128", ip.eth1: "3fff:0:46::6/64 (m=10)", ip.eth2: "3fff:0:56::6/64 (m=10)", ip.eth3: "→ h2 · sede BLUE-2 (según escenario)", ip.eth4: "→ sw2 · VLAN 100 (según escenario)", srv6.locator: "5f00:0:6::/48", srv6.sids: "End/End.X automáticos"}
       sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
       binds: [r6/daemons:/etc/frr/daemons, r6/frr.conf:/etc/frr/frr.conf, r6/vtysh.conf:/etc/frr/vtysh.conf]

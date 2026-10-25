@@ -3,3 +3,6 @@ clab-*/
 *.clab.yml.bak
 .DS_Store
 __pycache__/
+
+# Registros de herramientas/probar-todos.sh
+resultados-pruebas/
