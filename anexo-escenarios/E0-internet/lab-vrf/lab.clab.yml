@@ -14,7 +14,7 @@
 #
 #   python3 herramientas/topologia.py anexo-escenarios/E0-internet/lab-vrf/lab.clab.yml
 #
-# Pendiente de probar en containerlab 0.82.0, FRR 10.7.1, netshoot v0.13 (OrbStack).
+# Probado con containerlab 0.82.0, FRR 10.7.1, netshoot v0.13 (OrbStack).
 
 name: esc-e0-vrf
 

@@ -2,7 +2,7 @@
 
 > **El caso en una frase**: un operador da acceso a Internet, IPv4 e IPv6, a un cliente, y quiere que los routers de su núcleo **no tengan que conocer la tabla de Internet**.
 >
-> **Requisitos previos**: módulos [11](../../11-isis-srv6/README.md) (IS-IS con SRv6), [12](../../12-l3vpn-bgp/README.md) y [13](../../13-l3vpn-dualstack/README.md) (L3VPN), [14](../../14-te-srv6/README.md) (ingeniería de tráfico) y [17](../../17-oam/README.md) (troubleshooting) · Pendiente de probar con containerlab 0.82.0, FRR 10.7.1 y netshoot v0.13 · Estado: 🧪
+> **Requisitos previos**: módulos [11](../../11-isis-srv6/README.md) (IS-IS con SRv6), [12](../../12-l3vpn-bgp/README.md) y [13](../../13-l3vpn-dualstack/README.md) (L3VPN), [14](../../14-te-srv6/README.md) (ingeniería de tráfico) y [17](../../17-oam/README.md) (troubleshooting) · Probado con containerlab 0.82.0 sobre OrbStack, FRR 10.7.1 y netshoot v0.13 (parte 1: 20/20 comprobaciones; parte 2: 24/24) · Estado: ✅
 
 ## El escenario
 
