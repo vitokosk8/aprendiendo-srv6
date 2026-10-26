@@ -39,7 +39,7 @@ command -v timeout >/dev/null 2>&1 && TIMEOUT="timeout 900"
 
 # --- Qué laboratorios probar ---
 ALL=()
-for d in [0-9][0-9]-*/lab anexo-escenarios/*/lab; do
+for d in [0-9][0-9]-*/lab anexo-escenarios/*/lab anexo-escenarios/*/lab-*; do
   [ -f "$d/lab.clab.yml" ] && [ -x "$d/verificar.sh" ] || continue
   case $d in *plantilla*) continue ;; esac
   ALL+=("$d")
@@ -52,7 +52,7 @@ else
   for want in "$@"; do
     found=0
     for d in "${ALL[@]}"; do
-      mod=${d%/lab}
+      mod=${d%/lab}; mod=${mod%/lab-*}
       case $want in
         base) [ "$mod" = "anexo-escenarios/topologia-base" ] && { SEL+=("$d"); found=1; } ;;
         E[0-9]*|e[0-9]*) case $mod in anexo-escenarios/"$(echo "$want" | tr e E)"-*) SEL+=("$d"); found=1 ;; esac ;;

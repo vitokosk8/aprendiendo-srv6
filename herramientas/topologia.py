@@ -10,6 +10,9 @@ Produce dos salidas con la misma información (nodos, interfaces, direcciones y 
 Uso:
   python3 herramientas/topologia.py 01-direccion-ipv6/lab/lab.clab.yml
 
+Si la carpeta del laboratorio no se llama "lab" (por ejemplo lab-vrf), el diagrama va entre
+los marcadores <!-- topologia:inicio lab-vrf --> y <!-- topologia:fin lab-vrf -->.
+
 Requiere PyYAML (pip3 install pyyaml).
 
 Los datos se leen de las etiquetas (labels) de cada nodo en lab.clab.yml:
@@ -253,7 +256,11 @@ def main():
 
     # README.md (portada del módulo) y practica.md (enunciado): mismo diagrama
     moddir = os.path.dirname(labdir)
-    pat = re.compile(r"(<!-- topologia:inicio -->\n)(?:.*?\n)?(<!-- topologia:fin -->)", re.S)
+    # Un escenario puede tener varios laboratorios (lab-vrf, lab-global…): cada uno escribe en
+    # sus propios marcadores, <!-- topologia:inicio lab-vrf --> … <!-- topologia:fin lab-vrf -->
+    sub = os.path.basename(labdir)
+    tag = "" if sub == "lab" else " " + re.escape(sub)
+    pat = re.compile(r"(<!-- topologia:inicio" + tag + r" -->\n)(?:.*?\n)?(<!-- topologia:fin" + tag + r" -->)", re.S)
     block = mermaid(nodes, links)
     for fname in ("README.md", "practica.md"):
         path = os.path.join(moddir, fname)
@@ -264,7 +271,7 @@ def main():
             open(path, "w").write(pat.sub(lambda m: m.group(1) + block + "\n" + m.group(2), txt))
             print(f"✔ {os.path.relpath(path)} (diagrama actualizado)")
         else:
-            print(f"· {os.path.relpath(path)} no tiene marcadores <!-- topologia:inicio/fin -->")
+            print(f"· {os.path.relpath(path)} no tiene marcadores <!-- topologia:inicio{tag.replace(chr(92), '')} --> / fin")
 
 if __name__ == "__main__":
     main()
