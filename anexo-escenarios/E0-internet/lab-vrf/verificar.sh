@@ -5,7 +5,7 @@ L=clab-esc-e0-vrf
 T=$(mktemp -d)   # carpeta temporal propia de esta ejecución
 trap 'rm -rf "$T"' EXIT
 ok=0; fail=0
-check() { if eval "$2" >/dev/null 2>&1; then echo "  ✅ $1"; ok=$((ok+1)); else echo "  ❌ $1"; fail=$((fail+1)); fi; }
+check() { if ( eval "$2" ) >/dev/null 2>check() { if eval "$2" >/dev/null 2>&1; then1; then echo "  ✅ $1"; ok=$((ok+1)); else echo "  ❌ $1"; fail=$((fail+1)); fi; }
 
 if ! docker inspect $L-r1 >/dev/null 2>&1; then
   echo "❌ El laboratorio no está desplegado (no existe el contenedor $L-r1)."

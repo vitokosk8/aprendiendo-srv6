@@ -1,0 +1,245 @@
+# Escenario E2 · Dos operadores (Inter-AS L3VPNv4) — Opción A: VRF contra VRF
+#
+# La empresa BLUE tiene la sede BLUE-1 en el operador AS 64500 (r1) y la BLUE-4 en el
+# operador AS 64501 (r8). Los dos operadores se conectan por r6 (ASBR del AS 64500, por el
+# enganche r6:eth6) y r7 (ASBR del AS 64501).
+#
+# Opción A (RFC 4364, 10.a): cada ASBR trata al otro como un cliente. El enlace r6–r7 está
+# DENTRO de la VRF BLUE de los dos ASBR y por él viaja IPv4 normal, con una sesión eBGP
+# IPv4 en la VRF. Cada AS tiene su propio dominio SRv6, su propia L3VPN y sus propios RT.
+
+#
+# AS 64500: la topología base (loopbacks 3fff:0:ff::N, SIDs 5f00:0::/32).
+# AS 64501: r7 y r8 (loopbacks 3fff:1:ff::N, SIDs 5f00:1::/32), BLUE-4 (h4) en r8.
+#
+#   python3 herramientas/topologia.py anexo-escenarios/E2-inter-as/lab-opcion-a/lab.clab.yml
+#
+# Pendiente de probar en containerlab 0.82.0, FRR 10.7.1, netshoot v0.13 (OrbStack).
+
+name: esc-e2-a
+
+topology:
+  defaults:
+    kind: linux
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: 0
+      net.ipv6.conf.all.seg6_enabled: 1
+      net.ipv6.conf.default.seg6_enabled: 1
+
+  nodes:
+    h1:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 1, graph-row: 1, graph-icon: host, graph-desc: "PC1 · sede BLUE-1 (AS 64500)", ip.eth1: "192.168.10.12/24"}
+      exec:
+        - "ip route flush default"
+        - "ip -6 route del default dev eth0"
+        - "ip addr add 192.168.10.12/24 dev eth1"
+        - "ip route add default via 192.168.10.1 dev eth1"
+
+    h11:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 1, graph-row: 2, graph-icon: host, graph-desc: "PC11 · VLAN 100 (no se usa en E2)", ip.eth1: "192.168.100.11/24, 3fff:168:100::11/64"}
+      exec:
+        - "ip route flush default"
+        - "ip -6 route del default dev eth0"
+        - "ip addr add 192.168.100.11/24 dev eth1"
+        - "ip -6 addr add 3fff:168:100::11/64 dev eth1"
+
+    sw1:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 2, graph-row: 3, graph-icon: switch, graph-desc: "switch · VLAN 100 (no se usa en E2)"}
+      sysctls:
+        net.ipv6.conf.all.disable_ipv6: 1
+        net.ipv6.conf.default.disable_ipv6: 1
+      exec:
+        - "ip link add br0 type bridge mcast_snooping 0"
+        - "sh -c 'for p in eth1 eth2; do ip link set $p master br0; ip link set $p up; done'"
+        - "ip link set br0 up"
+
+    r1:
+      image: quay.io/frrouting/frr:10.7.1
+      # La VRF BLUE y strict_mode se preparan ANTES de arrancar FRR (como en los módulos 12 y 13).
+      cmd: bash -c "ip link add BLUE type vrf table 10 && ip link set BLUE up && sysctl -w net.vrf.strict_mode=1; exec /usr/lib/frr/docker-start"
+      labels: {graph-level: 3, graph-icon: router, graph-desc: "PE1 · AS 64500", ip.lo: "3fff:0:ff::1/128", ip.eth1: "3fff:0:12::1/64 (m=10)", ip.eth2: "3fff:0:13::1/64 (m=15)", ip.eth3: "192.168.10.1/24 (VRF BLUE)", srv6.locator: "5f00:0:1::/48", srv6.sids: "End.DT4 por BGP (VRF BLUE)"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r1/daemons:/etc/frr/daemons, r1/frr.conf:/etc/frr/frr.conf, r1/vtysh.conf:/etc/frr/vtysh.conf]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1 net.ipv6.conf.eth2.seg6_enabled=1"
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+        - "ip link set eth3 master BLUE"
+        - "ip addr add 192.168.10.1/24 dev eth3"
+        # Red de seguridad: si el End.DT4 no aparece en el kernel, se reaplica la asignación del SID.
+        - "bash -c 'for i in $(seq 1 20); do sleep 3; ip -6 route show | grep -q \"End.DT4 \" && exit 0; [ $((i % 4)) -eq 0 ] && vtysh -c \"configure terminal\" -c \"router bgp 64500 vrf BLUE\" -c \"address-family ipv4 unicast\" -c \"no sid vpn export auto\" -c \"sid vpn export auto\" >/dev/null 2>&1; done; exit 0'"
+
+    r2:
+      image: quay.io/frrouting/frr:10.7.1
+      labels: {graph-level: 4, graph-row: 1, graph-icon: router, graph-desc: "P · AS 64500 (sin BGP)", ip.lo: "3fff:0:ff::2/128", ip.eth1: "3fff:0:12::2/64 (m=10)", ip.eth2: "3fff:0:23::2/64 (m=10)", ip.eth3: "3fff:0:24::2/64 (m=10)", ip.eth4: "3fff:0:25::2/64 (m=25)", srv6.locator: "5f00:0:2::/48", srv6.sids: "End/End.X automáticos"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r2/daemons:/etc/frr/daemons, r2/frr.conf:/etc/frr/frr.conf, r2/vtysh.conf:/etc/frr/vtysh.conf]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1 net.ipv6.conf.eth2.seg6_enabled=1 net.ipv6.conf.eth3.seg6_enabled=1 net.ipv6.conf.eth4.seg6_enabled=1"
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+
+    r3:
+      image: quay.io/frrouting/frr:10.7.1
+      labels: {graph-level: 4, graph-row: 2, graph-icon: router, graph-desc: "P · AS 64500 (sin BGP)", ip.lo: "3fff:0:ff::3/128", ip.eth1: "3fff:0:13::3/64 (m=15)", ip.eth2: "3fff:0:23::3/64 (m=10)", ip.eth3: "3fff:0:35::3/64 (m=10)", ip.eth4: "3fff:0:34::3/64 (m=25)", srv6.locator: "5f00:0:3::/48", srv6.sids: "End/End.X automáticos"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r3/daemons:/etc/frr/daemons, r3/frr.conf:/etc/frr/frr.conf, r3/vtysh.conf:/etc/frr/vtysh.conf]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1 net.ipv6.conf.eth2.seg6_enabled=1 net.ipv6.conf.eth3.seg6_enabled=1 net.ipv6.conf.eth4.seg6_enabled=1"
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+
+    r4:
+      image: quay.io/frrouting/frr:10.7.1
+      labels: {graph-level: 5, graph-row: 1, graph-icon: router, graph-desc: "P · AS 64500 (sin BGP)", ip.lo: "3fff:0:ff::4/128", ip.eth1: "3fff:0:24::4/64 (m=10)", ip.eth2: "3fff:0:45::4/64 (m=15)", ip.eth3: "3fff:0:46::4/64 (m=10)", ip.eth4: "3fff:0:34::4/64 (m=25)", srv6.locator: "5f00:0:4::/48", srv6.sids: "End/End.X automáticos"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r4/daemons:/etc/frr/daemons, r4/frr.conf:/etc/frr/frr.conf, r4/vtysh.conf:/etc/frr/vtysh.conf]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1 net.ipv6.conf.eth2.seg6_enabled=1 net.ipv6.conf.eth3.seg6_enabled=1 net.ipv6.conf.eth4.seg6_enabled=1"
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+
+    r5:
+      image: quay.io/frrouting/frr:10.7.1
+      labels: {graph-level: 5, graph-row: 2, graph-icon: router, graph-desc: "P · AS 64500 (sin BGP)", ip.lo: "3fff:0:ff::5/128", ip.eth1: "3fff:0:35::5/64 (m=10)", ip.eth2: "3fff:0:45::5/64 (m=15)", ip.eth3: "3fff:0:56::5/64 (m=10)", ip.eth4: "3fff:0:25::5/64 (m=25)", srv6.locator: "5f00:0:5::/48", srv6.sids: "End/End.X automáticos"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r5/daemons:/etc/frr/daemons, r5/frr.conf:/etc/frr/frr.conf, r5/vtysh.conf:/etc/frr/vtysh.conf]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1 net.ipv6.conf.eth2.seg6_enabled=1 net.ipv6.conf.eth3.seg6_enabled=1 net.ipv6.conf.eth4.seg6_enabled=1"
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+
+    r6:
+      image: quay.io/frrouting/frr:10.7.1
+      # La VRF BLUE y strict_mode se preparan ANTES de arrancar FRR (como en los módulos 12 y 13).
+      cmd: bash -c "ip link add BLUE type vrf table 10 && ip link set BLUE up && sysctl -w net.vrf.strict_mode=1; exec /usr/lib/frr/docker-start"
+      labels: {graph-level: 6, graph-icon: router, graph-desc: "ASBR · AS 64500 (PE para el otro AS)", ip.lo: "3fff:0:ff::6/128", ip.eth1: "3fff:0:46::6/64 (m=10)", ip.eth2: "3fff:0:56::6/64 (m=10)", ip.eth6: "172.16.67.1/30 (VRF BLUE)", srv6.locator: "5f00:0:6::/48", srv6.sids: "End.DT4 por BGP (VRF BLUE)"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r6/daemons:/etc/frr/daemons, r6/frr.conf:/etc/frr/frr.conf, r6/vtysh.conf:/etc/frr/vtysh.conf]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1 net.ipv6.conf.eth2.seg6_enabled=1"
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+        - "ip link set eth6 master BLUE"
+        - "ip addr add 172.16.67.1/30 dev eth6"
+        # Red de seguridad: si el End.DT4 no aparece en el kernel, se reaplica la asignación del SID.
+        - "bash -c 'for i in $(seq 1 20); do sleep 3; ip -6 route show | grep -q \"End.DT4 \" && exit 0; [ $((i % 4)) -eq 0 ] && vtysh -c \"configure terminal\" -c \"router bgp 64500 vrf BLUE\" -c \"address-family ipv4 unicast\" -c \"no sid vpn export auto\" -c \"sid vpn export auto\" >/dev/null 2>&1; done; exit 0'"
+
+    r7:
+      image: quay.io/frrouting/frr:10.7.1
+      # La VRF BLUE y strict_mode se preparan ANTES de arrancar FRR (como en los módulos 12 y 13).
+      cmd: bash -c "ip link add BLUE type vrf table 10 && ip link set BLUE up && sysctl -w net.vrf.strict_mode=1; exec /usr/lib/frr/docker-start"
+      labels: {graph-level: 8, graph-row: 1, graph-icon: router, graph-desc: "ASBR · AS 64501 (PE para el otro AS)", ip.lo: "3fff:1:ff::7/128", ip.eth1: "172.16.67.2/30 (VRF BLUE)", ip.eth2: "3fff:1:78::7/64 (m=10)", srv6.locator: "5f00:1:7::/48", srv6.sids: "End.DT4 por BGP (VRF BLUE)"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r7/daemons:/etc/frr/daemons, r7/frr.conf:/etc/frr/frr.conf, r7/vtysh.conf:/etc/frr/vtysh.conf]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth2.seg6_enabled=1"
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+        - "ip link set eth1 master BLUE"
+        - "ip addr add 172.16.67.2/30 dev eth1"
+        # Red de seguridad: si el End.DT4 no aparece en el kernel, se reaplica la asignación del SID.
+        - "bash -c 'for i in $(seq 1 20); do sleep 3; ip -6 route show | grep -q \"End.DT4 \" && exit 0; [ $((i % 4)) -eq 0 ] && vtysh -c \"configure terminal\" -c \"router bgp 64501 vrf BLUE\" -c \"address-family ipv4 unicast\" -c \"no sid vpn export auto\" -c \"sid vpn export auto\" >/dev/null 2>&1; done; exit 0'"
+
+    r8:
+      image: quay.io/frrouting/frr:10.7.1
+      # La VRF BLUE y strict_mode se preparan ANTES de arrancar FRR (como en los módulos 12 y 13).
+      cmd: bash -c "ip link add BLUE type vrf table 10 && ip link set BLUE up && sysctl -w net.vrf.strict_mode=1; exec /usr/lib/frr/docker-start"
+      labels: {graph-level: 9, graph-row: 1, graph-icon: router, graph-desc: "PE · AS 64501", ip.lo: "3fff:1:ff::8/128", ip.eth1: "3fff:1:78::8/64 (m=10)", ip.eth2: "192.168.40.1/24 (VRF BLUE)", srv6.locator: "5f00:1:8::/48", srv6.sids: "End.DT4 por BGP (VRF BLUE)"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r8/daemons:/etc/frr/daemons, r8/frr.conf:/etc/frr/frr.conf, r8/vtysh.conf:/etc/frr/vtysh.conf]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1"
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+        - "ip link set eth2 master BLUE"
+        - "ip addr add 192.168.40.1/24 dev eth2"
+        # Red de seguridad: si el End.DT4 no aparece en el kernel, se reaplica la asignación del SID.
+        - "bash -c 'for i in $(seq 1 20); do sleep 3; ip -6 route show | grep -q \"End.DT4 \" && exit 0; [ $((i % 4)) -eq 0 ] && vtysh -c \"configure terminal\" -c \"router bgp 64501 vrf BLUE\" -c \"address-family ipv4 unicast\" -c \"no sid vpn export auto\" -c \"sid vpn export auto\" >/dev/null 2>&1; done; exit 0'"
+
+    sw2:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 7, graph-row: 3, graph-icon: switch, graph-desc: "switch · VLAN 100 (no se usa en E2)"}
+      sysctls:
+        net.ipv6.conf.all.disable_ipv6: 1
+        net.ipv6.conf.default.disable_ipv6: 1
+      exec:
+        - "ip link add br0 type bridge mcast_snooping 0"
+        - "sh -c 'for p in eth1 eth2; do ip link set $p master br0; ip link set $p up; done'"
+        - "ip link set br0 up"
+
+    h2:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 7, graph-row: 2, graph-icon: host, graph-desc: "PC2 · sede BLUE-2 (no se usa en E2)", ip.eth1: "192.168.20.12/24"}
+      exec:
+        - "ip route flush default"
+        - "ip -6 route del default dev eth0"
+        - "ip addr add 192.168.20.12/24 dev eth1"
+
+    h12:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 8, graph-row: 3, graph-icon: host, graph-desc: "PC12 · VLAN 100 (no se usa en E2)", ip.eth1: "192.168.100.12/24, 3fff:168:100::12/64"}
+      exec:
+        - "ip route flush default"
+        - "ip -6 route del default dev eth0"
+        - "ip addr add 192.168.100.12/24 dev eth1"
+        - "ip -6 addr add 3fff:168:100::12/64 dev eth1"
+
+    h4:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 10, graph-row: 1, graph-icon: host, graph-desc: "PC4 · sede BLUE-4 (AS 64501)", ip.eth1: "192.168.40.12/24"}
+      exec:
+        - "ip route flush default"
+        - "ip -6 route del default dev eth0"
+        - "ip addr add 192.168.40.12/24 dev eth1"
+        - "ip route add default via 192.168.40.1 dev eth1"
+
+  links:
+    # núcleo del AS 64500 (igual que la topología base)
+    - endpoints: ["r1:eth1", "r2:eth1"]
+    - endpoints: ["r1:eth2", "r3:eth1"]
+    - endpoints: ["r2:eth2", "r3:eth2"]
+    - endpoints: ["r2:eth3", "r4:eth1"]
+    - endpoints: ["r2:eth4", "r5:eth4"]
+    - endpoints: ["r3:eth3", "r5:eth1"]
+    - endpoints: ["r3:eth4", "r4:eth4"]
+    - endpoints: ["r4:eth2", "r5:eth2"]
+    - endpoints: ["r4:eth3", "r6:eth1"]
+    - endpoints: ["r5:eth3", "r6:eth2"]
+    # sedes de la base
+    - endpoints: ["h1:eth1", "r1:eth3"]
+    - endpoints: ["sw1:eth1", "r1:eth4"]
+    - endpoints: ["h11:eth1", "sw1:eth2"]
+    - endpoints: ["r6:eth3", "h2:eth1"]
+    - endpoints: ["r6:eth4", "sw2:eth1"]
+    - endpoints: ["sw2:eth2", "h12:eth1"]
+    # añadidos en E2: el AS 64501, por el enganche r6:eth6
+    - endpoints: ["r6:eth6", "r7:eth1"]
+    - endpoints: ["r7:eth2", "r8:eth1"]
+    - endpoints: ["r8:eth2", "h4:eth1"]
