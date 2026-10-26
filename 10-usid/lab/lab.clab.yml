@@ -23,7 +23,7 @@
 #   python3 herramientas/topologia.py 10-usid/lab/lab.clab.yml
 #
 # Requiere kernel >= 6.6 e iproute2 con soporte de 'flavors next-csid'.
-# Probado con containerlab 0.74.3, FRR 10.2.1, netshoot v0.13, kernel 7.2 (OrbStack).
+# Probado con containerlab 0.82.0, FRR 10.7.1, netshoot v0.13, kernel 7.2 (OrbStack).
 
 name: m10
 

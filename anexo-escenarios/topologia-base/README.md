@@ -2,7 +2,7 @@
 
 Todos los escenarios del anexo usan **esta misma red**: un núcleo SRv6 de seis routers en malla parcial, con dos sedes de cliente en cada extremo. Cada escenario parte de una copia de este laboratorio, configura los servicios que necesita y, si hace falta, **añade equipos** en los puntos de enganche previstos. El núcleo nunca cambia, así que siempre reconocerás la red.
 
-> **Estado: ✅ probada** en containerlab 0.74.3 sobre OrbStack, FRR 10.2.1 y netshoot v0.13.
+> **Estado: ✅ probada** en containerlab 0.82.0 sobre OrbStack, FRR 10.7.1 y netshoot v0.13.
 
 <!-- topologia:inicio -->
 ```mermaid

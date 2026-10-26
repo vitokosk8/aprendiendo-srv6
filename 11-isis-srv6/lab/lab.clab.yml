@@ -23,7 +23,7 @@
 #   python3 herramientas/topologia.py 11-isis-srv6/lab/lab.clab.yml
 #
 # Requiere FRR con soporte SRv6 en IS-IS (>= 9.1). Interfaz sr0 creada en 'exec'.
-# Probado con containerlab 0.74.3, FRR 10.2.1, netshoot v0.13, kernel 7.2 (OrbStack).
+# Probado con containerlab 0.82.0, FRR 10.7.1, netshoot v0.13, kernel 7.2 (OrbStack).
 
 name: m11
 

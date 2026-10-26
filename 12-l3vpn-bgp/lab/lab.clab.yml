@@ -18,7 +18,7 @@
 #   python3 herramientas/topologia.py 12-l3vpn-bgp/lab/lab.clab.yml
 #
 # Requiere FRR con SRv6 L3VPN en BGP (>= 8.1) y kernel con VRF (strict_mode).
-# Probado con containerlab 0.74.3, FRR 10.2.1, netshoot v0.13, kernel 7.2 (OrbStack).
+# Probado con containerlab 0.82.0, FRR 10.7.1, netshoot v0.13, kernel 7.2 (OrbStack).
 
 name: m12
 

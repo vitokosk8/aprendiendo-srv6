@@ -11,7 +11,7 @@
 # topologia.drawio y el diagrama de practica.md:
 #   python3 herramientas/topologia.py 01-direccion-ipv6/lab/lab.clab.yml
 #
-# Probado con containerlab 0.74.3, FRR 10.2.1, netshoot v0.13, kernel 7.2 (OrbStack).
+# Probado con containerlab 0.82.0, FRR 10.7.1, netshoot v0.13, kernel 7.2 (OrbStack).
 
 name: m01
 

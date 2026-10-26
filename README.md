@@ -9,7 +9,7 @@ De *"¿qué es una dirección IPv6?"* a montar **L3VPN multicliente con ingenier
 ![Licencia](https://img.shields.io/badge/licencia-CC%20BY--SA%204.0-blue)
 ![Idioma](https://img.shields.io/badge/idioma-español-green)
 ![Lab](https://img.shields.io/badge/lab-Containerlab-00b0f0)
-![Routing](https://img.shields.io/badge/routing-FRRouting%2010.2-cc0000)
+![Routing](https://img.shields.io/badge/routing-FRRouting%2010.7-cc0000)
 ![Data plane](https://img.shields.io/badge/data%20plane-SRv6%20(Linux%20kernel)-5f3aa6)
 ![Módulos](https://img.shields.io/badge/módulos-19%20(00→18)-success)
 
@@ -132,14 +132,14 @@ Casos de uso completos, inspirados en los que documentan los fabricantes y monta
 - **Nombres**: `hN` para hosts, `rN` para routers.
 - **Esquemas de red**: cada módulo muestra su topología con direcciones y SIDs en [Mermaid](https://mermaid.js.org) (que GitHub dibuja solo) y en un `lab/topologia.drawio` editable. Ambos se generan desde el `lab.clab.yml` con [`herramientas/topologia.py`](herramientas/topologia.py).
 - **Prompts**: los comandos con `$` se ejecutan en tu máquina; los que empiezan por `h1#`, `r1#`… dentro del contenedor indicado.
-- **Entorno de pruebas**: Containerlab 0.74.3 sobre OrbStack (kernel Linux 7.2), FRR 10.2.1 y netshoot v0.13. Cada laboratorio fija la imagen exacta con la que se probó.
+- **Entorno de pruebas**: Containerlab 0.82.0 sobre OrbStack (kernel Linux 7.2), FRR 10.7.1 y netshoot v0.13. Cada laboratorio fija la imagen exacta con la que se probó, y [`herramientas/probar-todos.sh`](herramientas/probar-todos.sh) los levanta, verifica y destruye todos de una vez.
 
 ## 🛠️ Herramientas usadas
 
 | Herramienta | Para qué |
 |-------------|----------|
 | [Containerlab](https://containerlab.dev) | Orquestar las topologías de laboratorio |
-| [FRRouting](https://frrouting.org) (FRR 10.2) | Plano de control: IS-IS, BGP, SRv6 |
+| [FRRouting](https://frrouting.org) (FRR 10.7) | Plano de control: IS-IS, BGP, SRv6 |
 | Kernel Linux (`iproute2`, `seg6`/`seg6local`) | Plano de datos SRv6 |
 | [netshoot](https://github.com/nicolaka/netshoot) | Hosts y herramientas de red (ping, traceroute, tcpdump, scapy) |
 | [Mermaid](https://mermaid.js.org) + [draw.io](https://www.drawio.com) | Diagramas de topología |

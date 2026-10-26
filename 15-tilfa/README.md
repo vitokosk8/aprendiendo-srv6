@@ -106,7 +106,7 @@ Fíjate en la elegancia del conjunto:
 - **LFA clásico** usa un vecino alternativo "limpio", pero **no siempre existe** (cobertura no garantizada).
 - **TI-LFA** usa una **lista de SIDs** (repair list) para forzar la ruta **post-convergencia**, con **cobertura garantizada** en redes con doble conexión. Se apoya en **P-space / Q-space / nodo PQ**.
 - Protege **enlace** (por defecto) o **nodo** (`node-protection`); con SRLG, grupos de riesgo.
-- En FRR: `isis fast-reroute ti-lfa` por interfaz. FRR calcula el fast-reroute IS-IS; la *repair list* en el plano de datos **SRv6** es función de plataforma (no de FRR 10.2). Proteger el **transporte** protege de paso **todos** los servicios que van encima.
+- En FRR: `isis fast-reroute ti-lfa` por interfaz. FRR calcula el fast-reroute IS-IS; la *repair list* en el plano de datos **SRv6** es función de plataforma (no de FRR, ni siquiera en la 10.7). Proteger el **transporte** protege de paso **todos** los servicios que van encima.
 
 ## Siguiente paso
 

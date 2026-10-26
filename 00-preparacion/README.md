@@ -32,7 +32,7 @@ $ bash -c "$(curl -sL https://get.containerlab.dev)"
 ## Descarga de imágenes
 
 ```bash
-$ docker pull quay.io/frrouting/frr:10.2.1
+$ docker pull quay.io/frrouting/frr:10.7.1
 $ docker pull nicolaka/netshoot:v0.13
 ```
 
