@@ -2,7 +2,7 @@
 
 > **El caso en una frase**: el operador deja de decidir los caminos a mano. Un controlador lee la topología SRv6 de la red por **BGP-LS**, calcula el camino de cada servicio según lo que pide, lo convierte en una lista de segmentos y la programa en los PE. Y cuando se cae un enlace, recalcula.
 >
-> **Requisitos previos**: módulos [11](../../11-isis-srv6/README.md) (IS-IS con SRv6), [12](../../12-l3vpn-bgp/README.md) (L3VPN IPv4) y [14](../../14-te-srv6/README.md) (ingeniería de tráfico), y el escenario [E4](../E4-slicing/README.md) (las rebanadas ORO y PLATA) · Necesita `python3` en la máquina donde corre containerlab (solo la biblioteca estándar) · Pensado para containerlab 0.82.0, FRR 10.7.1 y netshoot v0.13 · Estado: 🧪 pendiente de probar
+> **Requisitos previos**: módulos [11](../../11-isis-srv6/README.md) (IS-IS con SRv6), [12](../../12-l3vpn-bgp/README.md) (L3VPN IPv4) y [14](../../14-te-srv6/README.md) (ingeniería de tráfico), y el escenario [E4](../E4-slicing/README.md) (las rebanadas ORO y PLATA) · Necesita `python3` en la máquina donde corre containerlab (solo la biblioteca estándar) · Probado con containerlab 0.82.0 sobre OrbStack, FRR 10.7.1 y netshoot v0.13 (29/29 comprobaciones) · Estado: ✅
 
 > ⚠️ **Lo que FRR hace y lo que no.** FRR 10.7 **sí** exporta la topología SRv6 por BGP-LS: nodos, enlaces con su métrica y su retardo, locators y SIDs `End` y `End.X`. Pero **no** acepta que un controlador le programe una política SRv6 (ni por PCEP ni por BGP SR Policy). Por eso el script de este escenario **lee** la red como lo haría un controlador real y **programa** los PE con `vtysh`, como lo haría un operador. La [sección 9](#9-lo-que-frr-aún-no-hace) lo detalla.
 
