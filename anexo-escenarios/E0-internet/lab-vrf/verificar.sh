@@ -7,6 +7,12 @@ trap 'rm -rf "$T"' EXIT
 ok=0; fail=0
 check() { if eval "$2" >/dev/null 2>&1; then echo "  ✅ $1"; ok=$((ok+1)); else echo "  ❌ $1"; fail=$((fail+1)); fi; }
 
+if ! docker inspect $L-r1 >/dev/null 2>&1; then
+  echo "❌ El laboratorio no está desplegado (no existe el contenedor $L-r1)."
+  echo "   Despliégalo primero:  sudo containerlab deploy -t lab.clab.yml"
+  exit 1
+fi
+
 echo "Esperando a IS-IS, BGP y a las rutas de Internet (máx. 150 s)..."
 for i in $(seq 1 75); do
   docker exec $L-r1 ip -6 route show 2>/dev/null | grep -q 'End.DT46' &&
@@ -51,9 +57,9 @@ check "el upstream aprende 203.0.113.0/24"                    "docker exec $L-in
 check "el upstream aprende 3fff:203:0:113::/64"               "docker exec $L-inet ip -6 route show 3fff:203:0:113::/64 | grep -q via"
 
 echo "--- Criterio 5: núcleo sin BGP y sin rutas de Internet ---"
-check "ningún P (r2–r5) tiene BGP configurado"                "for r in r2 r3 r4 r5; do docker exec $L-$r vtysh -c 'show running-config' | grep -q '^router bgp' && exit 1; done; true"
-check "ningún P (r2–r5) conoce 198.51.100.0/24"               "for r in r2 r3 r4 r5; do docker exec $L-$r ip route show 198.51.100.0/24 | grep -q . && exit 1; done; true"
-check "ningún P (r2–r5) conoce 3fff:198:51:100::/64"          "for r in r2 r3 r4 r5; do docker exec $L-$r ip -6 route show 3fff:198:51:100::/64 | grep -q . && exit 1; done; true"
+check "ningún P (r2–r5) tiene BGP configurado"                "for r in r2 r3 r4 r5; do c=\$(docker exec $L-\$r vtysh -c 'show running-config') || exit 1; echo \"\$c\" | grep -q '^router bgp' && exit 1; done; true"
+check "ningún P (r2–r5) conoce 198.51.100.0/24"               "for r in r2 r3 r4 r5; do c=\$(docker exec $L-\$r ip route show 198.51.100.0/24) || exit 1; [ -n \"\$c\" ] && exit 1; done; true"
+check "ningún P (r2–r5) conoce 3fff:198:51:100::/64"          "for r in r2 r3 r4 r5; do c=\$(docker exec $L-\$r ip -6 route show 3fff:198:51:100::/64) || exit 1; [ -n \"\$c\" ] && exit 1; done; true"
 
 echo "--- Criterio 6: el cliente navega (IPv4 e IPv6) ---"
 check "h1 → web por IPv4"                                     "docker exec $L-h1 ping -c2 -W2 198.51.100.10"
