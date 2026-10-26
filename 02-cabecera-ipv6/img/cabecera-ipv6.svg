@@ -1,0 +1,71 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='1031.6' height='406' viewBox='0 -46 1031.6 406'>
+<defs><marker id='flecha' markerWidth='10' markerHeight='8' refX='9' refY='4' orient='auto'><path d='M0,0 L10,4 L0,8 z' fill='#57606a'/></marker></defs>
+<rect x='0' y='-46' width='1031.6' height='406' rx='10' fill='#ffffff' stroke='#d0d7de'/>
+<text x='24' y='-18' font-size='15' font-weight='600' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#1f2328'>La cabecera IPv6 (RFC 8200)</text>
+<text x='36.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>0</text>
+<text x='60.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>1</text>
+<text x='84.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>2</text>
+<text x='108.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>3</text>
+<text x='132.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>4</text>
+<text x='156.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>5</text>
+<text x='180.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>6</text>
+<text x='204.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>7</text>
+<text x='228.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>8</text>
+<text x='252.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>9</text>
+<text x='276.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>0</text>
+<text x='300.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>1</text>
+<text x='324.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>2</text>
+<text x='348.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>3</text>
+<text x='372.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>4</text>
+<text x='396.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>5</text>
+<text x='420.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>6</text>
+<text x='444.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>7</text>
+<text x='468.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>8</text>
+<text x='492.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>9</text>
+<text x='516.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>0</text>
+<text x='540.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>1</text>
+<text x='564.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>2</text>
+<text x='588.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>3</text>
+<text x='612.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>4</text>
+<text x='636.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>5</text>
+<text x='660.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>6</text>
+<text x='684.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>7</text>
+<text x='708.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>8</text>
+<text x='732.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>9</text>
+<text x='756.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>0</text>
+<text x='780.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>1</text>
+<text x='26' y='10' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='start' dominant-baseline='middle'>0</text>
+<text x='218' y='10' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='start' dominant-baseline='middle'>8</text>
+<text x='410' y='10' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='start' dominant-baseline='middle'>16</text>
+<text x='602' y='10' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='start' dominant-baseline='middle'>24</text>
+<rect x='24' y='40' width='96' height='46' rx='3' fill='#ddf4ff' stroke='#0969da' stroke-width='1.6'/>
+<text x='72.0' y='55.0' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>Version</text>
+<text x='72.0' y='71.0' font-size='11' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>= 6</text>
+<rect x='120' y='40' width='192' height='46' rx='3' fill='#ddf4ff' stroke='#0969da' stroke-width='1.6'/>
+<text x='216.0' y='55.0' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>Traffic Class</text>
+<text x='216.0' y='71.0' font-size='11' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>DSCP + ECN</text>
+<rect x='312' y='40' width='480' height='46' rx='3' fill='#ddf4ff' stroke='#0969da' stroke-width='1.6'/>
+<text x='552.0' y='55.0' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>Flow Label</text>
+<text x='552.0' y='71.0' font-size='11' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>marca el flujo</text>
+<rect x='24' y='86' width='384' height='46' rx='3' fill='#ddf4ff' stroke='#0969da' stroke-width='1.6'/>
+<text x='216.0' y='101.0' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>Payload Length</text>
+<text x='216.0' y='117.0' font-size='11' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>bytes detrás de esta cabecera</text>
+<rect x='408' y='86' width='192' height='46' rx='3' fill='#fff8c5' stroke='#9a6700' stroke-width='1.6'/>
+<text x='504.0' y='101.0' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>Next Header</text>
+<text x='504.0' y='117.0' font-size='11' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>qué viene detrás</text>
+<rect x='600' y='86' width='192' height='46' rx='3' fill='#ddf4ff' stroke='#0969da' stroke-width='1.6'/>
+<text x='696.0' y='101.0' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>Hop Limit</text>
+<text x='696.0' y='117.0' font-size='11' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>el TTL</text>
+<rect x='24' y='132' width='768' height='92' rx='3' fill='#dafbe1' stroke='#1a7f37' stroke-width='1.6'/>
+<text x='408.0' y='170.0' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>Source Address</text>
+<text x='408.0' y='186.0' font-size='11' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>128 bits: quién envía</text>
+<rect x='24' y='224' width='768' height='92' rx='3' fill='#fff1e5' stroke='#bc4c00' stroke-width='1.6'/>
+<text x='408.0' y='262.0' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>Destination Address</text>
+<text x='408.0' y='278.0' font-size='11' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>128 bits: a quién va (en SRv6, el SID activo)</text>
+<text x='802' y='48' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#1f2328' text-anchor='start' dominant-baseline='middle'></text>
+<text x='806' y='63' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='start' dominant-baseline='middle'>4 bytes por fila</text>
+<text x='806' y='109' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='start' dominant-baseline='middle'>8 bytes de campos de control</text>
+<text x='806' y='178' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='start' dominant-baseline='middle'>+ 16 bytes</text>
+<text x='806' y='270' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='start' dominant-baseline='middle'>+ 16 bytes = 40 bytes</text>
+<text x='24' y='342' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e'>Siempre 40 bytes. Cada fila son 32 bits.</text>
+</svg>

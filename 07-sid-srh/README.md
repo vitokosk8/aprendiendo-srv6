@@ -34,13 +34,7 @@ Una cadena lineal de tres routers. r2 y r3 tienen instalados dos SID (con iprout
 
 Ya lo viste por encima en el módulo 06: en SRv6, cada segmento se identifica con un **SID** (*Segment Identifier*) de 128 bits que se escribe como una dirección IPv6. El [RFC 8986](https://www.rfc-editor.org/rfc/rfc8986) lo divide en tres partes:
 
-```
-   5f00:0000 : 0002 : e000 : 0000:0000:0000:0000
-   └───┬───┘  └─┬─┘  └─┬─┘  └────────┬────────┘
-    bloque     nodo   func        argumentos
-   └──── localizador ────┘
-     "a dónde ir"       "qué hacer"   "datos opcionales"
-```
+![Las partes de un SID: bloque, nodo, función y argumentos](img/estructura-sid.svg)
 
 | Parte | Qué es | En el laboratorio |
 |-------|--------|-------------------|
@@ -73,21 +67,7 @@ Si el "programa" tiene una sola instrucción, basta con ese SID en la dirección
 
 Cuando el camino necesita varios SID, los que aún no están activos viajan en la **SRH**. Como viste en el módulo 02, es una cabecera de extensión de enrutamiento de IPv6: **Next Header 43**, **Routing Type 4** ([RFC 8754](https://www.rfc-editor.org/rfc/rfc8754)).
 
-```
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|  Next Header  |  Hdr Ext Len  | Routing Type=4| Segments Left |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|  Last Entry   |    Flags      |              Tag              |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|            Segment List[0]  (128 bits) — ÚLTIMO del camino    |
-|                              ...                              |
-|            Segment List[n]  (128 bits) — PRIMERO del camino   |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|              TLVs opcionales (HMAC, padding…)                 |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-```
+![La Segment Routing Header campo a campo](img/cabecera-srh.svg)
 
 | Campo | Qué significa |
 |-------|---------------|

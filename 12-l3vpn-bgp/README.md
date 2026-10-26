@@ -103,14 +103,21 @@ router bgp 65000
 
 ## 5. El viaje de un paquete, de h1 a h2
 
-```
-h1 (10.0.1.10) ──IPv4──> r1 (PE1)
-  r1: busca 10.0.2.0/24 en la VRF CUST → la aprendió por BGP, con el End.DT4 de r3
-      H.Encaps: [IPv6 ext (dst = End.DT4 de r3) | IPv4 del cliente]
-  r2 (P): reenvía el IPv6 exterior hacia el locator de r3 (IS-IS). No mira dentro.
-  r3 (PE2): End.DT4 → desencapsula y busca 10.0.2.20 en la tabla de la VRF (tabla 10)
-      → entrega a h2 por su interfaz de cliente
-h2 (10.0.2.20) <──IPv4── r3
+```mermaid
+%% El viaje de un paquete de la L3VPN IPv4, de h1 a h2
+sequenceDiagram
+    participant h1 as h1 (10.0.1.10)
+    participant r1 as r1 (PE1)
+    participant r2 as r2 (P)
+    participant r3 as r3 (PE2)
+    participant h2 as h2 (10.0.2.20)
+    h1->>r1: IPv4 10.0.1.10 → 10.0.2.20
+    Note over r1: busca 10.0.2.0/24 en la VRF CUST:<br/>la aprendió por BGP, con el End.DT4 de r3<br/>H.Encaps
+    r1->>r2: IPv6 → End.DT4 de r3<br/>[ IPv4 del cliente ]
+    Note over r2: reenvía por la ruta IS-IS<br/>al locator de r3. No mira dentro
+    r2->>r3: IPv6 → End.DT4 de r3<br/>[ IPv4 del cliente ]
+    Note over r3: End.DT4: desencapsula y busca 10.0.2.20<br/>en la tabla de la VRF (tabla 10)
+    r3->>h2: IPv4 10.0.1.10 → 10.0.2.20
 ```
 
 El IPv4 privado del cliente **nunca se enruta como IPv4 en el núcleo**: viaja dentro de SRv6, y solo los PE (que tienen la VRF) lo entienden. Eso es una L3VPN: infraestructura compartida, redes privadas aisladas.

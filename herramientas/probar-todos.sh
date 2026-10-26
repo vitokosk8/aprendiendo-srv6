@@ -2,7 +2,7 @@
 # Prueba los laboratorios del curso, uno detrás de otro:
 #   containerlab deploy  →  lab/verificar.sh  →  containerlab destroy
 # y termina con un resumen. La salida completa de cada laboratorio queda en un
-# registro, en resultados-pruebas/<fecha>/ (ignorado por git).
+# registro, fuera del repositorio: en /tmp/aprendiendo-srv6-pruebas/<fecha>/.
 #
 # Uso, desde cualquier carpeta del repositorio:
 #   herramientas/probar-todos.sh                 todos los laboratorios
@@ -10,7 +10,7 @@
 #                                                'base' o el código del escenario
 # Opciones:
 #   -k        si un laboratorio falla, NO lo destruye (para depurarlo a mano)
-#   -l DIR    carpeta para los registros (por defecto resultados-pruebas/<fecha>)
+#   -l DIR    carpeta para los registros (por defecto /tmp/aprendiendo-srv6-pruebas/<fecha>)
 #   -h        esta ayuda
 #
 # Requiere containerlab y Docker. Usa "sudo containerlab"; para otro comando,
@@ -32,7 +32,7 @@ done
 shift $((OPTIND - 1))
 
 CLAB=${CLAB:-"sudo containerlab"}
-LOGDIR=${LOGDIR:-resultados-pruebas/$(date +%Y%m%d-%H%M%S)}
+LOGDIR=${LOGDIR:-${TMPDIR:-/tmp}/aprendiendo-srv6-pruebas/$(date +%Y%m%d-%H%M%S)}
 mkdir -p "$LOGDIR"
 TIMEOUT=""
 command -v timeout >/dev/null 2>&1 && TIMEOUT="timeout 900"

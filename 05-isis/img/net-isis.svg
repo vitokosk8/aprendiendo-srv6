@@ -1,0 +1,27 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='530' height='227' viewBox='0 -46 530 227'>
+<defs><marker id='flecha' markerWidth='10' markerHeight='8' refX='9' refY='4' orient='auto'><path d='M0,0 L10,4 L0,8 z' fill='#57606a'/></marker></defs>
+<rect x='0' y='-46' width='530' height='227' rx='10' fill='#ffffff' stroke='#d0d7de'/>
+<text x='24' y='-18' font-size='15' font-weight='600' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#1f2328'>La dirección de un router IS-IS: el NET</text>
+<rect x='24' y='20' width='70' height='48' rx='4' fill='#fbefff' stroke='#8250df' stroke-width='1.6'/>
+<text x='59.0' y='44.0' font-size='16' font-family='SFMono-Regular,Menlo,Consolas,monospace' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>49</text>
+<rect x='98' y='20' width='100' height='48' rx='4' fill='#ddf4ff' stroke='#0969da' stroke-width='1.6'/>
+<text x='148.0' y='44.0' font-size='16' font-family='SFMono-Regular,Menlo,Consolas,monospace' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>0001</text>
+<rect x='202' y='20' width='230' height='48' rx='4' fill='#fff1e5' stroke='#bc4c00' stroke-width='1.6'/>
+<text x='317.0' y='44.0' font-size='16' font-family='SFMono-Regular,Menlo,Consolas,monospace' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>0000.0000.0001</text>
+<rect x='436' y='20' width='70' height='48' rx='4' fill='#f6f8fa' stroke='#57606a' stroke-width='1.6'/>
+<text x='471.0' y='44.0' font-size='16' font-family='SFMono-Regular,Menlo,Consolas,monospace' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>00</text>
+<path d='M26,76 q0,9 9,9 L50.0,85 q9,0 9,9 q0,-9 9,-9 L83,85 q9,0 9,-9' fill='none' stroke='#57606a' stroke-width='1.5'/>
+<text x='59.0' y='106' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#57606a' text-anchor='middle' dominant-baseline='middle'>AFI</text>
+<text x='59.0' y='123' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>49 = privado</text>
+<path d='M100,76 q0,9 9,9 L139.0,85 q9,0 9,9 q0,-9 9,-9 L187,85 q9,0 9,-9' fill='none' stroke='#57606a' stroke-width='1.5'/>
+<text x='148.0' y='106' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#57606a' text-anchor='middle' dominant-baseline='middle'>Área</text>
+<text x='148.0' y='123' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>0001</text>
+<path d='M204,76 q0,9 9,9 L308.0,85 q9,0 9,9 q0,-9 9,-9 L421,85 q9,0 9,-9' fill='none' stroke='#57606a' stroke-width='1.5'/>
+<text x='317.0' y='106' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#57606a' text-anchor='middle' dominant-baseline='middle'>System ID</text>
+<text x='317.0' y='123' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>6 bytes, único por router</text>
+<path d='M438,76 q0,9 9,9 L462.0,85 q9,0 9,9 q0,-9 9,-9 L495,85 q9,0 9,-9' fill='none' stroke='#57606a' stroke-width='1.5'/>
+<text x='471.0' y='106' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#57606a' text-anchor='middle' dominant-baseline='middle'>NSEL</text>
+<text x='471.0' y='123' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>00 en un router</text>
+<text x='24' y='149' font-size='14' font-family='SFMono-Regular,Menlo,Consolas,monospace' font-weight='600' fill='#1f2328' text-anchor='start' dominant-baseline='middle'>NET = 49.0001.0000.0000.0001.00</text>
+
+</svg>

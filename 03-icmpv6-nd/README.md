@@ -51,14 +51,7 @@ Por eso **filtrar todo el ICMPv6 rompe IPv6**. El [RFC 4890](https://www.rfc-edi
 
 ICMPv6 va detrás de la cabecera IPv6, con *Next Header* = 58. Todos los mensajes empiezan igual:
 
-```
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|     Type      |     Code      |          Checksum             |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                     Cuerpo del mensaje                        |
-```
+![Cabecera ICMPv6: Type, Code, Checksum y cuerpo](img/cabecera-icmpv6.svg)
 
 El **Type** dice qué mensaje es y el **Code** concreta la variante. Los tipos del 0 al 127 son **errores**; del 128 al 255, **mensajes informativos**.
 
@@ -121,21 +114,14 @@ La tarjeta de red de h3 descarta en hardware las tramas dirigidas a `33:33:ff:00
 
 ### El intercambio completo
 
-```
-h1 (3fff:0:10::10)                                     h2 (3fff:0:10::20)
-      │                                                       │
-      │ NS  origen 3fff:0:10::10   destino ff02::1:ff00:20    │
-      │     MAC destino 33:33:ff:00:00:20                     │
-      │     "¿quién tiene 3fff:0:10::20? Mi MAC es …"         │
-      │──────────────────────────────────────────────────────▶│
-      │                                                       │
-      │ NA  origen 3fff:0:10::20   destino 3fff:0:10::10      │
-      │     flags: Solicited, Override                        │
-      │     "3fff:0:10::20 es mía. Mi MAC es …"               │
-      │◀──────────────────────────────────────────────────────│
-      │                                                       │
-      │ ICMPv6 Echo Request (por fin)                         │
-      │──────────────────────────────────────────────────────▶│
+```mermaid
+%% Resolución de direcciones con Neighbor Solicitation y Neighbor Advertisement
+sequenceDiagram
+    participant h1 as h1 (3fff:0:10::10)
+    participant h2 as h2 (3fff:0:10::20)
+    h1->>h2: NS · origen 3fff:0:10::10 → destino ff02::1:ff00:20<br/>MAC destino 33:33:ff:00:00:20<br/>"¿quién tiene 3fff:0:10::20? Mi MAC es …"
+    h2->>h1: NA · origen 3fff:0:10::20 → destino 3fff:0:10::10<br/>flags Solicited, Override<br/>"3fff:0:10::20 es mía. Mi MAC es …"
+    h1->>h2: ICMPv6 Echo Request (por fin)
 ```
 
 El NS lleva la MAC de h1 en la opción *Source Link-Layer Address*, así que h2 aprende la de h1 sin tener que preguntar. El NA lleva la de h2 en la opción *Target Link-Layer Address* y tres flags:
@@ -150,32 +136,23 @@ El NS lleva la MAC de h1 en la opción *Source Link-Layer Address*, así que h2 
 
 Cada equipo guarda lo que aprende en su **caché de vecinos** (la tabla equivalente a la de ARP; en Linux, `ip -6 neigh`). Cada entrada pasa por varios estados, controlados por el mecanismo **NUD** (*Neighbor Unreachability Detection*):
 
-```
-             NS enviado, sin respuesta todavía
-          ┌──────────────┐
-          │  INCOMPLETE  │──── 3 NS sin respuesta ────▶ FAILED
-          └──────┬───────┘
-                 │ llega el NA
-                 ▼
-          ┌──────────────┐
-   ┌─────▶│  REACHABLE   │  confirmado hace poco (unos 30 s)
-   │      └──────┬───────┘
-   │             │ pasa el tiempo sin confirmación
-   │             ▼
-   │      ┌──────────────┐
-   │      │    STALE     │  "probablemente sigue ahí"; se puede usar
-   │      └──────┬───────┘
-   │             │ se envía un paquete
-   │             ▼
-   │      ┌──────────────┐
-   │      │    DELAY     │  espera 5 s por si TCP confirma por su cuenta
-   │      └──────┬───────┘
-   │             │ sin confirmación
-   │             ▼
-   │      ┌──────────────┐
-   └──────│    PROBE     │  NS unicast directo al vecino, hasta 3 intentos
-  NA      └──────┬───────┘
-                 └──── sin respuesta ────▶ FAILED
+```mermaid
+%% Estados de una entrada de la caché de vecinos (RFC 4861)
+stateDiagram-v2
+    direction TB
+    [*] --> INCOMPLETE: se envía un NS
+    INCOMPLETE --> REACHABLE: llega el NA
+    INCOMPLETE --> FAILED: 3 NS sin respuesta
+    REACHABLE --> STALE: pasa el tiempo sin confirmación
+    STALE --> DELAY: se envía un paquete
+    DELAY --> REACHABLE: la capa superior confirma
+    DELAY --> PROBE: 5 s sin confirmación
+    PROBE --> REACHABLE: llega el NA
+    PROBE --> FAILED: 3 NS unicast sin respuesta
+    note right of REACHABLE: confirmado hace poco (unos 30 s)
+    note right of STALE: probablemente sigue ahí, se puede usar
+    note right of DELAY: espera 5 s por si TCP confirma por su cuenta
+    note right of PROBE: NS unicast directo al vecino
 ```
 
 - **REACHABLE** dura un tiempo aleatorio alrededor de 30 segundos (entre 15 y 45), para que no caduquen todas las entradas a la vez.

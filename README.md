@@ -29,7 +29,8 @@ Cada módulo combina **teoría**, un **laboratorio reproducible** con [Container
 - **El plano de control con FRR**: IS-IS que anuncia *locators* e instala SIDs solo, y **BGP** que monta **L3VPN** IPv4, IPv6 y dual-stack (`End.DT4/DT6/DT46`).
 - **Ingeniería de tráfico y resiliencia**: listas de segmentos explícitas, SR Policy, TI-LFA y **Flex-Algo** (varios caminos más cortos sobre la misma red, la base del *network slicing*).
 - **Operación**: OAM, *troubleshooting*, MTU y seguridad/filtrado en el borde.
-- **Próximamente**: multicast en redes SRv6 (BIER) y un anexo de escenarios con casos de uso completos.
+- **Casos de uso completos**: un anexo de ocho escenarios (Internet, multisede, Inter-AS, EVPN, *slicing*, uSID, *service chaining* y un controlador con BGP-LS).
+- **Próximamente**: multicast en redes SRv6 (BIER).
 
 Y, de propina, el **porqué** de cada cosa: de MPLS a SR, el modelo de confianza del dominio, y las trampas reales de montar SRv6 en Linux (que irás descubriendo lab a lab).
 
@@ -42,6 +43,7 @@ NN-tema/
 ├── README.md        ← teoría, con el esquema del laboratorio al principio
 ├── practica.md      ← ejercicios guiados sobre el laboratorio
 ├── soluciones.md    ← soluciones razonadas (¡inténtalo antes!)
+├── img/             ← figuras del módulo (SVG), si las tiene
 └── lab/             ← topología de Containerlab y configuraciones
     ├── lab.clab.yml
     ├── verificar.sh ← comprueba que el laboratorio hace lo que debe
@@ -55,6 +57,8 @@ NN-tema/
 5. Destruye el laboratorio (`sudo containerlab destroy ... --cleanup`) antes del siguiente.
 
 Los módulos se siguen **en orden**: cada uno se apoya en lo aprendido en los anteriores.
+
+> 🗺️ **[Índice de esquemas, diagramas y topologías](ESQUEMAS.md)**: todas las figuras de cabeceras y paquetes, los diagramas del viaje de un paquete y el esquema de cada laboratorio, con enlace directo a la sección donde se explican.
 
 ## 📚 Temario
 
@@ -105,7 +109,7 @@ Los módulos se siguen **en orden**: cada uno se apoya en lo aprendido en los an
 | 20 | *Replication segments* y Tree-SID ([RFC 9524](https://www.rfc-editor.org/rfc/rfc9524)) | 🔍 |
 | 21 | BIER y BIERv6: teoría, simulador en Python y laboratorio P4 opcional | 🔍 |
 
-### [Anexo · Escenarios: casos de uso con laboratorio](anexo-escenarios/README.md) *(en preparación)*
+### [Anexo · Escenarios: casos de uso con laboratorio](anexo-escenarios/README.md)
 
 Casos de uso completos, inspirados en los que documentan los fabricantes y montados con FRR sobre una **[topología común](anexo-escenarios/topologia-base/README.md)** (2 PE y un núcleo de 4 P en malla parcial, con sedes de capa 3 y de capa 2). Cada escenario plantea el problema del cliente, el diseño y su solución primero con el camino más corto (**SRv6 BE**) y después con **ingeniería de tráfico**. Van numerados aparte (E0, E1…) para que los bloques de módulos puedan crecer sin renumerar nada.
 
@@ -129,6 +133,7 @@ Casos de uso completos, inspirados en los que documentan los fabricantes y monta
 - **Direccionamiento**: `3fff::/20`, bloque de documentación del [RFC 9637](https://www.rfc-editor.org/rfc/rfc9637) (evitando `3fff:172::/32`, que usa la red de gestión de Containerlab). El módulo 01 usa además el clásico `2001:db8::/32` ([RFC 3849](https://www.rfc-editor.org/rfc/rfc3849)). Para los **SIDs**, `5f00::/16` ([RFC 9602](https://www.rfc-editor.org/rfc/rfc9602)).
 - **Nombres**: `hN` para hosts, `rN` para routers.
 - **Esquemas de red**: cada módulo muestra su topología con direcciones y SIDs en [Mermaid](https://mermaid.js.org) (que GitHub dibuja solo) y en un `lab/topologia.drawio` editable. Ambos se generan desde el `lab.clab.yml` con [`herramientas/topologia.py`](herramientas/topologia.py).
+- **Figuras y diagramas**: los formatos de cabeceras, paquetes y direcciones son SVG generados con [`herramientas/esquemas.py`](herramientas/esquemas.py), con la misma paleta que los esquemas de topología; los flujos (el viaje de un paquete, estados) son diagramas Mermaid. Todos están en el [índice de esquemas](ESQUEMAS.md), que genera [`herramientas/indice-esquemas.py`](herramientas/indice-esquemas.py).
 - **Prompts**: los comandos con `$` se ejecutan en tu máquina; los que empiezan por `h1#`, `r1#`… dentro del contenedor indicado.
 - **Entorno de pruebas**: Containerlab 0.82.0 sobre OrbStack (kernel Linux 7.2), FRR 10.7.1 y netshoot v0.13. Cada laboratorio fija la imagen exacta con la que se probó, y [`herramientas/probar-todos.sh`](herramientas/probar-todos.sh) los levanta, verifica y destruye todos de una vez.
 

@@ -98,13 +98,21 @@ r2 (el P) reenvía un paquete IPv6 (exterior) sin saber que dentro viaja **otro*
 
 ## 5. El viaje de un paquete (IPv4 o IPv6, da igual)
 
-```
-h1 ──(IPv4 10.0.1.10 ó IPv6 2001:db8:1::10)──> r1 (PE1)
-  r1: busca el destino en la VRF CUST → aprendido por BGP con el End.DT46 de r3
-      H.Encaps: [IPv6 ext (dst = End.DT46 de r3) | paquete del cliente (v4 o v6)]
-  r2 (P): reenvía el IPv6 exterior hacia el locator de r3 (IS-IS). No mira dentro.
-  r3 (PE2): End.DT46 → desencapsula, mira si el interior es v4 o v6, y busca en la
-            tabla de la VRF (tabla 10) la familia correspondiente → entrega a h2
+```mermaid
+%% El viaje de un paquete de la L3VPN dual-stack (IPv4 o IPv6, da igual)
+sequenceDiagram
+    participant h1 as h1 (10.0.1.10 · 2001:db8:1::10)
+    participant r1 as r1 (PE1)
+    participant r2 as r2 (P)
+    participant r3 as r3 (PE2)
+    participant h2
+    h1->>r1: IPv4 o IPv6 hacia h2
+    Note over r1: busca el destino en la VRF CUST:<br/>aprendido por BGP, con el End.DT46 de r3<br/>H.Encaps
+    r1->>r2: IPv6 → End.DT46 de r3<br/>[ paquete del cliente, v4 o v6 ]
+    Note over r2: reenvía por la ruta IS-IS<br/>al locator de r3. No mira dentro
+    r2->>r3: IPv6 → End.DT46 de r3<br/>[ paquete del cliente ]
+    Note over r3: End.DT46: desencapsula, mira si es v4 o v6<br/>y busca en la tabla de la VRF (tabla 10)
+    r3->>h2: el paquete original, v4 o v6
 ```
 
 El **mismo SID** `End.DT46` sirvió para las dos familias: la decisión de "esto es IPv4" o "esto es IPv6" la toma r3 al desencapsular, mirando el paquete interior.

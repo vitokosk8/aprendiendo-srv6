@@ -67,14 +67,7 @@ Esto tiene dos consecuencias prácticas:
 
 Como IS-IS viene del mundo OSI, no identifica a los routers por una dirección IP, sino por una dirección **NSAP**, que en su forma de router se llama **NET** (*Network Entity Title*). Tiene este aspecto:
 
-```
-49.0001.0000.0000.0001.00
-└┬┘ └─┬┘ └──────┬─────┘ └┬┘
- │    │         │        └ NSEL: siempre 00 en un router
- │    │         └ System ID: identifica al router (6 bytes, único)
- │    └ Área: identifica el área (aquí, 0001)
- └ AFI: 49 = "direccionamiento privado" (como las ULA de IPv6)
-```
+![El NET de IS-IS: AFI, área, System ID y NSEL](img/net-isis.svg)
 
 - El **System ID** (`0000.0000.0001`) identifica al router de forma única en todo el dominio. Suele derivarse de una dirección de loopback: `3fff:0:ff::1` → `0000.0000.0001`, o con otra convención. En el laboratorio lo asignamos a mano.
 - El **área** (`0001`) agrupa routers, como verás en la sección 6.
@@ -131,15 +124,24 @@ Con la LSDB completa, cada router ejecuta el algoritmo **SPF** (*Shortest Path F
 
 El coste de cada enlace es su **métrica**. Por defecto en IS-IS vale **10** en cada interfaz, y el coste de un camino es la suma de las métricas de sus enlaces:
 
+```mermaid
+%% SPF en un triángulo: el enlace directo gana
+graph LR
+    h1("🖥️ h1") --- r1("<b>r1</b>")
+    r1 -- "10" --- r2("<b>r2</b>")
+    r2 -- "10" --- r3("<b>r3</b>")
+    r1 == "10 · enlace directo" === r3
+    r3 --- h3("🖥️ h3")
+    classDef router fill:#ddf4ff,stroke:#0969da,stroke-width:2px,color:#1f2328
+    classDef host fill:#dafbe1,stroke:#1a7f37,stroke-width:2px,color:#1f2328
+    class r1,r2,r3 router
+    class h1,h3 host
 ```
-h1 ── r1 ──10── r2 ──10── r3 ── h3
-        └────────10────────┘
-             (enlace directo r1–r3)
 
-Coste r1 → r3 directo:        10
-Coste r1 → r2 → r3:           20
-SPF elige el directo (10).
-```
+| Camino de r1 a r3 | Coste |
+|---|:-:|
+| r1 → r3, directo (en grueso) | **10** ← el que elige SPF |
+| r1 → r2 → r3 | 20 |
 
 Si bajas la métrica de un enlace, lo haces más "atractivo"; si la subes, SPF lo evita. Cuando dos caminos tienen el **mismo** coste, IS-IS instala los dos y hace **ECMP**, como viste en el módulo 04.
 

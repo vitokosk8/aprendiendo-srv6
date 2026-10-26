@@ -187,10 +187,7 @@ Es lo mismo que con SIDs clásicos. **Con un solo SID, uSID no ahorra nada**: el
 
 El cliente quiere que el tráfico hacia BLUE-2 vaya por abajo: r1 → r3 → r5 → r6. Con SIDs clásicos (E1) eso eran **dos** SIDs (`End` de r5 y el SID de servicio de r6) y una SRH. Con uSID, los dos caben en **una sola dirección**:
 
-```
-5f00:0000 : 0005 : 0006 : XXXX : 0000 : 0000 : 0000
- bloque     uN r5  uN r6  función de r6 (uDT46)
-```
+![El contenedor de TE de E5: bloque, uN de r5, uN de r6 y función de r6](img/contenedor-te.svg)
 
 Es decir: el SID de servicio de r6, `5f00:0:6:XXXX::`, con el uSID de r5 (`0005`) **insertado delante**. En r1, dentro de la VRF BLUE:
 

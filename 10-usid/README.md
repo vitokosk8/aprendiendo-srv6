@@ -56,13 +56,7 @@ Una dirección IPv6 tiene 128 bits. Si reservamos:
 
 Ejemplo de contenedor con el bloque `5f00:0` y los uSID `0002` (r2) y `0003` (r3):
 
-```
-          bloque (32 bits)  uSID activo   resto de uSID (el "argumento")
-         ┌────────────────┬────────────┬────────────────────────────────┐
-dirección│   5f00:0000    │    0002    │  0003  0000  0000  0000  0000   │
-         └────────────────┴────────────┴────────────────────────────────┘
-        = 5f00:0:2:3::
-```
+![Un contenedor uSID: bloque, uSID activo y resto de uSID](img/contenedor-usid.svg)
 
 - El **uSID activo** es el que está **justo después del bloque** (`0002`): el nodo al que se dirige el paquete **ahora mismo**.
 - Los demás (`0003`, …) esperan su turno en lo que el IETF llama el **argumento**.
@@ -79,13 +73,19 @@ El behavior que procesa un uSID de nodo se llama **uN** (la versión micro de `E
 
 Visualmente, para el contenedor `5f00:0:2:3::` que pasa por r2 y luego r3:
 
-```
-h1 → r1 ───────────── r2 ───────────── r3
-         dst=5f00:0:2:3::   dst=5f00:0:3::
-         (uSID activo 0002)  (uSID activo 0003)
-              r2 (uN):            r3 (uN):
-              consume 0002,       consume 0003,
-              desplaza → 0003     argumento 0 → fin
+```mermaid
+%% uN: cada router consume su uSID y desplaza el resto
+sequenceDiagram
+    participant h1
+    participant r1
+    participant r2 as r2 (uN)
+    participant r3 as r3 (uN)
+    h1->>r1: paquete
+    Note over r1: encapsula en el contenedor 5f00:0:2:3::
+    r1->>r2: IPv6 → 5f00:0:2:3::<br/>uSID activo 0002
+    Note over r2: consume 0002 y desplaza:<br/>el activo pasa a ser 0003
+    r2->>r3: IPv6 → 5f00:0:3::<br/>uSID activo 0003
+    Note over r3: consume 0003<br/>argumento 0 → fin del contenedor
 ```
 
 - En **r1→r2**, el destino es `5f00:0:2:3::` (uSID activo = `0002`, el de r2).

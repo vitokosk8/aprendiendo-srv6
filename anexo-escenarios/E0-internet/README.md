@@ -54,6 +54,7 @@ La idea se llama **núcleo sin BGP** (*BGP-free core*), y es la misma que hace f
 El viaje de un ping de h1 al servidor web:
 
 ```mermaid
+%% Viaje de un ping de h1 al servidor web
 sequenceDiagram
     participant h1 as h1 (cliente)
     participant r1 as r1 (PE1)

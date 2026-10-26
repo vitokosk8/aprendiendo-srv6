@@ -85,6 +85,7 @@ Cada criterio es un bloque de `verificar.sh`:
 **Lo nuevo es cómo viajan las rutas VPN.** En vez de una malla de sesiones entre PE, cada PE habla solo con **r2**, que hace de **route reflector** (RR):
 
 ```mermaid
+%% Sesiones iBGP con el route reflector
 graph TB
     r2(("<b>r2</b><br/>route reflector"))
     r1("<b>r1</b> · PE1<br/>BLUE-1")
@@ -99,7 +100,7 @@ Cuando r6 anuncia `192.168.20.0/24` a r2, r2 **lo refleja** a r1 y a r5 sin camb
 
 > **Un P como route reflector.** En la topología base, r2 es un P. Aquí además ejecuta BGP, pero **solo como plano de control**: no tiene VRF, ni SIDs de servicio, ni instala las rutas de BLUE en su kernel. Es un diseño habitual (*RR fuera de banda*), aunque en redes grandes el RR suele ser un equipo dedicado, a veces ni siquiera un router (un servidor con FRR o similar).
 
-> **¿Y el color?** El plan inicial era que r6 exportara las rutas de BLUE-2 con la comunidad extendida **Color** 100 (módulo 14), con `set extcommunity color 100` en un *route-map* de exportación a VPN. En nuestras pruebas con FRR 10.7.1, el *route-map* se carga pero **sin la cláusula `set`**, y las rutas llegan a los demás PE solo con su RT. Mientras lo investigamos, el laboratorio no usa el color: lo verás en la teoría de la sección 6 y en el módulo 14.
+> **¿Y el color?** El plan inicial era que r6 exportara las rutas de BLUE-2 con la comunidad extendida **Color** 100 (módulo 14), con `set extcommunity color 100` en un *route-map* de exportación a VPN. En las pruebas con FRR 10.7.1, el *route-map* se carga pero **sin la cláusula `set`**, y las rutas llegan a los demás PE solo con su RT. Además, sin SR Policy para SRv6, el color no tendría ninguna política que activar. Por eso el laboratorio no usa el color: lo verás en la teoría de la sección 6 y en el módulo 14.
 
 **El reparto 3:1.** En r1, dos rutas estáticas con segmentos (como en E0) sustituyen a la de BGP para `192.168.20.0/24`:
 

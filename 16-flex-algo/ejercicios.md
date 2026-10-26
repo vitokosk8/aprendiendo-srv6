@@ -5,6 +5,7 @@ Este módulo no tiene laboratorio (FRR no soporta Flex-Algo con SRv6), así que 
 ## La red
 
 ```mermaid
+%% La red de los ejercicios de Flex-Algo
 graph LR
     r1("<b>r1</b><br/>PE · System ID 0000.0000.0001<br/>lo: 3fff:0:ff::1/128<br/>eth1: 3fff:0:12::1/64<br/>eth2: 3fff:0:13::1/64<br/>algo 0: 5f00:0:1::/48<br/>algo 128: 5f00:80:1::/48<br/>algo 129: 5f00:81:1::/48")
     r2("<b>r2</b><br/>P · System ID 0000.0000.0002<br/>lo: 3fff:0:ff::2/128<br/>eth1: 3fff:0:12::2/64<br/>eth2: 3fff:0:24::2/64<br/>eth3: 3fff:0:25::2/64<br/>algo 0: 5f00:0:2::/48<br/>algo 128: 5f00:80:2::/48<br/>algo 129: 5f00:81:2::/48")

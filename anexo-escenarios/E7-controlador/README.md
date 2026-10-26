@@ -81,6 +81,7 @@ Cada criterio es un bloque de `verificar.sh`:
 ## 3. La solución
 
 ```mermaid
+%% Cómo el controlador lee la red y programa los PE
 graph LR
     subgraph red["Red SRv6 (AS 64500)"]
         isis["IS-IS en r1…r6<br/>métricas, retardos (link-params),<br/>locators, End, End.X"]

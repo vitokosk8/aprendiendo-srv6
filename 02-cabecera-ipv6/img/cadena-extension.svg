@@ -1,0 +1,21 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='866' height='174' viewBox='0 -46 866 174'>
+<defs><marker id='flecha' markerWidth='10' markerHeight='8' refX='9' refY='4' orient='auto'><path d='M0,0 L10,4 L0,8 z' fill='#57606a'/></marker></defs>
+<rect x='0' y='-46' width='866' height='174' rx='10' fill='#ffffff' stroke='#d0d7de'/>
+<text x='24' y='-18' font-size='15' font-weight='600' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#1f2328'>Cabeceras de extensión: una cadena de Next Header</text>
+<rect x='24' y='6' width='170' height='78' rx='6' fill='#ddf4ff' stroke='#0969da' stroke-width='1.6'/>
+<text x='109.0' y='36.0' font-size='14' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>IPv6</text>
+<text x='109.0' y='54.0' font-size='12' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>Next Header = 0</text>
+<rect x='240' y='6' width='170' height='78' rx='6' fill='#fbefff' stroke='#8250df' stroke-width='1.6'/>
+<text x='325.0' y='36.0' font-size='14' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>Hop-by-Hop</text>
+<text x='325.0' y='54.0' font-size='12' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>Next Header = 43</text>
+<line x1='198' y1='45.0' x2='236' y2='45.0' stroke='#57606a' stroke-width='1.8' marker-end='url(#flecha)'/>
+<rect x='456' y='6' width='170' height='78' rx='6' fill='#fff1e5' stroke='#bc4c00' stroke-width='1.6'/>
+<text x='541.0' y='36.0' font-size='14' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>Routing</text>
+<text x='541.0' y='54.0' font-size='12' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>Next Header = 6</text>
+<line x1='414' y1='45.0' x2='452' y2='45.0' stroke='#57606a' stroke-width='1.8' marker-end='url(#flecha)'/>
+<rect x='672' y='6' width='170' height='78' rx='6' fill='#dafbe1' stroke='#1a7f37' stroke-width='1.6'/>
+<text x='757.0' y='36.0' font-size='14' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>TCP</text>
+<text x='757.0' y='54.0' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>la capa superior</text>
+<line x1='630' y1='45.0' x2='668' y2='45.0' stroke='#57606a' stroke-width='1.8' marker-end='url(#flecha)'/>
+<text x='24' y='110' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e'>Cada cabecera dice cuál viene detrás. 0 = Hop-by-Hop, 43 = Routing, 6 = TCP.</text>
+</svg>

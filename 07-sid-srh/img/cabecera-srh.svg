@@ -1,0 +1,76 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='1031.6' height='424.4' viewBox='0 -46 1031.6 424.4'>
+<defs><marker id='flecha' markerWidth='10' markerHeight='8' refX='9' refY='4' orient='auto'><path d='M0,0 L10,4 L0,8 z' fill='#57606a'/></marker></defs>
+<rect x='0' y='-46' width='1031.6' height='424.4' rx='10' fill='#ffffff' stroke='#d0d7de'/>
+<text x='24' y='-18' font-size='15' font-weight='600' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#1f2328'>La Segment Routing Header (RFC 8754)</text>
+<text x='36.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>0</text>
+<text x='60.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>1</text>
+<text x='84.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>2</text>
+<text x='108.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>3</text>
+<text x='132.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>4</text>
+<text x='156.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>5</text>
+<text x='180.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>6</text>
+<text x='204.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>7</text>
+<text x='228.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>8</text>
+<text x='252.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>9</text>
+<text x='276.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>0</text>
+<text x='300.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>1</text>
+<text x='324.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>2</text>
+<text x='348.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>3</text>
+<text x='372.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>4</text>
+<text x='396.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>5</text>
+<text x='420.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>6</text>
+<text x='444.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>7</text>
+<text x='468.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>8</text>
+<text x='492.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>9</text>
+<text x='516.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>0</text>
+<text x='540.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>1</text>
+<text x='564.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>2</text>
+<text x='588.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>3</text>
+<text x='612.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>4</text>
+<text x='636.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>5</text>
+<text x='660.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>6</text>
+<text x='684.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>7</text>
+<text x='708.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>8</text>
+<text x='732.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>9</text>
+<text x='756.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>0</text>
+<text x='780.0' y='28' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>1</text>
+<text x='26' y='10' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='start' dominant-baseline='middle'>0</text>
+<text x='218' y='10' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='start' dominant-baseline='middle'>8</text>
+<text x='410' y='10' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='start' dominant-baseline='middle'>16</text>
+<text x='602' y='10' font-size='10' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#59636e' text-anchor='start' dominant-baseline='middle'>24</text>
+<rect x='24' y='40' width='192' height='46' rx='3' fill='#ddf4ff' stroke='#0969da' stroke-width='1.6'/>
+<text x='120.0' y='63.0' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>Next Header</text>
+<rect x='216' y='40' width='192' height='46' rx='3' fill='#f6f8fa' stroke='#57606a' stroke-width='1.6'/>
+<text x='312.0' y='63.0' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>Hdr Ext Len</text>
+<rect x='408' y='40' width='192' height='46' rx='3' fill='#fff1e5' stroke='#bc4c00' stroke-width='1.6'/>
+<text x='504.0' y='55.0' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>Routing Type</text>
+<text x='504.0' y='71.0' font-size='11' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>= 4 (SRH)</text>
+<rect x='600' y='40' width='192' height='46' rx='3' fill='#fff8c5' stroke='#9a6700' stroke-width='1.6'/>
+<text x='696.0' y='55.0' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>Segments Left</text>
+<text x='696.0' y='71.0' font-size='11' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>cuál es el activo</text>
+<rect x='24' y='86' width='192' height='46' rx='3' fill='#f6f8fa' stroke='#57606a' stroke-width='1.6'/>
+<text x='120.0' y='101.0' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>Last Entry</text>
+<text x='120.0' y='117.0' font-size='11' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>índice del último</text>
+<rect x='216' y='86' width='192' height='46' rx='3' fill='#f6f8fa' stroke='#57606a' stroke-width='1.6'/>
+<text x='312.0' y='109.0' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>Flags</text>
+<rect x='408' y='86' width='384' height='46' rx='3' fill='#f6f8fa' stroke='#57606a' stroke-width='1.6'/>
+<text x='600.0' y='109.0' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>Tag</text>
+<rect x='24' y='132' width='768' height='64.39999999999999' rx='3' fill='#fff1e5' stroke='#bc4c00' stroke-width='1.6'/>
+<text x='408.0' y='156.2' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>Segment List [0]</text>
+<text x='408.0' y='172.2' font-size='11' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>128 bits · el ÚLTIMO SID del camino</text>
+<rect x='24' y='196.39999999999998' width='768' height='27.599999999999998' rx='3' fill='#f6f8fa' stroke='#57606a' stroke-width='1.6' stroke-dasharray='6 4'/>
+<text x='408.0' y='210.2' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>…</text>
+<rect x='24' y='223.99999999999997' width='768' height='64.39999999999999' rx='3' fill='#fff1e5' stroke='#bc4c00' stroke-width='1.6'/>
+<text x='408.0' y='248.2' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>Segment List [n]</text>
+<text x='408.0' y='264.2' font-size='11' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>128 bits · el PRIMERO del camino</text>
+<rect x='24' y='288.4' width='768' height='46' rx='3' fill='#f6f8fa' stroke='#57606a' stroke-width='1.6'/>
+<text x='408.0' y='303.4' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>TLVs opcionales</text>
+<text x='408.0' y='319.4' font-size='11' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>HMAC, relleno…</text>
+<text x='802' y='48' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#1f2328' text-anchor='start' dominant-baseline='middle'></text>
+<text x='806' y='63' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='start' dominant-baseline='middle'>8 bytes fijos</text>
+<text x='806' y='109' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='start' dominant-baseline='middle'></text>
+<text x='806' y='164' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='start' dominant-baseline='middle'>la lista va AL REVÉS:</text>
+<text x='806' y='182' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='start' dominant-baseline='middle'>el primer segmento, al final</text>
+<text x='806' y='258' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='start' dominant-baseline='middle'>16 bytes por SID</text>
+<text x='24' y='360.4' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e'>Es una cabecera de extensión de tipo Routing (Next Header = 43 en la cabecera anterior).</text>
+</svg>

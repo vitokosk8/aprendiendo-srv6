@@ -31,14 +31,7 @@ Dos hosts separados por dos routers. El enlace central tiene una **MTU de 1400 b
 
 Cuando h1 hace `ping` a h2, el mensaje viaja envuelto en varias capas. Cada capa añade su **cabecera** delante de lo que recibe de la capa superior:
 
-```
-┌──────────────┬──────────────────┬──────────────────┬───────────┐
-│   Ethernet   │       IPv6       │      ICMPv6      │   datos   │
-│   14 bytes   │     40 bytes     │      8 bytes     │           │
-│ EtherType    │ Next Header = 58 │ Type 128 = Echo  │           │
-│   0x86DD     │                  │       Request    │           │
-└──────────────┴──────────────────┴──────────────────┴───────────┘
-```
+![Un ping de h1 a h2: Ethernet, IPv6, ICMPv6 y datos](img/paquete-capas.svg)
 
 Cada cabecera dice qué viene detrás:
 
@@ -51,29 +44,9 @@ Esa idea de "cada cabecera anuncia la siguiente" es la clave de todo el módulo.
 
 La cabecera IPv6 tiene siempre **40 bytes**. Este es su formato, tal y como aparece en el [RFC 8200](https://www.rfc-editor.org/rfc/rfc8200):
 
-```
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|Version| Traffic Class |              Flow Label               |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|         Payload Length        |  Next Header  |   Hop Limit   |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                                                               |
-+                                                               +
-|                     Source Address (128 bits)                 |
-+                                                               +
-|                                                               |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                                                               |
-+                                                               +
-|                  Destination Address (128 bits)               |
-+                                                               +
-|                                                               |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-```
+![La cabecera IPv6 campo a campo, 32 bits por fila](img/cabecera-ipv6.svg)
 
-Cada fila son 32 bits (4 bytes). Las dos primeras filas son los 8 campos "de control"; las otras ocho son las dos direcciones de 128 bits.
+Cada fila son 32 bits (4 bytes). Las dos primeras son los 8 bytes de campos "de control"; el resto son las dos direcciones, de 128 bits cada una. En amarillo, el campo que más usarás en este curso: *Next Header*.
 
 | Campo | Bits | Para qué sirve |
 |-------|-----:|----------------|
@@ -122,12 +95,7 @@ Resultado: una cabecera de tamaño fijo, fácil de procesar en hardware a gran v
 
 Todo lo que no cabe en los 40 bytes fijos va en **cabeceras de extensión**, que se colocan entre la cabecera IPv6 y la de la capa superior. Se encadenan con el mismo mecanismo de antes: cada una tiene su propio campo *Next Header* que dice qué viene detrás.
 
-```
-┌────────────────┐  ┌────────────────┐  ┌────────────────┐  ┌────────────┐
-│ IPv6           │  │ Hop-by-Hop     │  │ Routing        │  │ TCP        │
-│ Next Header=0  │─▶│ Next Header=43 │─▶│ Next Header=6  │─▶│            │
-└────────────────┘  └────────────────┘  └────────────────┘  └────────────┘
-```
+![Cadena de cabeceras de extensión: IPv6, Hop-by-Hop, Routing y TCP](img/cadena-extension.svg)
 
 ### Los valores de Next Header
 
@@ -199,16 +167,25 @@ La **MTU** (*Maximum Transmission Unit*) es el tamaño máximo de paquete que ca
 
 El origen aprende así la MTU del camino (**PMTUD**, *Path MTU Discovery*, [RFC 8201](https://www.rfc-editor.org/rfc/rfc8201)), la guarda en su caché y, a partir de entonces, si tiene que enviar algo más grande, lo fragmenta **él mismo** y añade a cada fragmento una **Fragment Header** (Next Header 44).
 
-```
-h1 ──── r1 ════ r2 ──── h2
-MTU 9500   MTU 1400   MTU 9500
-
-1. h1 envía 2048 bytes  ─────▶ r1: "no cabe en 1400"
-2. r1 ◀───── ICMPv6 Packet Too Big, MTU = 1400
-3. h1 guarda "hacia h2, MTU 1400" y fragmenta:
-   fragmento 1: 40 IPv6 + 8 Fragment + 1352 datos = 1400 bytes
-   fragmento 2: 40 IPv6 + 8 Fragment +  656 datos =  704 bytes
-4. h2 reensambla
+```mermaid
+%% Descubrimiento de la MTU del camino y fragmentación en el origen
+sequenceDiagram
+    participant h1
+    participant r1
+    participant r2
+    participant h2
+    Note over r1,r2: enlace r1–r2 con MTU 1400<br/>(los demás, 9500)
+    h1->>r1: IPv6, 2048 bytes
+    Note over r1: no cabe en 1400
+    r1-->>h1: ICMPv6 Packet Too Big, MTU = 1400
+    Note over h1: guarda "hacia h2, MTU 1400"<br/>y fragmenta en el origen
+    h1->>r1: fragmento 1: 40 IPv6 + 8 Fragment + 1352 datos = 1400 bytes
+    r1->>r2: fragmento 1
+    r2->>h2: fragmento 1
+    h1->>r1: fragmento 2: 40 IPv6 + 8 Fragment + 656 datos = 704 bytes
+    r1->>r2: fragmento 2
+    r2->>h2: fragmento 2
+    Note over h2: reensambla los 2048 bytes
 ```
 
 Cada fragmento salvo el último lleva un número de bytes de datos múltiplo de 8, porque el campo *Fragment Offset* cuenta en unidades de 8 bytes.
@@ -231,14 +208,7 @@ IP6 (hlim 64, next-header Routing (43), payload length 144) 2001:db8::1 > fc00:0
     ICMP6, echo request
 ```
 
-```
-┌───────────────────┐  ┌──────────────────────┐  ┌───────────────────┐  ┌────────┐
-│ IPv6 exterior     │  │ Routing Header       │  │ IPv6 interior     │  │ ICMPv6 │
-│ Next Header = 43  │─▶│ tipo 4 = SRH         │─▶│ Next Header = 58  │─▶│ echo   │
-│ dst = SID activo  │  │ Next Header = 41     │  │ el paquete        │  │        │
-└───────────────────┘  │ lista de SIDs        │  │ original, intacto │  └────────┘
-                       └──────────────────────┘  └───────────────────┘
-```
+![Un paquete SRv6: IPv6 exterior, SRH, IPv6 interior e ICMPv6](img/paquete-srv6.svg)
 
 - La cabecera exterior dice `next-header Routing (43)`: detrás viene un Routing Header.
 - `RT6 (… type=4 …)`: es una SRH.

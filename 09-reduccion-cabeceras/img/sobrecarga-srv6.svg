@@ -1,0 +1,19 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='646' height='221' viewBox='0 -46 646 221'>
+<defs><marker id='flecha' markerWidth='10' markerHeight='8' refX='9' refY='4' orient='auto'><path d='M0,0 L10,4 L0,8 z' fill='#57606a'/></marker></defs>
+<rect x='0' y='-46' width='646' height='221' rx='10' fill='#ffffff' stroke='#d0d7de'/>
+<text x='24' y='-18' font-size='15' font-weight='600' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#1f2328'>Lo que SRv6 añade a cada paquete</text>
+<rect x='24' y='6' width='170' height='84' rx='6' fill='#ddf4ff' stroke='#0969da' stroke-width='1.6'/>
+<text x='109.0' y='39.0' font-size='14' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>IPv6 exterior</text>
+<text x='109.0' y='57.0' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>40 bytes</text>
+<rect x='198' y='6' width='180' height='84' rx='6' fill='#fff1e5' stroke='#bc4c00' stroke-width='1.6'/>
+<text x='288.0' y='30.0' font-size='14' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>SRH</text>
+<text x='288.0' y='48.0' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>8 + 16·N bytes</text>
+<text x='288.0' y='66.0' font-size='12' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>N = nº de SIDs</text>
+<rect x='382' y='6' width='240' height='84' rx='6' fill='#dafbe1' stroke='#1a7f37' stroke-width='1.6'/>
+<text x='502.0' y='39.0' font-size='14' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>paquete original</text>
+<text x='502.0' y='57.0' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>IPv4 o IPv6, intacto</text>
+<path d='M26,100 q0,9 9,9 L192.0,109 q9,0 9,9 q0,-9 9,-9 L367,109 q9,0 9,-9' fill='none' stroke='#57606a' stroke-width='1.5'/>
+<text x='201.0' y='130' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#57606a' text-anchor='middle' dominant-baseline='middle'>sobrecarga SRv6 = 48 + 16·N bytes</text>
+<text x='201.0' y='147' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>con H.Encaps.Red y un solo SID: 40 bytes, sin SRH</text>
+
+</svg>

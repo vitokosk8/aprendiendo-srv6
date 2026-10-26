@@ -39,13 +39,7 @@ El tráfico IPv4 de h1 a h2 sigue viajando sobre SRv6, pero ahora con **menos ca
 
 Recordemos qué le pone un headend (r1) a un paquete del cliente cuando lo mete en SRv6, como en el módulo 08:
 
-```
-┌───────────────┬───────────────┬──────────── carga ─────────────┐
-│ IPv6 exterior │      SRH      │  paquete original (IPv4 o IPv6) │
-│   40 bytes    │  8 + 16·N     │          (intacto)             │
-└───────────────┴───────────────┴────────────────────────────────┘
-                   N = nº de SID
-```
+![Sobrecarga de SRv6: IPv6 exterior, SRH y paquete original](img/sobrecarga-srv6.svg)
 
 - **IPv6 exterior**: 40 bytes fijos.
 - **SRH**: 8 bytes de cabecera + **16 bytes por cada SID** de la lista.
@@ -122,18 +116,32 @@ Este es el importante, el que verás desplegado. Fíjate en quién lo ejecuta: e
 
 En nuestro laboratorio, con el camino `[r2, r3]`, el penúltimo es **r2**:
 
-```
-Sin PSP:
-  r1 → r2 :  IPv6[dst=r2] | SRH{SL=1,[0]=r3} | IPv4
-  r2 (End):  SL 1→0, dst=r3, reenvía  ... pero DEJA la SRH (ahora SL=0, inútil)
-  r2 → r3 :  IPv6[dst=r3] | SRH{SL=0,[0]=r3} | IPv4     ← SRH "gastada" viajando de balde
-  r3      :  tiene que mirar y saltar la SRH para llegar al IPv4
+**Sin PSP:**
 
-Con PSP en r2:
-  r1 → r2 :  IPv6[dst=r2] | SRH{SL=1,[0]=r3} | IPv4
-  r2 (End+PSP): SL 1→0, dst=r3, y QUITA la SRH
-  r2 → r3 :  IPv6[dst=r3] | IPv4                         ← sin SRH, 24 bytes menos
-  r3      :  ve IPv6 normal con su SID en el destino; desencapsula directo
+```mermaid
+%% Sin PSP: la SRH gastada viaja hasta el último salto
+sequenceDiagram
+    participant r1
+    participant r2
+    participant r3
+    r1->>r2: IPv6 → r2 · SRH (SL=1, lista = r3) · IPv4
+    Note over r2: End: SL 1 → 0, destino = r3<br/>pero DEJA la SRH (ya inútil)
+    r2->>r3: IPv6 → r3 · SRH (SL=0, lista = r3) · IPv4<br/>la SRH "gastada" viaja de balde
+    Note over r3: tiene que saltar la SRH<br/>para llegar al IPv4
+```
+
+**Con PSP en r2:**
+
+```mermaid
+%% Con PSP: el penúltimo salto quita la SRH
+sequenceDiagram
+    participant r1
+    participant r2
+    participant r3
+    r1->>r2: IPv6 → r2 · SRH (SL=1, lista = r3) · IPv4
+    Note over r2: End + PSP: SL 1 → 0, destino = r3<br/>y QUITA la SRH
+    r2->>r3: IPv6 → r3 · IPv4<br/>sin SRH: 24 bytes menos
+    Note over r3: ve IPv6 normal con su SID de destino<br/>y desencapsula directo
 ```
 
 PSP tiene dos ventajas: **ahorra** los bytes de la SRH en el último salto, y **descarga** al último nodo (que a menudo es un PE ocupado haciendo de puerta de VPN) de tener que procesar una SRH que ya no aporta nada.
@@ -161,13 +169,13 @@ De hecho, los behaviors de desencapsulado que ya conoces —`End.DT4`, `End.DT6`
 
 ### Cómo encajan las tres
 
-```
-          camino [S1, S2]  →   S1 = penúltimo,   S2 = último
-          ─────────────────────────────────────────────────
-  PSP  →  S1 quita la SRH   (actúa el penúltimo)
-  USP  →  S2 quita la SRH   (actúa el último, y luego sigue)
-  USD  →  S2 quita IPv6+SRH y reenvía el interior  (desencapsula; implícito en End.DT*/DX*)
-```
+Para un camino `[S1, S2]`, donde **S1** es el penúltimo segmento y **S2** el último:
+
+| Flavor | Quién quita la SRH | Qué hace |
+|---|---|---|
+| **PSP** | S1, el penúltimo | Quita la SRH al procesar su SID, antes de reenviar |
+| **USP** | S2, el último | Quita la SRH y después sigue procesando el paquete |
+| **USD** | S2, el último | Quita la IPv6 exterior y la SRH, y reenvía el paquete interior (desencapsula; va implícito en `End.DT*` y `End.DX*`) |
 
 La combinación más habitual en producción es **`encap.red` + `PSP`**: el reducido quita el primer SID, PSP quita la SRH en el último salto. Juntos, para un camino de 2 SID, dejan el núcleo casi sin sobrecarga de SRH. Es justo lo que monta este laboratorio.
 

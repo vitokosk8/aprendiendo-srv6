@@ -45,6 +45,7 @@ Ese es el problema que resuelve Segment Routing, y lo hace con una idea vieja y 
 En Segment Routing ([RFC 8402](https://www.rfc-editor.org/rfc/rfc8402)), **el camino lo decide y lo escribe el router de entrada** (el *headend*), dentro del propio paquete, como una lista ordenada de instrucciones llamadas **segmentos**. Los routers intermedios solo ejecutan la instrucción que les toca y reenvían. **El núcleo no guarda ningún estado por camino.**
 
 ```mermaid
+%% MPLS clásico frente a Segment Routing: dónde vive el estado
 graph LR
     subgraph MPLS["MPLS clásico: estado en todas partes"]
         direction LR

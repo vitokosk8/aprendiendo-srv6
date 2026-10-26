@@ -1,0 +1,30 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='752' height='260' viewBox='0 -46 752 260'>
+<defs><marker id='flecha' markerWidth='10' markerHeight='8' refX='9' refY='4' orient='auto'><path d='M0,0 L10,4 L0,8 z' fill='#57606a'/></marker></defs>
+<rect x='0' y='-46' width='752' height='260' rx='10' fill='#ffffff' stroke='#d0d7de'/>
+<text x='24' y='-18' font-size='15' font-weight='600' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#1f2328'>Un contenedor uSID (formato F3216)</text>
+<rect x='24' y='92' width='190' height='48' rx='4' fill='#ddf4ff' stroke='#0969da' stroke-width='1.6'/>
+<text x='119.0' y='116.0' font-size='16' font-family='SFMono-Regular,Menlo,Consolas,monospace' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>5f00:0000</text>
+<rect x='218' y='92' width='90' height='48' rx='4' fill='#fff8c5' stroke='#9a6700' stroke-width='1.6'/>
+<text x='263.0' y='116.0' font-size='16' font-family='SFMono-Regular,Menlo,Consolas,monospace' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>0002</text>
+<rect x='312' y='92' width='80' height='48' rx='4' fill='#fff1e5' stroke='#bc4c00' stroke-width='1.6'/>
+<text x='352.0' y='116.0' font-size='16' font-family='SFMono-Regular,Menlo,Consolas,monospace' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>0003</text>
+<rect x='396' y='92' width='80' height='48' rx='4' fill='#f6f8fa' stroke='#57606a' stroke-width='1.6'/>
+<text x='436.0' y='116.0' font-size='16' font-family='SFMono-Regular,Menlo,Consolas,monospace' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>0000</text>
+<rect x='480' y='92' width='80' height='48' rx='4' fill='#f6f8fa' stroke='#57606a' stroke-width='1.6'/>
+<text x='520.0' y='116.0' font-size='16' font-family='SFMono-Regular,Menlo,Consolas,monospace' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>0000</text>
+<rect x='564' y='92' width='80' height='48' rx='4' fill='#f6f8fa' stroke='#57606a' stroke-width='1.6'/>
+<text x='604.0' y='116.0' font-size='16' font-family='SFMono-Regular,Menlo,Consolas,monospace' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>0000</text>
+<rect x='648' y='92' width='80' height='48' rx='4' fill='#f6f8fa' stroke='#57606a' stroke-width='1.6'/>
+<text x='688.0' y='116.0' font-size='16' font-family='SFMono-Regular,Menlo,Consolas,monospace' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>0000</text>
+<path d='M26,84 q0,-9 9,-9 L110.0,75 q9,0 9,-9 q0,9 9,9 L203,75 q9,0 9,9' fill='none' stroke='#57606a' stroke-width='1.5'/>
+<text x='119.0' y='37' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#57606a' text-anchor='middle' dominant-baseline='middle'>bloque</text>
+<text x='119.0' y='54' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>32 bits</text>
+<path d='M220,84 q0,-9 9,-9 L254.0,75 q9,0 9,-9 q0,9 9,9 L297,75 q9,0 9,9' fill='none' stroke='#57606a' stroke-width='1.5'/>
+<text x='263.0' y='37' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#57606a' text-anchor='middle' dominant-baseline='middle'>uSID activo</text>
+<text x='263.0' y='54' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>el de r2</text>
+<path d='M314,84 q0,-9 9,-9 L511.0,75 q9,0 9,-9 q0,9 9,9 L717,75 q9,0 9,9' fill='none' stroke='#57606a' stroke-width='1.5'/>
+<text x='520.0' y='37' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#57606a' text-anchor='middle' dominant-baseline='middle'>resto de uSID: el "argumento"</text>
+<text x='520.0' y='54' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>se desplazan 16 bits en cada uN</text>
+<text x='24' y='158' font-size='14' font-family='SFMono-Regular,Menlo,Consolas,monospace' font-weight='600' fill='#1f2328' text-anchor='start' dominant-baseline='middle'>= 5f00:0:2:3::   (r2, después r3)</text>
+<text x='24' y='196' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e'>Caben 6 uSID de 16 bits detrás del bloque de 32 bits.</text>
+</svg>

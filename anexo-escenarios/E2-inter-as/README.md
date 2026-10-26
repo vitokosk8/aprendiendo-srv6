@@ -183,6 +183,7 @@ Aquí los ASBR **no saben nada de la VPN**. Solo hacen dos cosas:
 Con eso, **r1 y r8 pueden hablarse** por sus loopbacks, y montan una sesión **eBGP multisalto VPNv4**. Por ella, r8 le anuncia a r1 `192.168.40.0/24` con su `End.DT4`, y r1 encapsula **directamente hacia el SID de r8**. Un paquete de h1 a h4 cruza los dos operadores dentro del mismo túnel SRv6:
 
 ```mermaid
+%% Opción C: el paquete de punta a punta
 sequenceDiagram
     participant r1 as r1 (PE, AS 64500)
     participant P as r2, r4 (P, AS 64500)

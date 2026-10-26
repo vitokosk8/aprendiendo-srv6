@@ -1,0 +1,24 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='770' height='233' viewBox='0 -46 770 233'>
+<defs><marker id='flecha' markerWidth='10' markerHeight='8' refX='9' refY='4' orient='auto'><path d='M0,0 L10,4 L0,8 z' fill='#57606a'/></marker></defs>
+<rect x='0' y='-46' width='770' height='233' rx='10' fill='#ffffff' stroke='#d0d7de'/>
+<text x='24' y='-18' font-size='15' font-weight='600' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#1f2328'>Un ping de h1 a h2: cabeceras dentro de cabeceras</text>
+<rect x='24' y='6' width='170' height='96' rx='6' fill='#fbefff' stroke='#8250df' stroke-width='1.6'/>
+<text x='109.0' y='36.0' font-size='14' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>Ethernet</text>
+<text x='109.0' y='54.0' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>14 bytes</text>
+<text x='109.0' y='72.0' font-size='12' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>EtherType = 0x86DD</text>
+<rect x='198' y='6' width='170' height='96' rx='6' fill='#ddf4ff' stroke='#0969da' stroke-width='1.6'/>
+<text x='283.0' y='36.0' font-size='14' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>IPv6</text>
+<text x='283.0' y='54.0' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>40 bytes</text>
+<text x='283.0' y='72.0' font-size='12' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>Next Header = 58</text>
+<rect x='372' y='6' width='200' height='96' rx='6' fill='#dafbe1' stroke='#1a7f37' stroke-width='1.6'/>
+<text x='472.0' y='36.0' font-size='14' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>ICMPv6</text>
+<text x='472.0' y='54.0' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>8 bytes</text>
+<text x='472.0' y='72.0' font-size='12' font-family='SFMono-Regular,Menlo,Consolas,monospace' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>Type = 128 (Echo Request)</text>
+<rect x='576' y='6' width='170' height='96' rx='6' fill='#f6f8fa' stroke='#57606a' stroke-width='1.6'/>
+<text x='661.0' y='45.0' font-size='14' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#1f2328' text-anchor='middle' dominant-baseline='middle'>datos</text>
+<text x='661.0' y='63.0' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>lo que envía ping</text>
+<path d='M200,112 q0,9 9,9 L463.0,121 q9,0 9,9 q0,-9 9,-9 L735,121 q9,0 9,-9' fill='none' stroke='#57606a' stroke-width='1.5'/>
+<text x='472.0' y='142' font-size='13' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' font-weight='600' fill='#57606a' text-anchor='middle' dominant-baseline='middle'>lo que viaja dentro de la trama Ethernet</text>
+<text x='472.0' y='159' font-size='12' font-family='-apple-system,Segoe UI,Helvetica,Arial,sans-serif' fill='#59636e' text-anchor='middle' dominant-baseline='middle'>cada cabecera dice qué viene detrás</text>
+
+</svg>

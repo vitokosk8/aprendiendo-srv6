@@ -126,12 +126,21 @@ El número de tabla es lo que da a SRv6 su capacidad de **VPN**. Si cada cliente
 
 Junta todas las piezas. El núcleo r1–r2–r3 no sabe enrutar IPv4. Aun así, h1 llega a la IPv4 de h2:
 
-```
-h1 (10.0.1.10) ──IPv4──> r1
-   r1: H.Encaps  →  [IPv6 ext | SRH: 5f00:0:2:e000::, 5f00:0:3:d400:: | IPv4 interior]
-   r2: End       →  avanza al SID de r3
-   r3: End.DX4   →  desencapsula y entrega el IPv4 directo a h2 (sin búsqueda)
-h2 (10.0.2.20) <──IPv4── r3
+```mermaid
+%% El laboratorio del módulo 08: IPv4 sobre un núcleo IPv6 con H.Encaps, End y End.DX4
+sequenceDiagram
+    participant h1 as h1 (10.0.1.10)
+    participant r1
+    participant r2
+    participant r3
+    participant h2 as h2 (10.0.2.20)
+    h1->>r1: IPv4 10.0.1.10 → 10.0.2.20
+    Note over r1: H.Encaps
+    r1->>r2: IPv6 → 5f00:0:2:e000::<br/>SRH [5f00:0:2:e000::, 5f00:0:3:d400::]<br/>[ IPv4 interior ]
+    Note over r2: End: avanza al SID de r3
+    r2->>r3: IPv6 → 5f00:0:3:d400::<br/>[ IPv4 interior ]
+    Note over r3: End.DX4: desencapsula y entrega<br/>el IPv4 directo a h2 (sin búsqueda)
+    r3->>h2: IPv4 10.0.1.10 → 10.0.2.20
 ```
 
 El paquete IPv4 **nunca se enruta como IPv4 en el núcleo**: viaja como carga de un paquete IPv6 con SRH. r2, que solo habla IPv6, lo reenvía sin enterarse de que dentro hay IPv4. Esto es, literalmente, IPv4 sobre SRv6, montado con cuatro comandos de iproute2. (Usamos End.DX4 para la entrega; con una VRF sería End.DT4, una L3VPN completa.)

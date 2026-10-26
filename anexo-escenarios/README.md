@@ -10,6 +10,8 @@ Todos los escenarios usan la misma red: un núcleo SRv6 de **seis routers en mal
 
 ➡️ **[Topología base: esquema, direccionamiento, métricas y laboratorio](topologia-base/README.md)**
 
+🗺️ Los esquemas de todos los escenarios están también en el **[índice de esquemas](../ESQUEMAS.md)** del curso.
+
 ## Cómo está hecho cada escenario
 
 Todos siguen la misma estructura ([plantilla](plantilla-escenario/README.md)):

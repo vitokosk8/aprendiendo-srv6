@@ -105,6 +105,7 @@ El firewall (`fw`) tiene dos patas: `eth1` hacia el lado de BLUE-1 y `eth2` haci
 El recorrido de un paquete de h1 a h2:
 
 ```mermaid
+%% Recorrido de un paquete por el proxy SR y el firewall
 graph LR
     h1("h1") --> r1("<b>r1</b><br/>encapsula<br/>hacia f1")
     r1 -- "IPv6 → 5f00:0:4:f1::" --> r4a("<b>r4 · FW1</b><br/>End.DT4: desencapsula<br/>y busca en la tabla 20")
