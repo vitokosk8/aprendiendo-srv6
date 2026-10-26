@@ -2,7 +2,7 @@
 # Comprueba la topología base del anexo de escenarios. Uso: ./verificar.sh
 L=clab-esc-base
 ok=0; fail=0
-check() { if ( eval "$2" ) >/dev/null 2>check() { if eval "$2" >/dev/null 2>&1; then1; then echo "  ✅ $1"; ok=$((ok+1)); else echo "  ❌ $1"; fail=$((fail+1)); fi; }
+check() { if ( eval "$2" ) >/dev/null 2>&1; then echo "  ✅ $1"; ok=$((ok+1)); else echo "  ❌ $1"; fail=$((fail+1)); fi; }
 
 echo "Esperando a que IS-IS converja y FRR instale los SIDs (máx. 90 s)..."
 for i in $(seq 1 45); do
