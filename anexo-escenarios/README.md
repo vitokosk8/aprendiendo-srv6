@@ -34,7 +34,7 @@ Y, como en los módulos, cada escenario tiene su **laboratorio** en `lab/`, una 
 |-----------|-------------|:------:|
 | [Base](topologia-base/README.md) | Topología común a todos los escenarios | ✅ |
 | [E0](E0-internet/README.md) | Internet sobre SRv6: núcleo sin BGP, con Internet en una VRF y en la tabla global | ✅ |
-| [E1](E1-multisede/README.md) | Cliente multisede: L3VPNv4 con route reflector y UCMP (color, en teoría) | 🧪 |
+| [E1](E1-multisede/README.md) | Cliente multisede: L3VPNv4 con route reflector y UCMP (color, en teoría) | ✅ |
 | E2 | Dos operadores: Inter-AS L3VPNv4 | ⏳ |
 | E3 | EVPN L3VPN IPv4 | 🔍 |
 | E4 | EVPN L3VPN IPv6 | 🔍 |

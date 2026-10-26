@@ -113,7 +113,7 @@ Casos de uso completos, inspirados en los que documentan los fabricantes y monta
 |-----------|-------------|:------:|
 | [Base](anexo-escenarios/topologia-base/README.md) | Topología común: núcleo SRv6 de 6 routers, sedes BLUE y VLAN 100 | ✅ |
 | [E0](anexo-escenarios/E0-internet/README.md) | Internet sobre SRv6: núcleo sin BGP, con Internet en una VRF y en la tabla global | ✅ |
-| [E1](anexo-escenarios/E1-multisede/README.md) | Cliente multisede: L3VPNv4 con route reflector y UCMP (color, en teoría) | 🧪 |
+| [E1](anexo-escenarios/E1-multisede/README.md) | Cliente multisede: L3VPNv4 con route reflector y UCMP (color, en teoría) | ✅ |
 | E2 | Dos operadores: Inter-AS L3VPNv4 | ⏳ |
 | E3 | EVPN L3VPN IPv4 | 🔍 |
 | E4 | EVPN L3VPN IPv6 | 🔍 |

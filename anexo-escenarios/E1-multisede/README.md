@@ -2,7 +2,7 @@
 
 > **El caso en una frase**: una empresa con tres sedes contrata una red privada al operador, que la monta como L3VPN sobre SRv6, sin malla completa de BGP y repartiendo el tráfico de la sede más cargada entre dos caminos del núcleo.
 >
-> **Requisitos previos**: módulos [11](../../11-isis-srv6/README.md) (IS-IS con SRv6), [12](../../12-l3vpn-bgp/README.md) (L3VPN IPv4), [14](../../14-te-srv6/README.md) (ingeniería de tráfico, SR Policy y color) y el escenario [E0](../E0-internet/README.md) · Pendiente de probar con containerlab 0.82.0, FRR 10.7.1 y netshoot v0.13 · Estado: 🧪
+> **Requisitos previos**: módulos [11](../../11-isis-srv6/README.md) (IS-IS con SRv6), [12](../../12-l3vpn-bgp/README.md) (L3VPN IPv4), [14](../../14-te-srv6/README.md) (ingeniería de tráfico, SR Policy y color) y el escenario [E0](../E0-internet/README.md) · Probado con containerlab 0.82.0 sobre OrbStack, FRR 10.7.1 y netshoot v0.13 (26/26 comprobaciones) · Estado: ✅
 
 ## El escenario
 
