@@ -2,7 +2,7 @@
 
 > **El caso en una frase**: el operador vende sobre la misma red dos servicios con garantías distintas, uno de **baja latencia** y otro de **tráfico masivo**, y necesita que cada uno vaya por su parte de la red sin que el otro le moleste.
 >
-> **Requisitos previos**: módulos [12](../../12-l3vpn-bgp/README.md) (L3VPN IPv4), [14](../../14-te-srv6/README.md) (ingeniería de tráfico) y [16](../../16-flex-algo/README.md) (Flex-Algo, en teoría), y el escenario [E1](../E1-multisede/README.md) · Pensado para containerlab 0.82.0, FRR 10.7.1 y netshoot v0.13 · Estado: 🧪 pendiente de probar
+> **Requisitos previos**: módulos [12](../../12-l3vpn-bgp/README.md) (L3VPN IPv4), [14](../../14-te-srv6/README.md) (ingeniería de tráfico) y [16](../../16-flex-algo/README.md) (Flex-Algo, en teoría), y el escenario [E1](../E1-multisede/README.md) · Probado con containerlab 0.82.0 sobre OrbStack, FRR 10.7.1 y netshoot v0.13 (23/23 comprobaciones) · Estado: ✅
 
 > ⚠️ **Antes de empezar: FRR aún no sabe hacer *slicing* con SRv6.** Las piezas con las que se construye una rebanada de verdad (Flex-Algo para SRv6, SR Policy, identificador de rebanada en la cabecera, reserva de recursos) **no están en FRR 10.7.1**, y algunas tampoco en el kernel de Linux. Este escenario explica cómo funcionan y **emula a mano** lo que se puede emular: una VRF por rebanada, un camino fijado con segmentos y un enlace lento simulado. La [sección 9](#9-lo-que-frr-aún-no-hace) detalla, pieza a pieza, qué falta y qué hacemos en su lugar.
 

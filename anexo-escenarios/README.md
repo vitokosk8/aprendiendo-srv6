@@ -37,7 +37,7 @@ Y, como en los módulos, cada escenario tiene su **laboratorio** en `lab/`, una 
 | [E1](E1-multisede/README.md) | Cliente multisede: L3VPNv4 con route reflector y UCMP (color, en teoría) | ✅ |
 | [E2](E2-inter-as/README.md) | Dos operadores: L3VPN Inter-AS, opción A (VRF contra VRF) y opción C con un túnel SRv6 de punta a punta | ✅ |
 | [E3](E3-evpn/README.md) | EVPN sobre SRv6: L3 (IPv4 e IPv6), VPWS y VPLS en teoría, y el plano de datos de un VPWS (End.DX2) con laboratorio | ✅ |
-| [E4](E4-slicing/README.md) | *Network slicing*: dos rebanadas (baja latencia y tráfico masivo) con una VRF y un camino cada una, y todo lo que FRR aún no hace (Flex-Algo SRv6, SR Policy, NRP ID, reserva de recursos) | 🧪 |
+| [E4](E4-slicing/README.md) | *Network slicing*: dos rebanadas (baja latencia y tráfico masivo) con una VRF y un camino cada una, y todo lo que FRR aún no hace (Flex-Algo SRv6, SR Policy, NRP ID, reserva de recursos) | ✅ |
 | [E5](E5-usid-migracion/README.md) | Compresión uSID: la TE en un solo contenedor y una red a medio migrar desde SIDs clásicos (islas SRv6 sobre GRE, en teoría) | ✅ |
 | [E6](E6-sfc/README.md) | *Service chaining*: el tráfico entre sedes pasa por un firewall sin SRv6, con un proxy SR montado con `End.DT4` y VRF | ✅ |
 | E7 | Ingeniería de tráfico con controlador: la topología SRv6 por BGP-LS (FRR 10.7) y un mini-controlador en Python | 🔍 |
