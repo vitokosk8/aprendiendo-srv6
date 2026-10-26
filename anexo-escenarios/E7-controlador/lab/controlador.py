@@ -105,23 +105,27 @@ def camino(enlaces, origen, destino, peso, prohibidos=()):
 
 
 # ---------------------------------------------------------------------------------------------
-# 4. CONVERTIR EL CAMINO EN SEGMENTOS. La estática ya fija el primer salto. Desde ahí, se
-#    avanza todo lo posible mientras el camino deseado sea EL camino más corto del IGP (único,
-#    sin ECMP): basta un End del nodo donde se deja de cumplir. Si ni el siguiente salto lo es,
-#    hace falta el End.X de ese enlace. El último segmento es el SID de servicio del PE destino.
+# 4. CONVERTIR EL CAMINO EN SEGMENTOS. Ojo: el siguiente salto de la estática NO fija nada. El
+#    kernel de Linux enruta el paquete ya encapsulado por su destino exterior (el primer
+#    segmento). Así que se empieza en el propio PE y se avanza todo lo posible mientras el
+#    camino deseado sea EL camino más corto del IGP (único, sin ECMP): basta un End del nodo
+#    donde se deja de cumplir. Si ni el siguiente salto lo es, hace falta el End.X de ese
+#    enlace (y entonces sobra el End de ese mismo nodo: el End.X ya lleva hasta él).
+#    El último segmento es el SID de servicio del PE destino.
 # ---------------------------------------------------------------------------------------------
 def segmentos(enlaces, end, c, sid_servicio):
     igp = lambda tramo: sum(enlaces[(x, y)]['igp'] for x, y in zip(tramo, tramo[1:]))
-    lista, i = [], 1
+    lista, i = [], 0                                    # lista de (nodo, tipo, SID)
     while True:
         dist, cuantos, _ = dijkstra(enlaces, c[i], 'igp')
         j = max(k for k in range(i, len(c)) if k == i or (igp(c[i:k + 1]) == dist[c[k]] and cuantos[c[k]] == 1))
         if j == len(c) - 1:
-            return lista + [sid_servicio]
+            return [sid for _, _, sid in lista] + [sid_servicio]
         if j > i:
-            lista.append(end[c[j]]); i = j            # End: "ve por el camino más corto hasta c[j]"
+            lista.append((c[j], 'End', end[c[j]])); i = j          # "ve por el camino más corto hasta c[j]"
         else:
-            lista.append(enlaces[(c[i], c[i + 1])]['endx'][0]); i += 1   # End.X: "sal por este enlace"
+            if lista and lista[-1][:2] == (c[i], 'End'): lista.pop()   # el End.X de c[i] ya lleva hasta c[i]
+            lista.append((c[i], 'End.X', enlaces[(c[i], c[i + 1])]['endx'][0])); i += 1   # "sal por este enlace"
 
 
 # ---------------------------------------------------------------------------------------------

@@ -111,7 +111,7 @@ $ ./controlador.py
 $ docker exec clab-esc-e7-r1 vtysh -c "show running-config" | sed -n '/^vrf/,/^exit-vrf/p'
 ```
 
-¿Qué siguiente salto tiene cada estática? ¿Por qué es eso lo que fija el primer tramo del camino?
+¿Qué siguiente salto tiene cada estática? Mira la ruta de ORO en el kernel de r1 (`ip route show vrf ORO`) y captura en r1 `eth1` y `eth2` mientras haces ping de h1 a h2. ¿Por qué interfaz sale de verdad el paquete encapsulado? ¿Qué decide el camino: el siguiente salto o el primer segmento?
 
 **D2.** Lanza el controlador en bucle en una terminal (`./controlador.py --bucle`) y, en otra, tumba el enlace r3–r5:
 

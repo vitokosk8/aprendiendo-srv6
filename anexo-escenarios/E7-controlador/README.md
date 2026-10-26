@@ -127,12 +127,13 @@ El controlador ejecuta su propio Dijkstra sobre el grafo que ha leído, **con el
 
 Un camino no es todavía una lista de segmentos. El script la construye con una regla sencilla:
 
-1. **El primer salto lo fija la estática** (su siguiente salto es el vecino por el que sale).
-2. Desde ahí, se avanza todo lo posible **mientras el camino deseado coincida con el camino más corto del IGP, y sea el único** (sin ECMP). Donde deja de coincidir, se pone el **`End`** de ese nodo: "ve por el camino más corto hasta aquí".
-3. Si **ni siquiera el siguiente salto** es el camino más corto único, se pone el **`End.X`** de ese enlace: "sal por este enlace".
-4. El último segmento es siempre el **SID de servicio** del PE de destino.
+1. Se empieza **en el propio PE** y se avanza todo lo posible **mientras el camino deseado coincida con el camino más corto del IGP, y sea el único** (sin ECMP). Donde deja de coincidir, se pone el **`End`** de ese nodo: "ve por el camino más corto hasta aquí".
+2. Si **ni siquiera el siguiente salto** es el camino más corto único, se pone el **`End.X`** de ese enlace: "sal por este enlace". Si justo antes había un `End` de ese mismo nodo, sobra: el `End.X` ya lleva hasta él.
+3. El último segmento es siempre el **SID de servicio** del PE de destino.
 
-Con la red entera, a ORO le basta **un** segmento: el primer salto (r3) lo fija la estática y, desde r3, el camino más corto hacia r6 ya pasa por r5. La ingeniería de tráfico más barata es la que no añade ningún SID.
+Con la red entera, ORO necesita **dos** segmentos: de r1 a r5, el camino más corto ya es r1 → r3 → r5, así que basta el `End` de r5; y de r5 a r6, el enlace directo. PLATA va por el camino del IGP y le basta **uno**, el SID de servicio. La ingeniería de tráfico más barata es la que no añade ningún SID.
+
+> **Lo que aprendimos probando este escenario: el siguiente salto de la estática no fija el camino.** La primera versión del script suponía que el primer salto lo decidía la estática (`ip route … 3fff:0:13::3 eth2 … segments …`) y ahorraba un segmento. En la prueba, el tráfico de ORO no pasaba por r3. El motivo: cuando el kernel de Linux encapsula un paquete reenviado, **vuelve a enrutar el paquete IPv6 por su destino exterior** (el primer segmento) e ignora el siguiente salto de la ruta. El paquete, con destino el SID de r6, iba por el camino más corto: r2 y r4. Por eso la lista se calcula desde el propio PE. En E1, E4, E5 y E6 no se notaba porque el primer segmento ya llevaba el paquete por el camino deseado.
 
 ### Reaccionar: cae r3–r5
 
@@ -140,9 +141,9 @@ Al caer el enlace, IS-IS lo retira de su base de datos, BGP-LS retira las dos NL
 
 | Servicio | Camino nuevo | Segmentos | Por qué |
 |---|---|---|---|
-| ORO ida | r1 → r2 → r5 → r6 (7 ms) | **`End.X` de r2 hacia r5**, SID de r6 | Desde r2, ir a r5 directo (coste 25) empata con r2 → r4 → r5 (25). Un `End` de r5 dejaría la elección al ECMP de r2, así que hace falta el `End.X` |
+| ORO ida | r1 → r2 → r5 → r6 (7 ms) | **`End.X` de r2 hacia r5**, SID de r6 | Desde r2, ir a r5 directo (coste 25) empata con r2 → r4 → r5 (25). Un `End` de r5 dejaría la elección al ECMP de r2, así que hace falta el `End.X`, que además ya lleva el paquete hasta r2 |
 | ORO vuelta | r6 → r5 → r2 → r1 | `End.X` de r5 hacia r2, SID de r1 | El mismo empate, al revés |
-| PLATA ida | r1 → r3 → r2 → r4 → r6 | SID de r6 | Desde r3, el camino más corto a r6 ya es r3 → r2 → r4 → r6 |
+| PLATA ida | r1 → r3 → r2 → r4 → r6 | **`End` de r3**, SID de r6 | Desde r1, el más corto a r6 iría por r2; forzado el paso por r3, desde r3 el más corto ya es r3 → r2 → r4 → r6 |
 | PLATA vuelta | r6 → r4 → r2 → r3 → r1 | **`End` de r3**, SID de r1 | Desde r4, el más corto a r1 sería r4 → r2 → r1: hay que forzar el paso por r3 |
 
 Fíjate en que PLATA también cambia, aunque el enlace caído no era suyo: como ORO ahora usa r1–r2 y r2–r5, PLATA tiene que salir de ahí.
@@ -197,14 +198,15 @@ En unos segundos, el bucle detecta la red nueva y reprograma los cuatro servicio
 
 | Situación | Captura | Qué lleva |
 |---|---|---|
-| Red entera, ORO | r3 `eth3` (hacia r5) | IPv6 hacia el SID de ORO de r6, SRH de un segmento |
+| Red entera, ORO, de r3 a r5 | r3 `eth3` | IPv6 hacia **`5f00:0:5::`** (el `End` de r5), SRH de dos segmentos |
+| Red entera, ORO, de r5 a r6 | r6 `eth2` | IPv6 hacia el SID de ORO de r6: r5 ya ha procesado su `End` |
 | Red entera, PLATA | r2 `eth3` (hacia r4) | IPv6 hacia el SID de PLATA de r6 |
 | r3–r5 caído, ORO, de r1 a r2 | r2 `eth1` | IPv6 hacia el **`End.X` de r2** (`5f00:0:2:…`), SRH de dos segmentos |
 | r3–r5 caído, ORO, de r2 a r5 | r5 `eth4` | IPv6 hacia el SID de ORO de r6: r2 ya ha ejecutado su `End.X` |
 
 ## 8. Rómpelo y arréglalo
 
-Corta la sesión BGP-LS (en ctl, `neighbor 3fff:0:c2::2 shutdown`) y luego tumba r3–r5. Al caer la sesión, ctl borra lo que había aprendido de r2, y el controlador se niega a calcular: no tiene topología. Pero las estáticas que programó antes **siguen en los PE**. ORO sigue funcionando, porque su lista solo lleva el SID de r6 y r3 encuentra otro camino por el IGP (r3 → r2 → r4 → r6). Pero ese camino tiene **10 ms**, más que los 7 ms del mejor camino posible, y nadie lo corrige: la promesa a ORO se rompe en silencio. Es el riesgo de cualquier controlador que pierde la vista de la red. La práctica lo plantea paso a paso.
+Corta la sesión BGP-LS (en ctl, `neighbor 3fff:0:c2::2 shutdown`) y luego tumba r3–r5. Al caer la sesión, ctl borra lo que había aprendido de r2, y el controlador se niega a calcular: no tiene topología. Pero las estáticas que programó antes **siguen en los PE**. ORO sigue funcionando, porque su lista solo nombra a r5 y el IGP encuentra otro camino hasta él. Pero r1 tiene dos caminos de igual coste hacia r5 (r1 → r2 → r5 y r1 → r2 → r4 → r5), y por el segundo ORO tarda **10 ms**, más que los 7 ms del mejor camino posible. Nadie lo corrige: la promesa a ORO se rompe en silencio. Es el riesgo de cualquier controlador que pierde la vista de la red. La práctica lo plantea paso a paso.
 
 ## 9. Lo que FRR aún no hace
 

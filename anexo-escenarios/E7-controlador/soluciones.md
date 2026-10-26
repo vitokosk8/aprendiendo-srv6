@@ -6,7 +6,7 @@ Vuelve a la [práctica](practica.md) o al [escenario](README.md).
 
 **A1.** Porque en un dominio IS-IS de un solo nivel **todos los routers tienen la misma base de datos**: cada uno recibe las LSP de todos los demás. Exportarla desde uno o desde todos da la misma información. Si r2 se cayera, la sesión BGP-LS caería con él, ctl borraría lo aprendido y el controlador se quedaría sin topología (la parte F). En producción se configuran **dos productores** (o más), en sitios distintos, y el controlador fusiona lo que recibe de ambos.
 
-**A2.** Con 6 ms en r3–r5, el camino de abajo pasa a costar 10 ms. El de menor retardo es **r1 → r2 → r5 → r6** (2 + 3 + 2 = 7 ms). Segmentos: la estática fija r2 como primer salto. Desde r2, el camino más corto hacia r6 es r2 → r4 → r6 (20), no el nuestro. Y hacia r5 tampoco: r2 → r3 → r5 (20) es más corto que el enlace directo (25). Así que hace falta el **`End.X` de r2 hacia r5**, y después el SID de r6, porque desde r5 el camino más corto a r6 es el enlace directo. Lista: `End.X(r2→r5)`, `SID de ORO de r6`.
+**A2.** Con 6 ms en r3–r5, el camino de abajo pasa a costar 10 ms. El de menor retardo es **r1 → r2 → r5 → r6** (2 + 3 + 2 = 7 ms). Segmentos: desde r1, el camino más corto hacia r2 es el enlace directo, pero hacia r5 no pasa por r2 (r1 → r3 → r5, coste 25, es más corto). Desde r2, el camino más corto hacia r5 tampoco es el enlace directo: r2 → r3 → r5 (20) gana a r2 → r5 (25). Así que hace falta el **`End.X` de r2 hacia r5**, que además lleva el paquete hasta r2, y después el SID de r6, porque desde r5 el camino más corto a r6 es el enlace directo. Lista: `End.X(r2→r5)`, `SID de ORO de r6`.
 
 **A3.** Porque con dos caminos de coste mínimo, el router reparte el tráfico entre los dos (ECMP), y el paquete puede ir por el que **no** queremos. Un `End` dice "ve hasta este nodo por el camino más corto", y si hay varios, no controla cuál. Para fijar uno solo hace falta un segmento que los distinga: el `End` de un nodo intermedio que solo esté en uno de ellos o, si no lo hay, el `End.X` del enlace.
 
@@ -20,11 +20,11 @@ Vuelve a la [práctica](practica.md) o al [escenario](README.md).
 
 **C3.** ctl **no tiene** ninguna ruta hacia la red (solo la de su enlace con r2) y **no participa** en IS-IS. No le hace falta: para conocer la topología le basta la sesión BGP con r2, que es directa. Un controlador está fuera del plano de datos.
 
-**C4.** ORO va por **r1 → r3 → r5 → r6** (6 ms), aunque IS-IS elegiría r1 → r2 → r4 → r6 (coste 30, pero 9 ms). PLATA va por **r1 → r2 → r4 → r6**, igual que IS-IS. Cada uno lleva **un solo** segmento, el SID de servicio de r6: el primer salto lo fija la estática y, desde ese vecino, el camino más corto del IGP ya es el que queremos.
+**C4.** ORO va por **r1 → r3 → r5 → r6** (6 ms), aunque IS-IS elegiría r1 → r2 → r4 → r6 (coste 30, pero 9 ms). PLATA va por **r1 → r2 → r4 → r6**, igual que IS-IS. ORO lleva **dos** segmentos: el `End` de r5 (de r1 a r5, el camino más corto ya pasa por r3) y el SID de r6. PLATA lleva **uno**, el SID de r6, porque su camino es el del IGP.
 
 ## Parte D
 
-**D1.** El siguiente salto de cada estática es la **dirección del vecino** en el enlace del primer tramo: `3fff:0:13::3` (r3) para ORO y `3fff:0:12::2` (r2) para PLATA. La estática decide por qué interfaz sale el paquete de r1, sin que haga falta ningún SID: es el primer tramo "gratis".
+**D1.** El siguiente salto de cada estática es la dirección del primer vecino del camino: `3fff:0:13::3` (r3) para ORO y `3fff:0:12::2` (r2) para PLATA. Pero **no es eso lo que decide el camino**: el kernel enruta el paquete ya encapsulado por su destino exterior, el primer segmento. ORO sale por `eth2` porque su primer segmento es el `End` de r5, y el camino más corto de r1 a r5 pasa por r3. Si la lista de ORO fuera solo el SID de r6, el paquete saldría por `eth1` (hacia r2), aunque la estática diga r3. Es justo el error que tenía la primera versión de este controlador (README, sección 3).
 
 **D2.** Unos pocos segundos: lo que tarda IS-IS en detectar la caída y regenerar sus LSP, más lo que tarda BGP-LS en retirar las NLRI, más hasta 5 s del bucle. Cambian los **cuatro** servicios. PLATA cambia porque su restricción es "no usar enlaces de ORO", y ORO ahora usa r1–r2 y r2–r5: el camino anterior de PLATA (r1 → r2 → r4 → r6) comparte r1–r2 con él.
 
@@ -55,12 +55,12 @@ for x in s.get('evitar', []) if isinstance(s.get('evitar'), list) else [s.get('e
 
 (Ojo: el prefijo `192.168.120.0/24` ya lo usa "PLATA ida"; para probarlo, quita o comenta ese servicio, o usa otra sede.)
 
-**E4.** En `segmentos`, basta con devolver `[end[n] for n in c[2:-1]] + [sid_servicio]`: el `End` de cada nodo intermedio a partir del segundo salto. Para ORO (r1 → r3 → r5 → r6) serían `End` de r5 y el SID de r6: 2 segmentos en lugar de 1, es decir, **16 bytes más** de SID, más los 8 de la cabecera de la SRH que antes no hacía falta. Y en caminos largos, la diferencia crece con cada nodo.
+**E4.** En `segmentos`, basta con devolver `[end[n] for n in c[1:-1]] + [sid_servicio]`: el `End` de cada nodo intermedio. Para ORO (r1 → r3 → r5 → r6) serían el `End` de r3, el de r5 y el SID de r6: 3 segmentos en lugar de 2, es decir, **16 bytes más** por paquete. Para PLATA, 3 en lugar de 1: **32 bytes más**, y una SRH que antes no hacía falta tan larga. Y en caminos largos, la diferencia crece con cada nodo.
 
 ## Parte F
 
 **F1.** El controlador dice que **ctl no tiene topología** y termina sin tocar nada. Las estáticas que programó antes **siguen** en r1 y r6: el controlador no las quita al perder la vista de la red.
 
-**F2.** ORO **sigue funcionando**: su lista solo tiene el SID de r6, y r3, sin el enlace hacia r5, llega a r6 por el camino más corto del IGP, r3 → r2 → r4 → r6. El retardo total es 2 + 1 + 5 + 2 = **10 ms**, cuando el mejor camino posible (r1 → r2 → r5 → r6) tiene 7. La promesa a ORO se ha roto y nadie lo sabe. Que funcione es mérito de la lista mínima: una lista que fijara cada nodo con `End.X` dejaría de funcionar del todo.
+**F2.** ORO **sigue funcionando**: su lista solo nombra a r5 y el SID de r6, y el IGP encuentra otro camino hasta r5. Pero desde r1 hay dos de igual coste (r1 → r2 → r5 y r1 → r2 → r4 → r5, los dos de 35), y el reparto por ECMP decide cuál usa cada flujo. Por el primero ORO tarda 2 + 3 + 2 = 7 ms, y por el segundo 2 + 5 + 1 + 2 = **10 ms**. Nadie elige el mejor, y nadie se entera: la promesa a ORO se rompe en silencio. Que funcione es mérito de la lista mínima: una lista que fijara cada enlace con `End.X` dejaría de funcionar del todo.
 
 **F3.** Al quitar el `shutdown`, la sesión vuelve, ctl recibe otra vez la topología y el controlador reprograma ORO por r2 y r5. Al levantar el enlace y ejecutar `verificar.sh`, todo vuelve a estar en verde.
