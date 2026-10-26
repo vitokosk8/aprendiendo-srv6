@@ -7,7 +7,9 @@ check() { if eval "$2" >/dev/null 2>&1; then echo "  ✅ $1"; ok=$((ok+1)); else
 echo "Esperando a IS-IS, BGP y a las rutas VPN (máx. 120 s)..."
 for i in $(seq 1 60); do
   docker exec $L-r1 vtysh -c "show bgp ipv4 vpn summary json" 2>/dev/null | grep -q '"state":"Established"' &&
-  docker exec $L-r3 ip -6 route show 2>/dev/null | grep -qi 'End.DT4' && break
+  docker exec $L-r3 ip -6 route show 2>/dev/null | grep -qi 'End.DT4' &&
+  docker exec $L-r1 ip -6 route show 2>/dev/null | grep -qi 'End.DT4' &&
+  docker exec $L-r1 vtysh -c "show ip route vrf CUST 10.0.2.0/24" 2>/dev/null | grep -qi 'bgp' && break
   sleep 2
 done
 
