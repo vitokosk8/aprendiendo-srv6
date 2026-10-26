@@ -11,7 +11,7 @@
 #
 #   python3 herramientas/topologia.py anexo-escenarios/E5-usid-migracion/lab-usid/lab.clab.yml
 #
-# Pendiente de probar en containerlab 0.82.0, FRR 10.7.1, netshoot v0.13 (OrbStack).
+# Probado en containerlab 0.82.0, FRR 10.7.1, netshoot v0.13 (OrbStack).
 
 name: esc-e5-usid
 

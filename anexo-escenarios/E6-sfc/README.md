@@ -2,7 +2,7 @@
 
 > **El caso en una frase**: el operador vende a la empresa BLUE un firewall gestionado, instalado en un punto de su núcleo, y usa SRv6 para que el tráfico entre sedes pase por él **sin cambiar el camino de nadie más** y sin que el firewall sepa nada de SRv6.
 >
-> **Requisitos previos**: módulos [08](../../08-network-programming/README.md) (*network programming*), [12](../../12-l3vpn-bgp/README.md) (L3VPN IPv4) y [14](../../14-te-srv6/README.md) (ingeniería de tráfico), y el escenario [E1](../E1-multisede/README.md) · Pensado para containerlab 0.82.0, FRR 10.7.1 y netshoot v0.13 · Estado: 🧪 pendiente de probar
+> **Requisitos previos**: módulos [08](../../08-network-programming/README.md) (*network programming*), [12](../../12-l3vpn-bgp/README.md) (L3VPN IPv4) y [14](../../14-te-srv6/README.md) (ingeniería de tráfico), y el escenario [E1](../E1-multisede/README.md) · Probado con containerlab 0.82.0 sobre OrbStack, FRR 10.7.1 y netshoot v0.13 (26/26 comprobaciones) · Estado: ✅
 
 ## El escenario
 

@@ -2,7 +2,7 @@
 
 > **El caso en una frase**: un operador con SRv6 clásico quiere pasar a **uSID** para que sus caminos de ingeniería de tráfico quepan en una sola dirección IPv6, sin SRH, y necesita hacerlo **router a router**, sin cortar los servicios que ya tiene.
 >
-> **Requisitos previos**: módulos [10](../../10-usid/README.md) (uSID), [11](../../11-isis-srv6/README.md) (IS-IS con SRv6), [13](../../13-l3vpn-dualstack/README.md) (L3VPN dual-stack) y [14](../../14-te-srv6/README.md) (ingeniería de tráfico), y el escenario [E1](../E1-multisede/README.md) · Pensado para containerlab 0.82.0, FRR 10.7.1 y netshoot v0.13 · Estado: 🧪 pendiente de probar
+> **Requisitos previos**: módulos [10](../../10-usid/README.md) (uSID), [11](../../11-isis-srv6/README.md) (IS-IS con SRv6), [13](../../13-l3vpn-dualstack/README.md) (L3VPN dual-stack) y [14](../../14-te-srv6/README.md) (ingeniería de tráfico), y el escenario [E1](../E1-multisede/README.md) · Probado con containerlab 0.82.0 sobre OrbStack, FRR 10.7.1 y netshoot v0.13 · Estado: ✅
 
 ## El escenario
 
