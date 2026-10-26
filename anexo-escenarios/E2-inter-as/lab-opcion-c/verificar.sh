@@ -38,8 +38,8 @@ check "AS 64501: r8 aprende el locator de r7 (5f00:1:7::/48)"   "docker exec $L-
 
 echo "--- Criterio 1: los ASBR intercambian solo los bloques de cada AS ---"
 check "eBGP IPv6 r6 ↔ r7 establecida"                           "[ \$(docker exec $L-r6 vtysh -c 'show bgp ipv6 unicast summary json' | grep -o '\"state\":\"Established\"' | wc -l) -ge 1 ]"
-check "r6 aprende el bloque de SIDs del AS 64501 (5f00:1::/32)" "docker exec $L-r6 ip -6 route show 5f00:1::/32 | grep -q 'via 3fff:0:67::7'"
-check "r7 aprende el bloque de SIDs del AS 64500 (5f00:0::/32)" "docker exec $L-r7 ip -6 route show 5f00:0::/32 | grep -q 'via 3fff:0:67::6'"
+check "r6 aprende el bloque de SIDs del AS 64501 (5f00:1::/32)" "docker exec $L-r6 ip -6 route show 5f00:1::/32 | grep 'proto bgp' | grep -q 'dev eth6'"
+check "r7 aprende el bloque de SIDs del AS 64500 (5f00:0::/32)" "docker exec $L-r7 ip -6 route show 5f00:0::/32 | grep 'proto bgp' | grep -q 'dev eth1'"
 check "los ASBR no tienen VRF ni SIDs de servicio"              "for r in r6 r7; do docker exec $L-\$r ip link show BLUE >/dev/null 2>&1 && exit 1; c=\$(docker exec $L-\$r ip -6 route show) || exit 1; echo \"\$c\" | grep -q 'End.DT' && exit 1; done; true"
 
 echo "--- Criterio 2: cada IGP aprende el otro AS con UNA ruta por bloque ---"
