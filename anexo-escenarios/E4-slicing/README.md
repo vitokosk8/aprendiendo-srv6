@@ -105,12 +105,14 @@ Con Flex-Algo, el IGP calcularía un árbol de caminos para cada rebanada: ORO c
 
 FRR no tiene Flex-Algo para SRv6. Así que fijamos cada camino con **rutas estáticas con segmentos** en las VRF, como en E1. Las pone el script `rebanadas.sh activar`, que hace de controlador: lee los SIDs de servicio de cada PE y configura los dos sentidos.
 
-| Rebanada | Sentido | Primer salto | Segmentos |
+| Rebanada | Sentido | Siguiente salto de la ruta | Segmentos |
 |---|---|---|---|
 | ORO | r1 → r6 | r2 | `End` de r4, `End.DT4` de ORO en r6 |
 | ORO | r6 → r1 | r4 | `End` de r2, `End.DT4` de ORO en r1 |
 | PLATA | r1 → r6 | r3 | `End` de r5, `End.DT4` de PLATA en r6 |
 | PLATA | r6 → r1 | r5 | `End` de r3, `End.DT4` de PLATA en r1 |
+
+> **Lo que fija el camino es el primer segmento, no el siguiente salto.** El kernel de Linux enruta el paquete ya encapsulado por su destino exterior. Aquí coinciden: el camino más corto de r1 al `End` de r4 sale por r2, y el del `End` de r5, por r3 (y al revés desde r6). El escenario [E7](../E7-controlador/README.md) muestra qué pasa cuando no coinciden.
 
 ### Recursos: no hay reserva
 

@@ -103,12 +103,14 @@ Cuando r6 anuncia `192.168.20.0/24` a r2, r2 **lo refleja** a r1 y a r5 sin camb
 
 **El reparto 3:1.** En r1, dos rutas estáticas con segmentos (como en E0) sustituyen a la de BGP para `192.168.20.0/24`:
 
-| Camino | Primer salto | Segmentos | Peso |
+| Camino | Siguiente salto de la ruta | Segmentos | Peso |
 |---|---|---|:-:|
 | Arriba: r1 → r2 → r4 → r6 | r2 (`3fff:0:12::2`, `eth1`) | `End` de r4, `End.DT4` de r6 | 3 |
 | Abajo: r1 → r3 → r5 → r6 | r3 (`3fff:0:13::3`, `eth2`) | `End` de r5, `End.DT4` de r6 | 1 |
 
 Las dos rutas forman una ruta **multicamino con pesos** (*UCMP*, *Unequal-Cost Multi-Path*): de cada cuatro flujos, unos tres van por arriba y uno por abajo.
+
+> **El siguiente salto no decide el camino: lo decide el primer segmento.** En una ruta con `segments`, el kernel de Linux encapsula el paquete y lo vuelve a enrutar por su destino exterior; el siguiente salto de la ruta (r2 o r3) no se usa para reenviarlo. Aquí coinciden, porque el camino más corto hacia el `End` de r4 sale por r2, y hacia el `End` de r5, por r3. Lo que sí hacen los pesos es elegir, para cada flujo, **cuál de las dos listas** se pone. Si las dos listas empezaran por el SID de r6, todos los flujos irían por el mismo camino. El escenario [E7](../E7-controlador/README.md) lo muestra con capturas.
 
 ## 4. Decisiones de diseño
 
@@ -170,9 +172,9 @@ vrf BLUE
 exit-vrf
 ```
 
-- **`nexthop-vrf default`**: la ruta está en la VRF BLUE, pero el siguiente salto (r2 o r3) está en la tabla global, que es por donde viaja el paquete ya encapsulado.
+- **`nexthop-vrf default`**: la ruta está en la VRF BLUE, pero el siguiente salto (r2 o r3) está en la tabla global, que es por donde viaja el paquete ya encapsulado. El camino real lo decide el primer segmento (ver la nota de la sección 3).
 - **`weight 3` / `weight 1`**: los pesos del reparto. zebra instala una sola ruta con dos caminos y **normaliza** los pesos a la escala del kernel: en `show ip route` verás `weight 255` y `weight 85`, que es la misma proporción 3:1.
-- **`segments`**: cada camino lleva su lista. El paquete pasa primero por r4 o por r5, y después va a r6.
+- **`segments`**: cada camino lleva su lista, y es la lista la que fija el camino: el paquete va primero al `End` de r4 o al de r5 por el camino más corto, y después a r6.
 
 Para comprobar el reparto no sirve un ping: todos sus paquetes son un mismo flujo y van por el mismo camino. `verificar.sh` lanza 32 conexiones TCP con `iperf3` y compara los bytes que salen de r1 por cada interfaz.
 

@@ -247,7 +247,7 @@ En el módulo 14 lo hicimos con `iproute2`. FRR 10.7 permite hacerlo con una **r
 ip route 198.51.100.0/24 3fff:0:13::3 eth2 segments 5f00:0:5::/<SID End.DT46 de r6>
 ```
 
-- **`3fff:0:13::3 eth2`**: el primer salto es r3, por el enlace r1–r3.
+- **`3fff:0:13::3 eth2`**: el siguiente salto de la ruta (r3). Ojo: **no es lo que decide el camino**. Al encapsular, el kernel de Linux vuelve a enrutar el paquete por su destino exterior, que es el primer segmento. Aquí coinciden, porque el camino más corto hacia r5 sale por r3. Con solo el SID de r6 en la lista, el paquete iría por r2 aunque la ruta diga r3. El escenario [E7](../E7-controlador/README.md) lo muestra con capturas.
 - **`5f00:0:5::`**: el `End` de r5. El paquete va primero hasta r5, y de r1 a r5 el camino más corto pasa por r3 (coste 25).
 - **El SID de r6**: el mismo `End.DT46` que anuncia BGP. Lo lees en la ruta BGP de r1 (`ip route show 198.51.100.0/24`), porque se asigna automáticamente.
 
