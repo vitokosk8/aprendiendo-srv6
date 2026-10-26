@@ -145,7 +145,7 @@ El laboratorio monta el **plano de datos de un VPWS** entre las dos sedes de la 
 |---|---|---|
 | El SID del extremo remoto | Lo anuncia el otro PE en su ruta tipo 1 | Lo conoces de antemano: `5f00:0:6:d2::` (r6) y `5f00:0:1:d2::` (r1) |
 | `End.DX2` en el PE de salida | Lo instala el PE al configurar el VPWS | `ip -6 route add 5f00:0:6:d2::/128 encap seg6local action End.DX2 oif eth4 dev eth4` |
-| `H.Encaps.L2` en el PE de entrada | El PE encapsula todo lo que entra por su AC | `scripts/l2.py` fabrica el paquete SRv6 con scapy y lo envía desde el espacio de red de r1 (o r6) |
+| `H.Encaps.L2` en el PE de entrada | El PE encapsula todo lo que entra por su AC | `scripts/l2.py` fabrica la SRH y la trama con scapy, y el kernel de r1 (o r6) les pone la cabecera IPv6 y los enruta hacia el SID |
 
 ¿Por qué scapy para la entrada? Linux tiene un modo de encapsulado de capa 2 (`ip route … encap seg6 mode l2encap`), pero solo se aplica a paquetes que el router **enruta**. Una petición ARP, o una trama dirigida a otra MAC, nunca se enruta, así que no sirve para un pseudohilo de verdad. El script hace lo que haría el PE: coger la trama, sin mirarla, y meterla en SRv6.
 

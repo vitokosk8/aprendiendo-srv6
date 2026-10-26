@@ -21,7 +21,10 @@ Comandos:
 """
 import sys
 
-from scapy.all import ARP, ICMP, IP, IPv6, IPv6ExtHdrSegmentRouting, Ether, conf, raw, send
+import socket
+import time
+
+from scapy.all import ARP, ICMP, IP, IPv6, IPv6ExtHdrSegmentRouting, Ether, conf, raw
 
 conf.verb = 0
 IPPROTO_ETHERNET = 143   # Next Header de una trama Ethernet (RFC 8986, End.DX2)
@@ -31,6 +34,22 @@ def srv6_l2(sid, trama):
     """Paquete SRv6 hacia el SID End.DX2 remoto, con la trama de la sede dentro."""
     srh = IPv6ExtHdrSegmentRouting(addresses=[sid], segleft=0, lastentry=0, nh=IPPROTO_ETHERNET)
     return IPv6(dst=sid) / srh / trama
+
+
+def enviar(pkt, veces=3):
+    """Envía el paquete dejando que el KERNEL ponga la cabecera IPv6 y elija el camino.
+
+    No usamos send() de scapy: scapy busca las rutas en /proc/net/ipv6_route, donde no
+    aparecen las que FRR instala con "nexthop objects" (nhid). Con un socket IPv6 de tipo
+    raw y protocolo 43 (Routing Header), el kernel construye la cabecera IPv6 (con su
+    dirección de origen) y enruta hacia el SID con su propia tabla, como cualquier paquete.
+    """
+    s = socket.socket(socket.AF_INET6, socket.SOCK_RAW, socket.IPPROTO_ROUTING)
+    datos = raw(pkt[IPv6ExtHdrSegmentRouting])          # SRH + trama, sin la cabecera IPv6
+    for _ in range(veces):
+        s.sendto(datos, (pkt[IPv6].dst, 0))
+        time.sleep(0.3)
+    s.close()
 
 
 def trama_arp(mac, ip_origen, ip_destino):
@@ -57,7 +76,7 @@ def main(a):
               f"sobrecarga: {total - interior} bytes (40 de IPv6 + {total - interior - 40} de SRH)")
         return
 
-    send(pkt, count=3, inter=0.3)
+    enviar(pkt)
     print(f"Enviadas 3 tramas ({cmd}) dentro de SRv6 hacia {a[1]}")
 
 
