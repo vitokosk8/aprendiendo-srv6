@@ -2,7 +2,7 @@
 
 > **El caso en una frase**: un operador quiere ofrecer, sobre el mismo núcleo SRv6, líneas punto a punto y LAN extendidas de capa 2 además de VPN de capa 3, todo con un único plano de control: EVPN.
 >
-> **Requisitos previos**: módulos [07](../../07-sid-srh/README.md) (SID y SRH), [08](../../08-network-programming/README.md) (behaviors), [12](../../12-l3vpn-bgp/README.md) y [13](../../13-l3vpn-dualstack/README.md) (L3VPN) y el escenario [E1](../E1-multisede/README.md) · Pendiente de probar con containerlab 0.82.0, FRR 10.7.1 y netshoot v0.13 · Estado: 🧪
+> **Requisitos previos**: módulos [07](../../07-sid-srh/README.md) (SID y SRH), [08](../../08-network-programming/README.md) (behaviors), [12](../../12-l3vpn-bgp/README.md) y [13](../../13-l3vpn-dualstack/README.md) (L3VPN) y el escenario [E1](../E1-multisede/README.md) · Laboratorio probado con containerlab 0.82.0 sobre OrbStack, FRR 10.7.1 y netshoot v0.13 (11/11 comprobaciones) · Estado: ✅
 
 > **Lo que hay y lo que no hay en este escenario.** **FRR 10.7.1 no implementa EVPN sobre SRv6**: su EVPN solo usa VXLAN como plano de datos, y zebra no sabe instalar los behaviors de capa 2 (lo hemos comprobado en el código de la 10.7.1 y en la rama principal, octubre de 2026). El **kernel de Linux** sí tiene `End.DX2`, pero no `End.DT2U` ni `End.DT2M`. Por eso este escenario es **teoría completa** de EVPN sobre SRv6 (las cuatro variantes que motivan el anexo: EVPN L3VPN IPv4 e IPv6, VPWS y VPLS) y un **laboratorio del plano de datos de un VPWS**, montado a mano con `iproute2` y scapy. Cuando FRR lo soporte, este escenario tendrá su plano de control.
 
