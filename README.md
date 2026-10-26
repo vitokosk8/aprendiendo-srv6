@@ -119,7 +119,7 @@ Casos de uso completos, inspirados en los que documentan los fabricantes y monta
 | [E4](anexo-escenarios/E4-slicing/README.md) | *Network slicing*: dos rebanadas (baja latencia y tráfico masivo) con una VRF y un camino cada una, y todo lo que FRR aún no hace (Flex-Algo SRv6, SR Policy, NRP ID, reserva de recursos) | ✅ |
 | [E5](anexo-escenarios/E5-usid-migracion/README.md) | Compresión uSID: la TE en un solo contenedor y una red a medio migrar desde SIDs clásicos (islas SRv6 sobre GRE, en teoría) | ✅ |
 | [E6](anexo-escenarios/E6-sfc/README.md) | *Service chaining*: el tráfico entre sedes pasa por un firewall sin SRv6, con un proxy SR montado con `End.DT4` y VRF | ✅ |
-| E7 | Ingeniería de tráfico con controlador: la topología SRv6 por BGP-LS (FRR 10.7) y un mini-controlador en Python | 🔍 |
+| [E7](anexo-escenarios/E7-controlador/README.md) | Ingeniería de tráfico con controlador: la topología SRv6 por BGP-LS (FRR 10.7) y un controlador en Python que calcula, minimiza la lista de segmentos y reacciona a caídas | 🧪 |
 | — | Lo que FRR aún no hace: egress protection, shortcuts, slicing con HBH, interworking con MPLS | ⏳ |
 
 > ✅ escrito y probado · 🧪 escrito, pendiente de probar · ⏳ pendiente · 🔍 pendiente de verificar qué soporta FRR (si no lo soporta, solo teoría)
