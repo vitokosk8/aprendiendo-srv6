@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Comprueba el laboratorio del módulo 17 (OAM y troubleshooting). Uso: ./verificar.sh
 L=clab-m17
+T=$(mktemp -d)   # carpeta temporal propia de esta ejecución
+trap \'rm -rf "$T"\' EXIT
 ok=0; fail=0
 check() { if eval "$2" >/dev/null 2>&1; then echo "  ✅ $1"; ok=$((ok+1)); else echo "  ❌ $1"; fail=$((fail+1)); fi; }
 
@@ -29,11 +31,11 @@ check "traceroute h1 → h2 completa"                    "docker exec $L-h1 trac
 # --- OAM: captura del tráfico de cliente en el núcleo ---
 cap() {
   docker run --rm --net container:$L-r2 nicolaka/netshoot:v0.13 \
-    timeout 6 tcpdump -ni eth1 -c1 'ip6 and (ip6[6]==43 or ip6[6]==4)' >/tmp/m16cap.txt 2>&1 &
+    timeout 6 tcpdump -ni eth1 -c1 'ip6 and (ip6[6]==43 or ip6[6]==4)' >$T/m16cap.txt 2>&1 &
   sleep 1
   docker exec $L-h1 ping -c3 -W1 10.0.2.20 >/dev/null 2>&1
   wait
-  grep -q '1 packet captured' /tmp/m16cap.txt
+  grep -q '1 packet captured' $T/m16cap.txt
 }
 check "el tráfico de cliente cruza r2 encapsulado en SRv6"  "cap"
 
@@ -44,5 +46,5 @@ if [ $fail -gt 0 ]; then
   docker exec $L-r3 ip -6 route show | grep seg6local | head
   docker exec $L-r1 ip route get 10.0.2.20 2>&1 | head -2
   docker exec $L-h1 ping -c2 -W2 10.0.2.20 2>&1 | tail -3
-  cat /tmp/m16cap.txt 2>/dev/null | head -3
+  cat $T/m16cap.txt 2>/dev/null | head -3
 fi

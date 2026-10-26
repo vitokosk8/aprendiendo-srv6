@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Comprueba el laboratorio del módulo 14 (ingeniería de tráfico con SRv6). Uso: ./verificar.sh
 L=clab-m14
+T=$(mktemp -d)   # carpeta temporal propia de esta ejecución
+trap \'rm -rf "$T"\' EXIT
 ok=0; fail=0
 check() { if eval "$2" >/dev/null 2>&1; then echo "  ✅ $1"; ok=$((ok+1)); else echo "  ❌ $1"; fail=$((fail+1)); fi; }
 
@@ -25,11 +27,11 @@ check "r1 fuerza el tráfico de cliente por r3 (lista de 2 SIDs)" "docker exec $
 # Captura: el tráfico de cliente debe cruzar r3 (TE) y NO r2 (corto)
 cap() {  # $1 = router, $2 = iface
   docker run --rm --net container:$L-$1 nicolaka/netshoot:v0.13 \
-    timeout 6 tcpdump -ni "$2" -nn -c1 'ip6 and dst net 5f00::/16' >/tmp/m14_$1.txt 2>&1 &
+    timeout 6 tcpdump -ni "$2" -nn -c1 'ip6 and dst net 5f00::/16' >$T/m14_$1.txt 2>&1 &
   sleep 1
   docker exec $L-h1 ping -c3 -W1 10.0.2.20 >/dev/null 2>&1
   wait
-  grep -q '1 packet captured' /tmp/m14_$1.txt
+  grep -q '1 packet captured' $T/m14_$1.txt
 }
 echo "Comprobando por dónde va el tráfico (debe ser r3, no r2)..."
 check "el tráfico de cliente CRUZA r3 (camino TE)"        "cap r3 eth1"
@@ -45,7 +47,7 @@ if [ $fail -gt 0 ]; then
   echo "--- r1: ruta de cliente (TE) ---"   ; docker exec $L-r1 ip route show 10.0.2.0/24
   echo "--- r1: camino IGP a r4 ---"        ; docker exec $L-r1 ip -6 route show 5f00:0:4::/48
   echo "--- r3: waypoint ---"               ; docker exec $L-r3 ip -6 route show 5f00:0:3:e000::/128
-  echo "--- captura r3 ---"                 ; cat /tmp/m14_r3.txt 2>/dev/null | head -3
-  echo "--- captura r2 ---"                 ; cat /tmp/m14_r2.txt 2>/dev/null | head -3
+  echo "--- captura r3 ---"                 ; cat $T/m14_r3.txt 2>/dev/null | head -3
+  echo "--- captura r2 ---"                 ; cat $T/m14_r2.txt 2>/dev/null | head -3
   docker exec $L-h1 ping -c2 -W2 10.0.2.20 2>&1 | tail -3
 fi

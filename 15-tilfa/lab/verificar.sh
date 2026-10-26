@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Comprueba el laboratorio del módulo 15 (resiliencia TI-LFA). Uso: ./verificar.sh
 L=clab-m15
+T=$(mktemp -d)   # carpeta temporal propia de esta ejecución
+trap \'rm -rf "$T"\' EXIT
 ok=0; fail=0
 check() { if eval "$2" >/dev/null 2>&1; then echo "  ✅ $1"; ok=$((ok+1)); else echo "  ❌ $1"; fail=$((fail+1)); fi; }
 
@@ -27,15 +29,15 @@ check "r1 → r4 (loopback) por el primario"             "docker exec $L-r1 ping
 failover() {
   docker exec $L-r1 ip link set eth2 down
   sleep 4
-  docker exec $L-r1 ping -c3 -W2 3fff:0:ff::4 >/tmp/m15_fo.txt 2>&1; rc=$?
+  docker exec $L-r1 ping -c3 -W2 3fff:0:ff::4 >$T/m15_fo.txt 2>&1; rc=$?
   # ¿va ahora por r3 (eth3)?
-  docker exec $L-r1 ip -6 route show 3fff:0:ff::4/128 >/tmp/m15_rt.txt 2>&1
+  docker exec $L-r1 ip -6 route show 3fff:0:ff::4/128 >$T/m15_rt.txt 2>&1
   docker exec $L-r1 ip link set eth2 up
   return $rc
 }
 echo "Probando la conmutación (se rompe r1-r2 unos segundos)..."
 check "tras romper r1-r2, r1 sigue alcanzando r4 (respaldo por r3)" "failover"
-check "durante el fallo, la ruta a r4 pasó por r3 (eth3)"           "grep -q 'dev eth3' /tmp/m15_rt.txt"
+check "durante el fallo, la ruta a r4 pasó por r3 (eth3)"           "grep -q 'dev eth3' $T/m15_rt.txt"
 
 sleep 12  # dar tiempo a que IS-IS reestablezca la adyacencia y vuelva el primario
 check "restaurado el enlace, r1 → r4 vuelve a funcionar"            "docker exec $L-r1 ping -c3 -W2 3fff:0:ff::4"
@@ -46,6 +48,6 @@ if [ $fail -gt 0 ]; then
   echo "--- r1: fast-reroute summary ---" ; docker exec $L-r1 vtysh -c "show isis fast-reroute summary" 2>&1 | head -15
   echo "--- r1: ruta a r4 (backup) ---"   ; docker exec $L-r1 vtysh -c "show isis route level-2 backup" 2>&1 | grep -A2 '3fff:0:ff::4' | head
   echo "--- r1: ruta kernel a r4 ---"     ; docker exec $L-r1 ip -6 route show 3fff:0:ff::4/128
-  echo "--- ping durante el fallo ---"    ; cat /tmp/m15_fo.txt 2>/dev/null | tail -3
-  echo "--- ruta durante el fallo ---"    ; cat /tmp/m15_rt.txt 2>/dev/null
+  echo "--- ping durante el fallo ---"    ; cat $T/m15_fo.txt 2>/dev/null | tail -3
+  echo "--- ruta durante el fallo ---"    ; cat $T/m15_rt.txt 2>/dev/null
 fi

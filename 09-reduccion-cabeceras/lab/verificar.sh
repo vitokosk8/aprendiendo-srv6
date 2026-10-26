@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Comprueba que el laboratorio del módulo 09 funciona. Uso: ./verificar.sh
 L=clab-m09
+T=$(mktemp -d)   # carpeta temporal propia de esta ejecución
+trap \'rm -rf "$T"\' EXIT
 ok=0; fail=0
 check() { if eval "$2" >/dev/null 2>&1; then echo "  ✅ $1"; ok=$((ok+1)); else echo "  ❌ $1"; fail=$((fail+1)); fi; }
 
@@ -23,11 +25,11 @@ check "h2 → h1 IPv4 sobre SRv6 (vuelta)"             "docker exec $L-h2 ping -
 #   r2→r3 (eth2 de r2): SIN SRH, IPv4 encapsulado → Next Header 4   (lo quitó PSP)
 cap_nh() {  # $1 = interfaz en r2, $2 = filtro tcpdump
   docker run --rm --net container:$L-r2 nicolaka/netshoot:v0.13 \
-    timeout 6 tcpdump -ni "$1" -c1 "$2" >/tmp/m09_$1.txt 2>&1 &
+    timeout 6 tcpdump -ni "$1" -c1 "$2" >$T/m09_$1.txt 2>&1 &
   sleep 1
   docker exec $L-h1 ping -c3 -W1 10.0.2.20 >/dev/null 2>&1
   wait
-  grep -q '1 packet captured' /tmp/m09_$1.txt
+  grep -q '1 packet captured' $T/m09_$1.txt
 }
 echo "Comprobando la reducción de cabecera y PSP en el núcleo..."
 check "r1→r2 lleva SRH (encap reducido, 1 SID)"     "cap_nh eth1 'ip6[6]==43'"
@@ -39,6 +41,6 @@ if [ $fail -gt 0 ]; then
   docker exec $L-r1 ip route show 10.0.2.0/24
   docker exec $L-r2 ip -6 route show 5f00:0:2:e000::/128
   docker exec $L-h1 ping -c2 -W2 10.0.2.20 2>&1 | tail -3
-  echo "--- captura r1→r2 (eth1) ---"; cat /tmp/m09_eth1.txt 2>/dev/null | head -4
-  echo "--- captura r2→r3 (eth2) ---"; cat /tmp/m09_eth2.txt 2>/dev/null | head -4
+  echo "--- captura r1→r2 (eth1) ---"; cat $T/m09_eth1.txt 2>/dev/null | head -4
+  echo "--- captura r2→r3 (eth2) ---"; cat $T/m09_eth2.txt 2>/dev/null | head -4
 fi

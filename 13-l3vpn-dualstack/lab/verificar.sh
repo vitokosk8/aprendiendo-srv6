@@ -17,6 +17,7 @@ check "FRR instaló los SIDs de transporte en sr0 (r1)"  "docker exec $L-r1 ip -
 
 # --- Servicio BGP L3VPN dual-stack ---
 check "Sesión iBGP VPN establecida (r1 ↔ r3)"           "docker exec $L-r1 vtysh -c 'show bgp ipv4 vpn summary json' | grep -q '\"state\":\"Established\"'"
+check "r1 instaló un SID End.DT46 por BGP (vrftable 10)" "docker exec $L-r1 ip -6 route show | grep -i 'End.DT46' | grep -q 'table 10'"
 check "r3 instaló un SID End.DT46 por BGP (vrftable 10)" "docker exec $L-r3 ip -6 route show | grep -i 'End.DT46' | grep -q 'table 10'"
 check "r1 aprende 10.0.2.0/24 (IPv4) en la VRF"          "docker exec $L-r1 vtysh -c 'show ip route vrf CUST 10.0.2.0/24' | grep -qi 'bgp\|seg6'"
 check "r1 aprende 2001:db8:2::/64 (IPv6) en la VRF"      "docker exec $L-r1 vtysh -c 'show ipv6 route vrf CUST 2001:db8:2::/64' | grep -qi 'bgp\|seg6'"

@@ -47,6 +47,9 @@ topology:
 
     r1:
       image: quay.io/frrouting/frr:10.7.1
+      # La VRF del cliente y strict_mode se preparan ANTES de arrancar FRR: así BGP encuentra
+      # todo listo e instala su SID de servicio a la primera, sin carreras (ver nota en el README).
+      cmd: bash -c "ip link add CUST type vrf table 10 && ip link set CUST up && sysctl -w net.vrf.strict_mode=1; exec /usr/lib/frr/docker-start"
       labels: {graph-level: 2, graph-icon: router, graph-desc: "PE1 · FRR", ip.lo: "3fff:0:ff::1/128", ip.eth1: "10.0.1.1/24, 2001:db8:1::1/64 (VRF CUST)", ip.eth2: "3fff:0:12::1/64", srv6.locator: "5f00:0:1::/48", srv6.sids: "End.DT46 por BGP (VRF CUST)"}
       sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.conf.all.forwarding: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
       binds: [r1/daemons:/etc/frr/daemons, r1/frr.conf:/etc/frr/frr.conf, r1/vtysh.conf:/etc/frr/vtysh.conf]
@@ -56,15 +59,11 @@ topology:
         - "ip link add sr0 type dummy"
         - "ip link set sr0 up"
         - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
-        - "ip link add CUST type vrf table 10"
-        - "ip link set CUST up"
         - "ip link set eth1 master CUST"
         - "ip addr add 10.0.1.1/24 dev eth1"
         - "ip -6 addr add 2001:db8:1::1/64 dev eth1"
-        # strict_mode (necesario para End.DT46) se resetea al crear la VRF: se pone después
-        - "sysctl -w net.vrf.strict_mode=1"
-        # Reaplicamos el SID per-vrf con strict_mode=1 ya puesto, para que FRR instale el End.DT46 (sin reiniciar)
-        - "bash -c 'for i in $(seq 1 20); do vtysh -c \"configure terminal\" -c \"router bgp 65000 vrf CUST\" -c \"no sid vpn per-vrf export auto\" -c \"sid vpn per-vrf export auto\" 2>/dev/null && break; sleep 2; done'"
+        # Red de seguridad: si el End.DT46 no aparece en el kernel, se reaplica la asignación del SID.
+        - "bash -c 'for i in $(seq 1 20); do sleep 3; ip -6 route show | grep -q \"End.DT46 \" && exit 0; [ $((i % 4)) -eq 0 ] && vtysh -c \"configure terminal\" -c \"router bgp 65000 vrf CUST\" -c \"no sid vpn per-vrf export auto\" -c \"sid vpn per-vrf export auto\" >/dev/null 2>&1; done; exit 0'"
 
     r2:
       image: quay.io/frrouting/frr:10.7.1
@@ -80,6 +79,9 @@ topology:
 
     r3:
       image: quay.io/frrouting/frr:10.7.1
+      # La VRF del cliente y strict_mode se preparan ANTES de arrancar FRR: así BGP encuentra
+      # todo listo e instala su SID de servicio a la primera, sin carreras (ver nota en el README).
+      cmd: bash -c "ip link add CUST type vrf table 10 && ip link set CUST up && sysctl -w net.vrf.strict_mode=1; exec /usr/lib/frr/docker-start"
       labels: {graph-level: 4, graph-icon: router, graph-desc: "PE2 · FRR", ip.lo: "3fff:0:ff::3/128", ip.eth1: "3fff:0:23::3/64", ip.eth2: "10.0.2.1/24, 2001:db8:2::1/64 (VRF CUST)", srv6.locator: "5f00:0:3::/48", srv6.sids: "End.DT46 por BGP (VRF CUST)"}
       sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.conf.all.forwarding: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
       binds: [r3/daemons:/etc/frr/daemons, r3/frr.conf:/etc/frr/frr.conf, r3/vtysh.conf:/etc/frr/vtysh.conf]
@@ -89,13 +91,11 @@ topology:
         - "ip link add sr0 type dummy"
         - "ip link set sr0 up"
         - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
-        - "ip link add CUST type vrf table 10"
-        - "ip link set CUST up"
         - "ip link set eth2 master CUST"
         - "ip addr add 10.0.2.1/24 dev eth2"
         - "ip -6 addr add 2001:db8:2::1/64 dev eth2"
-        - "sysctl -w net.vrf.strict_mode=1"
-        - "bash -c 'for i in $(seq 1 20); do vtysh -c \"configure terminal\" -c \"router bgp 65000 vrf CUST\" -c \"no sid vpn per-vrf export auto\" -c \"sid vpn per-vrf export auto\" 2>/dev/null && break; sleep 2; done'"
+        # Red de seguridad: si el End.DT46 no aparece en el kernel, se reaplica la asignación del SID.
+        - "bash -c 'for i in $(seq 1 20); do sleep 3; ip -6 route show | grep -q \"End.DT46 \" && exit 0; [ $((i % 4)) -eq 0 ] && vtysh -c \"configure terminal\" -c \"router bgp 65000 vrf CUST\" -c \"no sid vpn per-vrf export auto\" -c \"sid vpn per-vrf export auto\" >/dev/null 2>&1; done; exit 0'"
 
     h2:
       image: nicolaka/netshoot:v0.13

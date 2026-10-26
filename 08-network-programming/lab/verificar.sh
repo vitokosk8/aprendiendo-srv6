@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Comprueba que el laboratorio del módulo 08 funciona. Uso: ./verificar.sh
 L=clab-m08
+T=$(mktemp -d)   # carpeta temporal propia de esta ejecución
+trap \'rm -rf "$T"\' EXIT
 ok=0; fail=0
 check() { if eval "$2" >/dev/null 2>&1; then echo "  ✅ $1"; ok=$((ok+1)); else echo "  ❌ $1"; fail=$((fail+1)); fi; }
 
@@ -23,11 +25,11 @@ check "h2 → h1 IPv4 sobre SRv6 (vuelta)"            "docker exec $L-h2 ping -c
 echo "Comprobando que el IPv4 viaja encapsulado en SRv6 por r2..."
 cap() {
   docker run --rm --net container:$L-r2 nicolaka/netshoot:v0.13 \
-    timeout 6 tcpdump -ni eth1 -c1 'ip6[6]==43' >/tmp/m08cap.txt 2>&1 &
+    timeout 6 tcpdump -ni eth1 -c1 'ip6[6]==43' >$T/m08cap.txt 2>&1 &
   sleep 1
   docker exec $L-h1 ping -c3 -W1 10.0.2.20 >/dev/null 2>&1
   wait
-  grep -q 'srcrt' /tmp/m08cap.txt || grep -qi 'rt6\|segment' /tmp/m08cap.txt
+  grep -q 'srcrt' $T/m08cap.txt || grep -qi 'rt6\|segment' $T/m08cap.txt
 }
 check "el IPv4 de h1→h2 cruza r2 dentro de una SRH" "cap"
 
@@ -37,5 +39,5 @@ if [ $fail -gt 0 ]; then
   docker exec $L-r1 ip route show 10.0.2.0/24
   docker exec $L-r3 ip -6 route show | grep seg6local
   docker exec $L-h1 ping -c2 -W2 10.0.2.20 2>&1 | tail -3
-  cat /tmp/m08cap.txt 2>/dev/null | head -3
+  cat $T/m08cap.txt 2>/dev/null | head -3
 fi
