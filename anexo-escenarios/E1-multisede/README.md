@@ -1,4 +1,4 @@
-# E1 · Cliente multisede: L3VPN con route reflector, color y UCMP
+# E1 · Cliente multisede: L3VPN con route reflector y UCMP
 
 > **El caso en una frase**: una empresa con tres sedes contrata una red privada al operador, que la monta como L3VPN sobre SRv6, sin malla completa de BGP y repartiendo el tráfico de la sede más cargada entre dos caminos del núcleo.
 >
@@ -67,8 +67,6 @@ El operador, AS 64500, le vende una **L3VPN** (módulo 12). Pero tiene dos preoc
 - **Escala del BGP.** Hoy tiene tres PE; mañana tendrá cincuenta. Con iBGP en malla completa, cada PE necesita una sesión con todos los demás: 3 PE son 3 sesiones, pero 50 PE son 1.225. Quiere un diseño que crezca.
 - **El tráfico hacia el centro de datos.** BLUE-1 manda mucho tráfico a BLUE-2, y el camino más corto, r1 → r2 → r4 → r6, se satura en las horas punta. El operador quiere **repartir** ese tráfico entre el camino de arriba y el de abajo (r1 → r3 → r5 → r6), pero no a partes iguales: el de abajo tiene menos capacidad libre, así que quiere un reparto **3:1**.
 
-Además, el operador quiere **marcar** las rutas del centro de datos como "tráfico prioritario", para que su red pueda tratarlas de forma especial sin depender de la dirección IP.
-
 ## 2. Criterios de éxito
 
 Cada criterio es un bloque de `verificar.sh`:
@@ -78,8 +76,7 @@ Cada criterio es un bloque de `verificar.sh`:
 - [ ] **3.** Cada sede conoce las otras dos, con encapsulado SRv6 hacia el PE correcto, y las rutas llegan **reflejadas** por r2.
 - [ ] **4.** El route reflector está **fuera del camino de los datos**: no tiene la VRF, ni SIDs de servicio, ni rutas de BLUE en su kernel.
 - [ ] **5.** Las tres sedes se ven entre sí.
-- [ ] **6.** Las rutas de BLUE-2 llevan el **color 100**; las demás, no.
-- [ ] **7.** (TE) r1 reparte el tráfico hacia BLUE-2 por **dos caminos**, y el de peso 3 lleva más tráfico que el de peso 1.
+- [ ] **6.** (TE) r1 reparte el tráfico hacia BLUE-2 por **dos caminos**, y el de peso 3 lleva más tráfico que el de peso 1.
 
 ## 3. La solución con SRv6
 
@@ -102,7 +99,7 @@ Cuando r6 anuncia `192.168.20.0/24` a r2, r2 **lo refleja** a r1 y a r5 sin camb
 
 > **Un P como route reflector.** En la topología base, r2 es un P. Aquí además ejecuta BGP, pero **solo como plano de control**: no tiene VRF, ni SIDs de servicio, ni instala las rutas de BLUE en su kernel. Es un diseño habitual (*RR fuera de banda*), aunque en redes grandes el RR suele ser un equipo dedicado, a veces ni siquiera un router (un servidor con FRR o similar).
 
-**El color.** r6 exporta las rutas de BLUE-2 con la comunidad extendida **Color** con valor 100 (módulo 14), mediante un *route-map* en la exportación a VPN. Cualquier PE que reciba esas rutas sabe que el operador las considera "tráfico prioritario".
+> **¿Y el color?** El plan inicial era que r6 exportara las rutas de BLUE-2 con la comunidad extendida **Color** 100 (módulo 14), con `set extcommunity color 100` en un *route-map* de exportación a VPN. En nuestras pruebas con FRR 10.7.1, el *route-map* se carga pero **sin la cláusula `set`**, y las rutas llegan a los demás PE solo con su RT. Mientras lo investigamos, el laboratorio no usa el color: lo verás en la teoría de la sección 6 y en el módulo 14.
 
 **El reparto 3:1.** En r1, dos rutas estáticas con segmentos (como en E0) sustituyen a la de BGP para `192.168.20.0/24`:
 
@@ -121,7 +118,6 @@ Las dos rutas forman una ruta **multicamino con pesos** (*UCMP*, *Unequal-Cost M
 | Un solo RR | Es un laboratorio. El RR solo afecta al plano de control: si cae, el tráfico sigue fluyendo con las rutas ya instaladas, pero no se aprenden cambios | **En producción, siempre dos RR**, con el mismo `cluster-id` o con distintos |
 | RR en un **P** (r2) | Muestra que el RR no tiene por qué estar en el camino de los datos | RR dedicado fuera del núcleo: lo habitual en redes grandes |
 | **`End.DT4`** por PE (`sid vpn export auto`) | Es una L3VPN solo IPv4, como el ejemplo que inspira el escenario | `End.DT46` por VRF: para dual-stack (módulo 13) |
-| Color en la **exportación** a VPN (`route-map vpn export`) | El color lo decide el PE que conoce la sede (r6), y viaja con la ruta a todos los PE | Poner el color al importar en cada PE: habría que repetirlo en todos |
 | UCMP con **rutas estáticas con segmentos** en r1 | Es lo que FRR permite hoy: `staticd` admite `weight` y `segments` en la misma ruta | SR Policy con varias listas de segmentos con peso: es la forma de producto, pero FRR no tiene SR Policy para SRv6 (módulo 14) |
 | Reparto por **flujo** (hash L4) | `net.ipv4.fib_multipath_hash_policy=1` en r1: cada conexión TCP o UDP va siempre por el mismo camino, sin desordenar paquetes | Hash L3 (por defecto): con un solo origen y un solo destino, todo iría por el mismo camino |
 | Caminos fijados con el `End` de r4 o de r5 | Cada camino queda fijo aunque cambien las métricas del IGP | Solo el SID de r6 en el camino de arriba: seguiría el camino más corto, que hoy es el mismo |
@@ -146,12 +142,8 @@ router bgp 64500 vrf BLUE
   sid vpn export auto
   rd vpn export 64500:6
   rt vpn both 64500:10
-  route-map vpn export COLOR-100                ! las rutas de BLUE-2 salen con color
   export vpn
   import vpn
-!
-route-map COLOR-100 permit 10
- set extcommunity color 100
 ```
 
 Y el RR, r2:
@@ -179,12 +171,12 @@ exit-vrf
 ```
 
 - **`nexthop-vrf default`**: la ruta está en la VRF BLUE, pero el siguiente salto (r2 o r3) está en la tabla global, que es por donde viaja el paquete ya encapsulado.
-- **`weight 3` / `weight 1`**: los pesos del reparto. zebra instala una sola ruta con dos caminos.
+- **`weight 3` / `weight 1`**: los pesos del reparto. zebra instala una sola ruta con dos caminos y **normaliza** los pesos a la escala del kernel: en `show ip route` verás `weight 255` y `weight 85`, que es la misma proporción 3:1.
 - **`segments`**: cada camino lleva su lista. El paquete pasa primero por r4 o por r5, y después va a r6.
 
 Para comprobar el reparto no sirve un ping: todos sus paquetes son un mismo flujo y van por el mismo camino. `verificar.sh` lanza 32 conexiones TCP con `iperf3` y compara los bytes que salen de r1 por cada interfaz.
 
-> **¿Y el color?** En un router con SR Policy, el color 100 de las rutas de BLUE-2 activaría solo una política con color 100 y destino r6 (*automated steering*, módulo 14), y esa política tendría las dos listas de segmentos con sus pesos. FRR no tiene SR Policy para SRv6, así que aquí **tú haces de SR Policy**: ves el color en la ruta y configuras las estáticas. En el escenario E10 (BGP-LS), un pequeño controlador hará este trabajo.
+> **El color, en teoría.** En un router con SR Policy, r6 exportaría las rutas de BLUE-2 con la comunidad Color 100, y ese color activaría solo una política con color 100 y destino r6 (*automated steering*, módulo 14), y esa política tendría las dos listas de segmentos con sus pesos. FRR no tiene SR Policy para SRv6, así que aquí **tú haces de SR Policy**: decides qué tráfico reparte y configuras las estáticas. En el escenario E10 (BGP-LS), un pequeño controlador hará este trabajo.
 
 ## 7. Lo que verás en el cable
 
@@ -207,9 +199,8 @@ En r6, quita el RT de exportación de la VRF BLUE (`no rt vpn both 64500:10`). D
 
 - La L3VPN con tres PE es la del módulo 12: VRF, `End.DT4` por PE, RD y RT.
 - Con un **route reflector**, cada PE tiene **una** sesión iBGP. El RR refleja las rutas sin cambiar el siguiente salto ni el SID, así que **no está en el camino de los datos**.
-- La comunidad **Color** marca rutas con una intención. En FRR se pone con `set extcommunity color` en la exportación a VPN, y el resto de PE la ven.
 - Con **dos rutas estáticas con segmentos y pesos** en la VRF (`nexthop-vrf default`, `weight`, `segments`), r1 reparte el tráfico 3:1 entre dos caminos (**UCMP**). El reparto es por flujo (hash L4).
-- Lo que aquí haces a mano (color → camino → pesos) es lo que automatiza una SR Policy en otras plataformas.
+- Lo que aquí haces a mano (qué tráfico, por qué caminos, con qué pesos) es lo que automatiza una SR Policy, guiada por la comunidad **Color**, en otras plataformas.
 
 ## Para saber más
 

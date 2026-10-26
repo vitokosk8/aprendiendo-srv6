@@ -1,4 +1,4 @@
-# Escenario E1 · Cliente multisede: L3VPNv4 con route reflector, color y UCMP
+# Escenario E1 · Cliente multisede: L3VPNv4 con route reflector y UCMP
 #
 # Sobre la topología base: la empresa BLUE tiene tres sedes, BLUE-1 (h1, en r1), BLUE-2
 # (h2, en r6) y BLUE-3 (h3, nueva, en el enganche r5:eth5). El operador (AS 64500) las une
@@ -7,7 +7,6 @@
 #   * r1, r5 y r6 son PE (r5 hace a la vez de P y de PE).
 #   * r2 es route reflector: cada PE tiene UNA sesión iBGP, con r2. r2 no tiene VRF ni
 #     SIDs de servicio: está fuera del camino de los datos de BLUE.
-#   * r6 exporta las rutas de BLUE-2 con el color 100 (Color extended community).
 #   * En la parte de TE, r1 reparte el tráfico hacia BLUE-2 entre dos caminos con pesos
 #     3:1 (UCMP) usando rutas estáticas con segmentos (staticd, FRR 10.7).
 #

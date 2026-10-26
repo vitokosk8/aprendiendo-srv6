@@ -16,7 +16,7 @@ Algunas respuestas dependen de valores que asigna FRR al arrancar (los SIDs `aut
 
 **C1.** r1 habla solo con **r2** (`3fff:0:ff::2`). Le llegan los prefijos de BLUE-2 y de BLUE-3 (y los suyos no vuelven, porque un RR no devuelve una ruta a quien se la envió). r2 tiene tres sesiones, una por PE.
 
-**C2.** *Originator* `10.255.0.6` (r6), *Cluster list* `10.255.0.2` (r2), siguiente salto `3fff:0:ff::6`, el SID `End.DT4` de r6 (`5f00:0:6:…`) y, en las comunidades extendidas, el RT `64500:10` y `Color:00:100`.
+**C2.** *Originator* `10.255.0.6` (r6), *Cluster list* `10.255.0.2` (r2), siguiente salto `3fff:0:ff::6`, el SID `End.DT4` de r6 (`5f00:0:6:…`) y, en las comunidades extendidas, el RT `64500:10`.
 
 **C3.** r2 **sí** conoce las rutas VPNv4 de BLUE en su tabla BGP (es su trabajo), pero **no** las tiene en su kernel: no tiene ninguna VRF que las importe y no instala rutas VPN en la tabla global. Tampoco tiene ningún `End.DT4`. Para el plano de datos, r2 es un P más.
 
@@ -24,7 +24,7 @@ Algunas respuestas dependen de valores que asigna FRR al arrancar (los SIDs `aut
 
 ## Parte D
 
-**D2.** Dos caminos, con `weight 3` y `weight 1`, cada uno con su lista de dos segmentos. La de BGP sigue existiendo, pero no seleccionada: la estática (distancia 1) gana a la iBGP (200).
+**D2.** Dos caminos, cada uno con su lista de dos segmentos. zebra normaliza los pesos a la escala del kernel (hasta 255): verás `weight 255` y `weight 85`, que guardan la proporción 3:1. La de BGP sigue existiendo, pero no seleccionada: la estática (distancia 1) gana a la iBGP (200).
 
 **D3.** La proporción se parecerá a 3:1, pero rara vez será exacta (ver A4). Cuantos más flujos lances, más se acercará.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Comprueba el escenario E1 (cliente multisede: L3VPNv4 con route reflector, color y UCMP).
+# Comprueba el escenario E1 (cliente multisede: L3VPNv4 con route reflector y UCMP).
 # Cada bloque corresponde a un criterio de éxito del README del escenario. Uso: ./verificar.sh
 L=clab-esc-e1
 T=$(mktemp -d)   # carpeta temporal propia de esta ejecución
@@ -59,11 +59,7 @@ check "BLUE-1 → BLUE-2 (h1 → h2)"                         "docker exec $L-h1
 check "BLUE-1 → BLUE-3 (h1 → h3)"                         "docker exec $L-h1 ping -c2 -W2 192.168.30.12"
 check "BLUE-2 → BLUE-3 (h2 → h3)"                         "docker exec $L-h2 ping -c2 -W2 192.168.30.12"
 
-echo "--- Criterio 6: las rutas de BLUE-2 llevan el color 100 ---"
-check "r1 ve el color 100 en la ruta de BLUE-2"           "docker exec $L-r1 vtysh -c 'show bgp vrf BLUE ipv4 unicast 192.168.20.0/24' | grep -q 'Color:00:100'"
-check "la ruta de BLUE-3 no lleva color"                  "c=\$(docker exec $L-r1 vtysh -c 'show bgp vrf BLUE ipv4 unicast 192.168.30.0/24') && ! echo \"\$c\" | grep -q 'Color:'"
-
-echo "--- Criterio 7 (TE): r1 reparte el tráfico hacia BLUE-2 por dos caminos, 3:1 (UCMP) ---"
+echo "--- Criterio 6 (TE): r1 reparte el tráfico hacia BLUE-2 por dos caminos, 3:1 (UCMP) ---"
 SID=$(docker exec $L-r1 ip route show vrf BLUE 192.168.20.0/24 | grep -o '5f00:0:6:[0-9a-f:]*' | head -1)
 echo "  (SID End.DT4 de r6 para BLUE: ${SID:-no encontrado})"
 ARRIBA="ip route 192.168.20.0/24 3fff:0:12::2 eth1 nexthop-vrf default weight 3 segments 5f00:0:4::/$SID"
@@ -72,8 +68,9 @@ txb() { docker exec $L-r1 cat /sys/class/net/$1/statistics/tx_bytes; }
 if [ -n "$SID" ]; then
   docker exec $L-r1 vtysh -c "configure terminal" -c "vrf BLUE" -c "$ARRIBA" -c "$ABAJO" >/dev/null 2>&1
   sleep 3
-  check "la ruta a BLUE-2 es ahora estática con dos caminos (pesos 3 y 1)" "docker exec $L-r1 vtysh -c 'show ip route vrf BLUE 192.168.20.0/24' | grep -q 'weight 3' && docker exec $L-r1 vtysh -c 'show ip route vrf BLUE 192.168.20.0/24' | grep -q 'weight 1'"
-  check "en el kernel, cada camino lleva 2 segmentos"     "[ \$(docker exec $L-r1 ip route show vrf BLUE 192.168.20.0/24 | grep -c 'segs 2') -ge 2 ] || [ \$(docker exec $L-r1 ip -d route show vrf BLUE 192.168.20.0/24 | grep -o 'segs 2' | wc -l) -ge 2 ]"
+  # zebra normaliza los pesos 3:1 a la escala del kernel: 255 y 85
+  check "la ruta a BLUE-2 es ahora estática con dos caminos (pesos 255 y 85, es decir, 3:1)" "docker exec $L-r1 vtysh -c 'show ip route vrf BLUE 192.168.20.0/24' | grep -q 'Known via \"static\"' && docker exec $L-r1 vtysh -c 'show ip route vrf BLUE 192.168.20.0/24' | grep -q 'weight 255' && docker exec $L-r1 vtysh -c 'show ip route vrf BLUE 192.168.20.0/24' | grep -q 'weight 85'"
+  check "en el kernel, cada camino lleva 2 segmentos"     "[ \$(docker exec $L-r1 ip route show vrf BLUE 192.168.20.0/24 | grep -c 'segs 2') -ge 2 ]"
   check "con UCMP, BLUE-1 → BLUE-2 sigue funcionando"     "docker exec $L-h1 ping -c2 -W2 192.168.20.12"
   echo "  Enviando 32 flujos TCP de h1 a h2 (iperf3, 4 s) y midiendo por dónde salen de r1..."
   a0=$(txb eth1); b0=$(txb eth2)

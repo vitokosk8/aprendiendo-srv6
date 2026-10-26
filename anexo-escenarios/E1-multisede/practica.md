@@ -87,7 +87,7 @@ $ docker exec clab-esc-e1-r2 vtysh -c "show bgp ipv4 vpn summary"
 $ docker exec clab-esc-e1-r1 vtysh -c "show bgp vrf BLUE ipv4 unicast 192.168.20.0/24"
 ```
 
-Localiza el originador, la lista de clústeres, el siguiente salto, el SID y el color.
+Localiza el originador, la lista de clústeres, el siguiente salto y el SID.
 
 **C3.** Comprueba que r2 no está en el camino de los datos:
 
@@ -117,7 +117,7 @@ r1(config-vrf)# end
 r1# show ip route vrf BLUE 192.168.20.0/24
 ```
 
-¿Cuántos caminos tiene ahora la ruta? ¿Qué ha pasado con la de BGP?
+¿Cuántos caminos tiene ahora la ruta, y con qué pesos? ¿Por qué no aparecen 3 y 1? ¿Qué ha pasado con la de BGP?
 
 **D3.** Mide el reparto. Anota los bytes enviados por r1 en cada interfaz, lanza el tráfico y vuelve a mirarlos:
 
