@@ -176,7 +176,7 @@ exit-vrf
 
 Para comprobar el reparto no sirve un ping: todos sus paquetes son un mismo flujo y van por el mismo camino. `verificar.sh` lanza 32 conexiones TCP con `iperf3` y compara los bytes que salen de r1 por cada interfaz.
 
-> **El color, en teoría.** En un router con SR Policy, r6 exportaría las rutas de BLUE-2 con la comunidad Color 100, y ese color activaría solo una política con color 100 y destino r6 (*automated steering*, módulo 14), y esa política tendría las dos listas de segmentos con sus pesos. FRR no tiene SR Policy para SRv6, así que aquí **tú haces de SR Policy**: decides qué tráfico reparte y configuras las estáticas. En el escenario E10 (BGP-LS), un pequeño controlador hará este trabajo.
+> **El color, en teoría.** En un router con SR Policy, r6 exportaría las rutas de BLUE-2 con la comunidad Color 100, y ese color activaría solo una política con color 100 y destino r6 (*automated steering*, módulo 14), y esa política tendría las dos listas de segmentos con sus pesos. FRR no tiene SR Policy para SRv6, así que aquí **tú haces de SR Policy**: decides qué tráfico reparte y configuras las estáticas. En el escenario E7 (BGP-LS), un pequeño controlador hará este trabajo.
 
 ## 7. Lo que verás en el cable
 

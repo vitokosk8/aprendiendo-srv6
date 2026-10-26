@@ -111,8 +111,8 @@ Los escenarios que necesitan más equipos los conectan siempre en el mismo sitio
 |---|---|---|
 | r6 `eth5` | Router **Internet** (upstream, eBGP) | E0 |
 | r6 `eth6` | Segundo AS (**64501**), con dos routers | E2 |
-| r5 `eth5` | **Tercera sede** (BLUE-3 o VLAN 100) | E1, E6 |
-| r4 `eth5` | **Función de servicio** (un firewall en contenedor) | E9 |
+| r5 `eth5` | **Tercera sede** (BLUE-3) | E1 |
+| r4 `eth5` | **Función de servicio** (un firewall en contenedor) | E6 |
 
 Si un escenario necesita otro enganche, se documenta en él y se añade a esta tabla.
 

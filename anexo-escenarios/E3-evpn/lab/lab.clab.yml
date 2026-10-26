@@ -1,0 +1,193 @@
+# Escenario E3 · EVPN sobre SRv6 — el plano de datos de un VPWS (End.DX2)
+#
+# FRR 10.7.1 no implementa EVPN sobre SRv6 (su EVPN solo usa VXLAN), así que aquí no hay
+# plano de control: se monta a mano, con iproute2, el plano de datos de un VPWS entre las
+# dos sedes de la VLAN 100 de la topología base.
+#
+#   * r1 y r6 tienen un SID End.DX2 (5f00:0:1:d2:: y 5f00:0:6:d2::): desencapsulan y
+#     sacan la trama Ethernet de dentro, tal cual, por la interfaz de su sede (eth4).
+#   * La interfaz hacia la sede (eth4) NO tiene ninguna dirección IP: es un circuito de
+#     capa 2, no una interfaz de router.
+#   * El papel del PE de entrada (H.Encaps.L2: meter la trama del cliente en SRv6) lo hace
+#     el script scripts/l2.py con scapy, ejecutado en el espacio de red de r1 o de r6.
+#
+#   python3 herramientas/topologia.py anexo-escenarios/E3-evpn/lab/lab.clab.yml
+#
+# Pendiente de probar en containerlab 0.82.0, FRR 10.7.1, netshoot v0.13 (OrbStack).
+
+name: esc-e3
+
+topology:
+  defaults:
+    kind: linux
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: 0
+      net.ipv6.conf.all.seg6_enabled: 1
+      net.ipv6.conf.default.seg6_enabled: 1
+
+  nodes:
+    h1:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 1, graph-row: 1, graph-icon: host, graph-desc: "PC1 · sede BLUE-1", ip.eth1: "192.168.10.12/24, 3fff:168:10::12/64"}
+      exec:
+        - "ip route flush default"
+        - "ip -6 route del default dev eth0"
+        - "ip addr add 192.168.10.12/24 dev eth1"
+        - "ip -6 addr add 3fff:168:10::12/64 dev eth1"
+        - "ip route add default via 192.168.10.1 dev eth1"
+        - "ip -6 route add default via 3fff:168:10::1 dev eth1"
+
+    h11:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 1, graph-row: 2, graph-icon: host, graph-desc: "PC11 · sede 1 (VLAN 100)", ip.eth1: "192.168.100.11/24, 3fff:168:100::11/64"}
+      exec:
+        - "ip route flush default"
+        - "ip -6 route del default dev eth0"
+        - "ip addr add 192.168.100.11/24 dev eth1"
+        - "ip -6 addr add 3fff:168:100::11/64 dev eth1"
+
+    sw1:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 2, graph-row: 2, graph-icon: switch, graph-desc: "switch · VLAN 100 (Linux bridge)"}
+      sysctls:
+        net.ipv6.conf.all.disable_ipv6: 1
+        net.ipv6.conf.default.disable_ipv6: 1
+      exec:
+        - "ip link add br0 type bridge mcast_snooping 0"
+        - "sh -c 'for p in eth1 eth2; do ip link set $p master br0; ip link set $p up; done'"
+        - "ip link set br0 up"
+
+    r1:
+      image: quay.io/frrouting/frr:10.7.1
+      labels: {graph-level: 3, graph-icon: router, graph-desc: "PE1 · VPWS", ip.lo: "3fff:0:ff::1/128", ip.eth1: "3fff:0:12::1/64 (m=10)", ip.eth2: "3fff:0:13::1/64 (m=15)", ip.eth3: "→ h1 · sede BLUE-1 (según escenario)", ip.eth4: "sin IP · circuito de capa 2 (sw1)", srv6.locator: "5f00:0:1::/48", srv6.sids: "5f00:0:1:d2:: End.DX2 (oif eth4)"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r1/daemons:/etc/frr/daemons, r1/frr.conf:/etc/frr/frr.conf, r1/vtysh.conf:/etc/frr/vtysh.conf]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1 net.ipv6.conf.eth2.seg6_enabled=1"
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+        # VPWS: el circuito de la sede (eth4) sin IP, y el SID End.DX2 que entrega en él las tramas
+        - "ip link set eth4 up"
+        - "ip -6 route add 5f00:0:1:d2::/128 encap seg6local action End.DX2 oif eth4 dev eth4"
+
+    r2:
+      image: quay.io/frrouting/frr:10.7.1
+      labels: {graph-level: 4, graph-row: 1, graph-icon: router, graph-desc: "P · FRR", ip.lo: "3fff:0:ff::2/128", ip.eth1: "3fff:0:12::2/64 (m=10)", ip.eth2: "3fff:0:23::2/64 (m=10)", ip.eth3: "3fff:0:24::2/64 (m=10)", ip.eth4: "3fff:0:25::2/64 (m=25)", srv6.locator: "5f00:0:2::/48", srv6.sids: "End/End.X automáticos"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r2/daemons:/etc/frr/daemons, r2/frr.conf:/etc/frr/frr.conf, r2/vtysh.conf:/etc/frr/vtysh.conf]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1 net.ipv6.conf.eth2.seg6_enabled=1 net.ipv6.conf.eth3.seg6_enabled=1 net.ipv6.conf.eth4.seg6_enabled=1"
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+
+    r3:
+      image: quay.io/frrouting/frr:10.7.1
+      labels: {graph-level: 4, graph-row: 2, graph-icon: router, graph-desc: "P · FRR", ip.lo: "3fff:0:ff::3/128", ip.eth1: "3fff:0:13::3/64 (m=15)", ip.eth2: "3fff:0:23::3/64 (m=10)", ip.eth3: "3fff:0:35::3/64 (m=10)", ip.eth4: "3fff:0:34::3/64 (m=25)", srv6.locator: "5f00:0:3::/48", srv6.sids: "End/End.X automáticos"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r3/daemons:/etc/frr/daemons, r3/frr.conf:/etc/frr/frr.conf, r3/vtysh.conf:/etc/frr/vtysh.conf]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1 net.ipv6.conf.eth2.seg6_enabled=1 net.ipv6.conf.eth3.seg6_enabled=1 net.ipv6.conf.eth4.seg6_enabled=1"
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+
+    r4:
+      image: quay.io/frrouting/frr:10.7.1
+      labels: {graph-level: 5, graph-row: 1, graph-icon: router, graph-desc: "P · FRR", ip.lo: "3fff:0:ff::4/128", ip.eth1: "3fff:0:24::4/64 (m=10)", ip.eth2: "3fff:0:45::4/64 (m=15)", ip.eth3: "3fff:0:46::4/64 (m=10)", ip.eth4: "3fff:0:34::4/64 (m=25)", srv6.locator: "5f00:0:4::/48", srv6.sids: "End/End.X automáticos"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r4/daemons:/etc/frr/daemons, r4/frr.conf:/etc/frr/frr.conf, r4/vtysh.conf:/etc/frr/vtysh.conf]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1 net.ipv6.conf.eth2.seg6_enabled=1 net.ipv6.conf.eth3.seg6_enabled=1 net.ipv6.conf.eth4.seg6_enabled=1"
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+
+    r5:
+      image: quay.io/frrouting/frr:10.7.1
+      labels: {graph-level: 5, graph-row: 2, graph-icon: router, graph-desc: "P · FRR", ip.lo: "3fff:0:ff::5/128", ip.eth1: "3fff:0:35::5/64 (m=10)", ip.eth2: "3fff:0:45::5/64 (m=15)", ip.eth3: "3fff:0:56::5/64 (m=10)", ip.eth4: "3fff:0:25::5/64 (m=25)", srv6.locator: "5f00:0:5::/48", srv6.sids: "End/End.X automáticos"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r5/daemons:/etc/frr/daemons, r5/frr.conf:/etc/frr/frr.conf, r5/vtysh.conf:/etc/frr/vtysh.conf]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1 net.ipv6.conf.eth2.seg6_enabled=1 net.ipv6.conf.eth3.seg6_enabled=1 net.ipv6.conf.eth4.seg6_enabled=1"
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+
+    r6:
+      image: quay.io/frrouting/frr:10.7.1
+      labels: {graph-level: 6, graph-icon: router, graph-desc: "PE2 · VPWS", ip.lo: "3fff:0:ff::6/128", ip.eth1: "3fff:0:46::6/64 (m=10)", ip.eth2: "3fff:0:56::6/64 (m=10)", ip.eth3: "→ h2 · sede BLUE-2 (según escenario)", ip.eth4: "sin IP · circuito de capa 2 (sw2)", srv6.locator: "5f00:0:6::/48", srv6.sids: "5f00:0:6:d2:: End.DX2 (oif eth4)"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r6/daemons:/etc/frr/daemons, r6/frr.conf:/etc/frr/frr.conf, r6/vtysh.conf:/etc/frr/vtysh.conf]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1 net.ipv6.conf.eth2.seg6_enabled=1"
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+        # VPWS: el circuito de la sede (eth4) sin IP, y el SID End.DX2 que entrega en él las tramas
+        - "ip link set eth4 up"
+        - "ip -6 route add 5f00:0:6:d2::/128 encap seg6local action End.DX2 oif eth4 dev eth4"
+
+    sw2:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 7, graph-row: 2, graph-icon: switch, graph-desc: "switch · VLAN 100 (Linux bridge)"}
+      sysctls:
+        net.ipv6.conf.all.disable_ipv6: 1
+        net.ipv6.conf.default.disable_ipv6: 1
+      exec:
+        - "ip link add br0 type bridge mcast_snooping 0"
+        - "sh -c 'for p in eth1 eth2; do ip link set $p master br0; ip link set $p up; done'"
+        - "ip link set br0 up"
+
+    h2:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 8, graph-row: 1, graph-icon: host, graph-desc: "PC2 · sede BLUE-2", ip.eth1: "192.168.20.12/24, 3fff:168:20::12/64"}
+      exec:
+        - "ip route flush default"
+        - "ip -6 route del default dev eth0"
+        - "ip addr add 192.168.20.12/24 dev eth1"
+        - "ip -6 addr add 3fff:168:20::12/64 dev eth1"
+        - "ip route add default via 192.168.20.1 dev eth1"
+        - "ip -6 route add default via 3fff:168:20::1 dev eth1"
+
+    h12:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 8, graph-row: 2, graph-icon: host, graph-desc: "PC12 · sede 2 (VLAN 100)", ip.eth1: "192.168.100.12/24, 3fff:168:100::12/64"}
+      exec:
+        - "ip route flush default"
+        - "ip -6 route del default dev eth0"
+        - "ip addr add 192.168.100.12/24 dev eth1"
+        - "ip -6 addr add 3fff:168:100::12/64 dev eth1"
+
+  links:
+    # núcleo
+    - endpoints: ["r1:eth1", "r2:eth1"]
+    - endpoints: ["r1:eth2", "r3:eth1"]
+    - endpoints: ["r2:eth2", "r3:eth2"]
+    - endpoints: ["r2:eth3", "r4:eth1"]
+    - endpoints: ["r2:eth4", "r5:eth4"]
+    - endpoints: ["r3:eth3", "r5:eth1"]
+    - endpoints: ["r3:eth4", "r4:eth4"]
+    - endpoints: ["r4:eth2", "r5:eth2"]
+    - endpoints: ["r4:eth3", "r6:eth1"]
+    - endpoints: ["r5:eth3", "r6:eth2"]
+    # sedes
+    - endpoints: ["h1:eth1", "r1:eth3"]
+    - endpoints: ["sw1:eth1", "r1:eth4"]
+    - endpoints: ["h11:eth1", "sw1:eth2"]
+    - endpoints: ["r6:eth3", "h2:eth1"]
+    - endpoints: ["r6:eth4", "sw2:eth1"]
+    - endpoints: ["sw2:eth2", "h12:eth1"]
