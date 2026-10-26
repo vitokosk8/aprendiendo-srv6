@@ -18,8 +18,9 @@ command -v python3 >/dev/null || { echo "❌ Hace falta python3 en esta máquina
 # Captura en un router mientras un host hace ping. $1 = router, $2 = interfaz, $3 = filtro, $4 = host, $5 = destino
 cap() {
   docker run --rm --net container:$L-$1 nicolaka/netshoot:v0.13 \
-    timeout 6 tcpdump -ni "$2" -nn -c1 "$3" >$T/cap_$1_$2.txt 2>&1 &
-  sleep 1
+    timeout 8 tcpdump -ni "$2" -nn -c1 "$3" >$T/cap_$1_$2.txt 2>&1 &
+  # espera a que tcpdump esté escuchando (arrancar el contenedor puede tardar más de un segundo)
+  for i in $(seq 1 50); do grep -q 'listening on' $T/cap_$1_$2.txt 2>/dev/null && break; sleep 0.1; done
   docker exec $L-$4 ping -c3 -W1 $5 >/dev/null 2>&1
   wait
   grep -q '1 packet captured' $T/cap_$1_$2.txt
