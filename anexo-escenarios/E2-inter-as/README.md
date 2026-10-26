@@ -2,7 +2,7 @@
 
 > **El caso en una frase**: una empresa tiene sedes conectadas a dos operadores distintos, y los dos operadores se ponen de acuerdo para unirlas en una misma red privada.
 >
-> **Requisitos previos**: módulos [10](../../10-usid/README.md) (bloques y locators), [12](../../12-l3vpn-bgp/README.md) (L3VPN), [18](../../18-mtu-seguridad/README.md) (seguridad en el borde) y los escenarios [E0](../E0-internet/README.md) y [E1](../E1-multisede/README.md) · Pendiente de probar con containerlab 0.82.0, FRR 10.7.1 y netshoot v0.13 · Estado: 🧪
+> **Requisitos previos**: módulos [10](../../10-usid/README.md) (bloques y locators), [12](../../12-l3vpn-bgp/README.md) (L3VPN), [18](../../18-mtu-seguridad/README.md) (seguridad en el borde) y los escenarios [E0](../E0-internet/README.md) y [E1](../E1-multisede/README.md) · Probado con containerlab 0.82.0 sobre OrbStack, FRR 10.7.1 y netshoot v0.13 (opción A: 16/16 comprobaciones; opción C: 22/22) · Estado: ✅
 
 ## El escenario
 
