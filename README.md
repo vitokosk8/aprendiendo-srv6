@@ -118,7 +118,7 @@ Casos de uso completos, inspirados en los que documentan los fabricantes y monta
 | [E3](anexo-escenarios/E3-evpn/README.md) | EVPN sobre SRv6: L3 (IPv4 e IPv6), VPWS y VPLS en teoría, y el plano de datos de un VPWS (End.DX2) con laboratorio | ✅ |
 | E4 | *Network slicing* | 🔍 |
 | [E5](anexo-escenarios/E5-usid-migracion/README.md) | Compresión uSID: la TE en un solo contenedor y una red a medio migrar desde SIDs clásicos (islas SRv6 sobre GRE, en teoría) | 🧪 |
-| E6 | *Service chaining* (SFC) | 🔍 |
+| [E6](anexo-escenarios/E6-sfc/README.md) | *Service chaining*: el tráfico entre sedes pasa por un firewall sin SRv6, con un proxy SR montado con `End.DT4` y VRF | 🧪 |
 | E7 | Ingeniería de tráfico con controlador: la topología SRv6 por BGP-LS (FRR 10.7) y un mini-controlador en Python | 🔍 |
 | — | Lo que FRR aún no hace: egress protection, shortcuts, slicing con HBH, interworking con MPLS | ⏳ |
 
