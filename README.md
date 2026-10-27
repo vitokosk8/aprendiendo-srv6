@@ -106,7 +106,7 @@ Los módulos se siguen **en orden**: cada uno se apoya en lo aprendido en los an
 | Módulo | Tema | Estado |
 |--------|------|:------:|
 | [19](19-replicacion-ingreso/README.md) | El problema del multicast en Segment Routing y la replicación en el ingreso | ✅ |
-| [20](20-replication-segments/README.md) | *Replication segments* y Tree-SID ([RFC 9524](https://www.rfc-editor.org/rfc/rfc9524)): un árbol multicast sobre SRv6 | 🧪 |
+| [20](20-replication-segments/README.md) | *Replication segments* y Tree-SID ([RFC 9524](https://www.rfc-editor.org/rfc/rfc9524)): un árbol multicast sobre SRv6 | ✅ |
 | 21 | BIER y BIERv6: teoría, simulador en Python y laboratorio P4 opcional | 🔍 |
 
 ### [Anexo · Escenarios: casos de uso con laboratorio](anexo-escenarios/README.md)
