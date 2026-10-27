@@ -30,7 +30,8 @@ def carpetas():
     anexo = os.path.join(RAIZ, 'anexo-escenarios')
     esc = ['anexo-escenarios/topologia-base'] + sorted(
         f'anexo-escenarios/{d}' for d in os.listdir(anexo) if re.match(r'E\d+-', d))
-    return mods + esc
+    extra = [f'anexo-escenarios/{d}' for d in ('lo-que-frr-no-hace',) if os.path.isdir(os.path.join(anexo, d))]
+    return mods + esc + extra
 
 
 def recorrer(carpeta):
@@ -69,7 +70,7 @@ def recorrer(carpeta):
 def main():
     datos = [(c,) + recorrer(c) for c in carpetas()]
     corto = lambda c: c.split('/')[-1].split('-')[0] if c.startswith('anexo') else c[:2]
-    etiqueta = lambda c, n: ('Base' if c.endswith('topologia-base') else corto(c)) + ' · ' + re.sub(r'^(\d\d|E\d+) · ', '', n)
+    etiqueta = lambda c, n: ('Base' if c.endswith('topologia-base') else 'Anexo' if c.endswith('lo-que-frr-no-hace') else corto(c)) + ' · ' + re.sub(r'^(\d\d|E\d+) · ', '', n)
     out = ['# 🗺️ Índice de esquemas, diagramas y topologías', '',
            'Todo lo que se puede **ver** en el curso, en un solo sitio: cada entrada enlaza a la sección donde se explica.', '',
            '- [Figuras](#figuras): formatos de cabeceras, paquetes y direcciones (SVG).',

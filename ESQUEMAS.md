@@ -53,6 +53,7 @@ Todo lo que se puede **ver** en el curso, en un solo sitio: cada entrada enlaza 
 | [Opción C: el paquete de punta a punta](anexo-escenarios/E2-inter-as/README.md#opción-c-un-túnel-srv6-de-punta-a-punta) | secuencia | E2 · Dos operadores: L3VPN entre sistemas autónomos (Inter-AS) · Opción C: un túnel SRv6 de punta a punta |
 | [Recorrido de un paquete por el proxy SR y el firewall](anexo-escenarios/E6-sfc/README.md#el-proxy-de-r4-pieza-a-pieza) | grafo | E6 · Service chaining: el tráfico del cliente pasa por un firewall · El proxy de r4, pieza a pieza |
 | [Cómo el controlador lee la red y programa los PE](anexo-escenarios/E7-controlador/README.md#3-la-solución) | grafo | E7 · Ingeniería de tráfico con un controlador: BGP-LS y un script en Python · 3. La solución |
+| [Protección del PE de salida con un SID espejo (End.M)](anexo-escenarios/lo-que-frr-no-hace/README.md#2-protección-del-pe-de-salida-egress-protection) | secuencia | Anexo · Lo que FRR aún no hace (y dónde se explica en el curso) · 2. Protección del PE de salida (*egress protection*) |
 
 ## Topologías de los laboratorios
 

@@ -43,6 +43,6 @@ Y, como en los módulos, cada escenario tiene su **laboratorio** en `lab/`, una 
 | [E5](E5-usid-migracion/README.md) | Compresión uSID: la TE en un solo contenedor y una red a medio migrar desde SIDs clásicos (islas SRv6 sobre GRE, en teoría) | ✅ |
 | [E6](E6-sfc/README.md) | *Service chaining*: el tráfico entre sedes pasa por un firewall sin SRv6, con un proxy SR montado con `End.DT4` y VRF | ✅ |
 | [E7](E7-controlador/README.md) | Ingeniería de tráfico con controlador: la topología SRv6 por BGP-LS (FRR 10.7) y un controlador en Python que calcula, minimiza la lista de segmentos y reacciona a caídas | ✅ |
-| — | Lo que FRR aún no hace: egress protection, shortcuts, slicing con HBH, interworking con MPLS | ⏳ |
+| [—](lo-que-frr-no-hace/README.md) | **Lo que FRR aún no hace**: todas las carencias del curso en una tabla, con enlace a donde se explican, más *egress protection*, *shortcuts*, *slicing* con Hop-by-Hop e *interworking* con MPLS (teoría) | ✅ |
 
 > ✅ escrito y probado · 🧪 escrito, pendiente de probar · ⏳ pendiente · 🔍 pendiente de verificar qué soporta FRR (si no lo soporta, solo teoría)

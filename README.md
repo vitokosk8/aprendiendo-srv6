@@ -19,7 +19,7 @@ De *"¿qué es una dirección IPv6?"* a montar **L3VPN multicliente con ingenier
 
 Cada módulo combina **teoría**, un **laboratorio reproducible** con [Containerlab](https://containerlab.dev) y [FRRouting](https://frrouting.org), y **prácticas con soluciones**. No hace falta ninguna imagen de fabricante: SRv6 vive en el **kernel de Linux** y el plano de control en **FRR**. Todo lo que se explica, se monta y se comprueba.
 
-> 💡 El curso es **honesto** con lo que el software libre soporta hoy: cuando FRR/Linux no cubre algo (p. ej. SR-TE, TI-LFA o Flex-Algo sobre SRv6), se explica la teoría completa, se demuestra lo que **sí** es practicable, y se indica con qué plataforma se haría en producción.
+> 💡 El curso es **honesto** con lo que el software libre soporta hoy: cuando FRR/Linux no cubre algo (p. ej. SR-TE, TI-LFA o Flex-Algo sobre SRv6), se explica la teoría completa, se demuestra lo que **sí** es practicable, y se indica con qué plataforma se haría en producción. Todas esas carencias están reunidas en **[Lo que FRR aún no hace](anexo-escenarios/lo-que-frr-no-hace/README.md)**.
 
 ## 🎯 Qué vas a aprender
 
@@ -124,7 +124,7 @@ Casos de uso completos, inspirados en los que documentan los fabricantes y monta
 | [E5](anexo-escenarios/E5-usid-migracion/README.md) | Compresión uSID: la TE en un solo contenedor y una red a medio migrar desde SIDs clásicos (islas SRv6 sobre GRE, en teoría) | ✅ |
 | [E6](anexo-escenarios/E6-sfc/README.md) | *Service chaining*: el tráfico entre sedes pasa por un firewall sin SRv6, con un proxy SR montado con `End.DT4` y VRF | ✅ |
 | [E7](anexo-escenarios/E7-controlador/README.md) | Ingeniería de tráfico con controlador: la topología SRv6 por BGP-LS (FRR 10.7) y un controlador en Python que calcula, minimiza la lista de segmentos y reacciona a caídas | ✅ |
-| — | Lo que FRR aún no hace: egress protection, shortcuts, slicing con HBH, interworking con MPLS | ⏳ |
+| [—](anexo-escenarios/lo-que-frr-no-hace/README.md) | **Lo que FRR aún no hace**: todas las carencias del curso en una tabla, con enlace a donde se explican, más *egress protection*, *shortcuts*, *slicing* con Hop-by-Hop e *interworking* con MPLS (teoría) | ✅ |
 
 > ✅ escrito y probado · 🧪 escrito, pendiente de probar · ⏳ pendiente · 🔍 pendiente de verificar qué soporta FRR (si no lo soporta, solo teoría)
 
