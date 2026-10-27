@@ -1,0 +1,10 @@
+# El dominio BIER: cada BFR que entra o sale del dominio tiene un BFR-id (su bit en el
+# BitString) y un BFR-prefix, una dirección enrutable suya (aquí, su loopback).
+# r2 no aparece: es un BFR de tránsito, y los BFR de tránsito no necesitan BFR-id.
+#
+# nombre  BFR-id  BFR-prefix     receptor al que entrega (- si ninguno)
+r1        1       3fff:0:ff::1   -
+r3        3       3fff:0:ff::3   10.0.3.30
+r4        4       3fff:0:ff::4   10.0.4.40
+r5        5       3fff:0:ff::5   10.0.5.50
+r6        6       3fff:0:ff::6   10.0.6.60

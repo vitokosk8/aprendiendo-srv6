@@ -1,0 +1,197 @@
+# Módulo 21 · BIER: multicast sin estado por árbol
+#
+#                       ┌── r3 ── h3
+#   h1 ── r1 ══════ r2 ─┼── r4 ── h4
+#  fuente  BFIR    BFR   └── r5 ── h5
+#                               └── r6 ── h6
+#
+# El núcleo es IPv6 con IS-IS (y SRv6, como en los módulos anteriores). Encima, un dominio
+# BIER (RFC 8279, cabecera del RFC 8296 sobre IPv6, como en BIERin6):
+#
+#   * BFR-id: r1 = 1 (BFIR), r3 = 3, r4 = 4, r5 = 5, r6 = 6 (BFER). r2 es de tránsito.
+#   * Cada router ejecuta bier/bier.py: calcula su BIFT con las rutas de IS-IS hacia el
+#     BFR-prefix (loopback) de cada BFER y reenvía según el BitString.
+#   * r1 mete el multicast de h1 (grupo 233.252.0.1) en un paquete BIER con los bits de los
+#     BFER que lo quieren (bier/entrada-r1.txt). Cada BFER entrega su copia a su receptor.
+#
+# Ni Linux ni FRR tienen BIER: el reenvío BIER lo hace el script. Next Header 253
+# (experimentación, RFC 3692), porque BIERin6 aún no tiene número asignado.
+#
+#   python3 herramientas/topologia.py 21-bier/lab/lab.clab.yml
+#
+# Probado con containerlab 0.82.0, FRR 10.7.1, netshoot v0.13, kernel 7.2 (OrbStack).
+
+name: m21
+
+topology:
+  defaults:
+    kind: linux
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: 0
+      net.ipv6.conf.all.seg6_enabled: 1
+      net.ipv6.conf.default.seg6_enabled: 1
+
+  nodes:
+    h1:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 1, graph-row: 1, graph-icon: host, graph-desc: "fuente multicast · grupo 233.252.0.1", ip.eth1: "10.0.1.10/24"}
+      exec:
+        - "ip route flush default"
+        - "ip -6 route del default dev eth0"
+        - "ip addr add 10.0.1.10/24 dev eth1"
+        - "ip route add default via 10.0.1.1 dev eth1"
+
+    r1:
+      image: quay.io/frrouting/frr:10.7.1
+      labels: {graph-level: 2, graph-icon: router, graph-desc: "BFIR · BFR-id 1", ip.lo: "3fff:0:ff::1/128 (BFR-prefix)", ip.eth1: "10.0.1.1/24", ip.eth2: "3fff:0:12::1/64", srv6.locator: "5f00:0:1::/48", srv6.sids: "End/End.X (IS-IS)"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r1/daemons:/etc/frr/daemons, r1/frr.conf:/etc/frr/frr.conf, r1/vtysh.conf:/etc/frr/vtysh.conf, bier:/bier]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth2.seg6_enabled=1"
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+        # La sede: h1
+        - "ip addr add 10.0.1.1/24 dev eth1"
+        # El router BIER (bier/bier.py); su registro, en /tmp/bier.log, y su BIFT, en /tmp/bift.txt
+        - "bash -c 'setsid python3 -u /bier/bier.py r1 > /tmp/bier.log 2>&1 < /dev/null &'"
+
+    r2:
+      image: quay.io/frrouting/frr:10.7.1
+      labels: {graph-level: 3, graph-icon: router, graph-desc: "BFR de tránsito (sin BFR-id)", ip.lo: "3fff:0:ff::2/128", ip.eth1: "3fff:0:12::2/64", ip.eth2: "3fff:0:23::2/64", ip.eth3: "3fff:0:24::2/64", ip.eth4: "3fff:0:25::2/64", srv6.locator: "5f00:0:2::/48", srv6.sids: "End/End.X (IS-IS)"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r2/daemons:/etc/frr/daemons, r2/frr.conf:/etc/frr/frr.conf, r2/vtysh.conf:/etc/frr/vtysh.conf, bier:/bier]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1 net.ipv6.conf.eth2.seg6_enabled=1 net.ipv6.conf.eth3.seg6_enabled=1 net.ipv6.conf.eth4.seg6_enabled=1"
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+        # El router BIER (bier/bier.py); su registro, en /tmp/bier.log, y su BIFT, en /tmp/bift.txt
+        - "bash -c 'setsid python3 -u /bier/bier.py r2 > /tmp/bier.log 2>&1 < /dev/null &'"
+
+    r3:
+      image: quay.io/frrouting/frr:10.7.1
+      labels: {graph-level: 4, graph-row: 1, graph-icon: router, graph-desc: "BFER · BFR-id 3", ip.lo: "3fff:0:ff::3/128 (BFR-prefix)", ip.eth1: "3fff:0:23::3/64", ip.eth2: "10.0.3.1/24", srv6.locator: "5f00:0:3::/48", srv6.sids: "End/End.X (IS-IS)"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r3/daemons:/etc/frr/daemons, r3/frr.conf:/etc/frr/frr.conf, r3/vtysh.conf:/etc/frr/vtysh.conf, bier:/bier]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1"
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+        # La sede: h3
+        - "ip addr add 10.0.3.1/24 dev eth2"
+        # El router BIER (bier/bier.py); su registro, en /tmp/bier.log, y su BIFT, en /tmp/bift.txt
+        - "bash -c 'setsid python3 -u /bier/bier.py r3 > /tmp/bier.log 2>&1 < /dev/null &'"
+
+    r4:
+      image: quay.io/frrouting/frr:10.7.1
+      labels: {graph-level: 4, graph-row: 2, graph-icon: router, graph-desc: "BFER · BFR-id 4", ip.lo: "3fff:0:ff::4/128 (BFR-prefix)", ip.eth1: "3fff:0:24::4/64", ip.eth2: "10.0.4.1/24", srv6.locator: "5f00:0:4::/48", srv6.sids: "End/End.X (IS-IS)"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r4/daemons:/etc/frr/daemons, r4/frr.conf:/etc/frr/frr.conf, r4/vtysh.conf:/etc/frr/vtysh.conf, bier:/bier]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1"
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+        # La sede: h4
+        - "ip addr add 10.0.4.1/24 dev eth2"
+        # El router BIER (bier/bier.py); su registro, en /tmp/bier.log, y su BIFT, en /tmp/bift.txt
+        - "bash -c 'setsid python3 -u /bier/bier.py r4 > /tmp/bier.log 2>&1 < /dev/null &'"
+
+    r5:
+      image: quay.io/frrouting/frr:10.7.1
+      labels: {graph-level: 4, graph-row: 3, graph-icon: router, graph-desc: "BFER y BFR · BFR-id 5", ip.lo: "3fff:0:ff::5/128 (BFR-prefix)", ip.eth1: "3fff:0:25::5/64", ip.eth2: "10.0.5.1/24", ip.eth3: "3fff:0:56::5/64", srv6.locator: "5f00:0:5::/48", srv6.sids: "End/End.X (IS-IS)"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r5/daemons:/etc/frr/daemons, r5/frr.conf:/etc/frr/frr.conf, r5/vtysh.conf:/etc/frr/vtysh.conf, bier:/bier]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1 net.ipv6.conf.eth3.seg6_enabled=1"
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+        # La sede: h5
+        - "ip addr add 10.0.5.1/24 dev eth2"
+        # El router BIER (bier/bier.py); su registro, en /tmp/bier.log, y su BIFT, en /tmp/bift.txt
+        - "bash -c 'setsid python3 -u /bier/bier.py r5 > /tmp/bier.log 2>&1 < /dev/null &'"
+
+    r6:
+      image: quay.io/frrouting/frr:10.7.1
+      labels: {graph-level: 5, graph-row: 3, graph-icon: router, graph-desc: "BFER · BFR-id 6", ip.lo: "3fff:0:ff::6/128 (BFR-prefix)", ip.eth1: "3fff:0:56::6/64", ip.eth2: "10.0.6.1/24", srv6.locator: "5f00:0:6::/48", srv6.sids: "End/End.X (IS-IS)"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r6/daemons:/etc/frr/daemons, r6/frr.conf:/etc/frr/frr.conf, r6/vtysh.conf:/etc/frr/vtysh.conf, bier:/bier]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1"
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+        # La sede: h6
+        - "ip addr add 10.0.6.1/24 dev eth2"
+        # El router BIER (bier/bier.py); su registro, en /tmp/bier.log, y su BIFT, en /tmp/bift.txt
+        - "bash -c 'setsid python3 -u /bier/bier.py r6 > /tmp/bier.log 2>&1 < /dev/null &'"
+
+    h3:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 5, graph-row: 1, graph-icon: host, graph-desc: "receptor", ip.eth1: "10.0.3.30/24"}
+      exec:
+        - "ip route flush default"
+        - "ip -6 route del default dev eth0"
+        - "ip addr add 10.0.3.30/24 dev eth1"
+        - "ip route add default via 10.0.3.1 dev eth1"
+        # Receptor: se une al grupo 233.252.0.1 y guarda lo que recibe
+        - "bash -c 'setsid socat -u UDP4-RECV:5000,reuseaddr,ip-add-membership=233.252.0.1:eth1 OPEN:/tmp/recibido.txt,creat,append >/dev/null 2>&1 < /dev/null &'"
+
+    h4:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 5, graph-row: 2, graph-icon: host, graph-desc: "receptor", ip.eth1: "10.0.4.40/24"}
+      exec:
+        - "ip route flush default"
+        - "ip -6 route del default dev eth0"
+        - "ip addr add 10.0.4.40/24 dev eth1"
+        - "ip route add default via 10.0.4.1 dev eth1"
+        # Receptor: se une al grupo 233.252.0.1 y guarda lo que recibe
+        - "bash -c 'setsid socat -u UDP4-RECV:5000,reuseaddr,ip-add-membership=233.252.0.1:eth1 OPEN:/tmp/recibido.txt,creat,append >/dev/null 2>&1 < /dev/null &'"
+
+    h5:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 5, graph-row: 4, graph-icon: host, graph-desc: "receptor", ip.eth1: "10.0.5.50/24"}
+      exec:
+        - "ip route flush default"
+        - "ip -6 route del default dev eth0"
+        - "ip addr add 10.0.5.50/24 dev eth1"
+        - "ip route add default via 10.0.5.1 dev eth1"
+        # Receptor: se une al grupo 233.252.0.1 y guarda lo que recibe
+        - "bash -c 'setsid socat -u UDP4-RECV:5000,reuseaddr,ip-add-membership=233.252.0.1:eth1 OPEN:/tmp/recibido.txt,creat,append >/dev/null 2>&1 < /dev/null &'"
+
+    h6:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 6, graph-row: 3, graph-icon: host, graph-desc: "receptor", ip.eth1: "10.0.6.60/24"}
+      exec:
+        - "ip route flush default"
+        - "ip -6 route del default dev eth0"
+        - "ip addr add 10.0.6.60/24 dev eth1"
+        - "ip route add default via 10.0.6.1 dev eth1"
+        # Receptor: se une al grupo 233.252.0.1 y guarda lo que recibe
+        - "bash -c 'setsid socat -u UDP4-RECV:5000,reuseaddr,ip-add-membership=233.252.0.1:eth1 OPEN:/tmp/recibido.txt,creat,append >/dev/null 2>&1 < /dev/null &'"
+
+  links:
+    - endpoints: ["r1:eth2", "r2:eth1"]
+    - endpoints: ["r2:eth2", "r3:eth1"]
+    - endpoints: ["r2:eth3", "r4:eth1"]
+    - endpoints: ["r2:eth4", "r5:eth1"]
+    - endpoints: ["r5:eth3", "r6:eth1"]
+    - endpoints: ["h1:eth1", "r1:eth1"]
+    - endpoints: ["r3:eth2", "h3:eth1"]
+    - endpoints: ["r4:eth2", "h4:eth1"]
+    - endpoints: ["r5:eth2", "h5:eth1"]
+    - endpoints: ["r6:eth2", "h6:eth1"]

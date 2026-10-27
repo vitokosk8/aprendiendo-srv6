@@ -203,7 +203,7 @@ docker exec clab-m20-r3 ip -6 route show 5f00:0:3:a1::
 
 ## Siguiente paso
 
-➡️ **21 · BIER y BIERv6** *(en preparación)*: un árbol **sin estado por árbol**. El paquete lleva un mapa de bits con una posición por hoja, y cada router copia solo donde el camino se separa.
+➡️ **[21 · BIER](../21-bier/README.md)**: un árbol **sin estado por árbol**. El paquete lleva un mapa de bits con una posición por hoja, y cada router copia solo donde el camino se separa.
 
 ## Para saber más
 

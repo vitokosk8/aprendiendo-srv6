@@ -1,0 +1,5 @@
+# r1 es el BFIR: el tráfico multicast que entra por eth1 se encapsula en BIER.
+# Para cada grupo, los BFER que lo quieren. En producción lo dice el overlay (rutas BGP MVPN
+# o EVPN); aquí lo editas tú. Cambiarlo NO toca nada en el resto de la red.
+entrada eth1
+grupo 233.252.0.1 r3 r4 r5 r6

@@ -248,6 +248,15 @@ def net_isis():
         y0=20, resultado='NET = 49.0001.0000.0000.0001.00')
 
 
+def cabecera_bier():
+    return campos([
+        [('BIFT-id', 20, 'naranja', 'qué BIFT usar (dominio, BSL, SI)'), ('TC', 3, 'gris'), ('S', 1, 'gris'), ('TTL', 8, 'azul', 'saltos BIER')],
+        [('Nibble', 4, 'gris', '0101'), ('Ver', 4, 'gris'), ('BSL', 4, 'naranja', 'longitud'), ('Entropy', 20, 'gris', 'para el reparto (ECMP)')],
+        [('OAM', 2, 'gris'), ('Rsv', 2, 'gris'), ('DSCP', 6, 'gris'), ('Proto', 6, 'morado', 'qué va dentro'), ('BFIR-id', 16, 'azul', 'quién lo metió en BIER')],
+        [('BitString', 32, 'amarillo', 'un bit por BFER: 64 a 4096 bits (en el laboratorio, 64)', 2)],
+    ], notas=[(23, '12 bytes fijos'), (176, 'el bit k (desde la derecha)'), (194, 'es el BFER con BFR-id k')])
+
+
 FIGURAS = [
     ('02-cabecera-ipv6/img/paquete-capas.svg', 'Un ping de h1 a h2: cabeceras dentro de cabeceras', capas, None),
     ('02-cabecera-ipv6/img/cabecera-ipv6.svg', 'La cabecera IPv6 (RFC 8200)', cabecera_ipv6, 'Siempre 40 bytes. Cada fila son 32 bits.'),
@@ -259,6 +268,7 @@ FIGURAS = [
     ('07-sid-srh/img/cabecera-srh.svg', 'La Segment Routing Header (RFC 8754)', cabecera_srh, 'Es una cabecera de extensión de tipo Routing (Next Header = 43 en la cabecera anterior).'),
     ('09-reduccion-cabeceras/img/sobrecarga-srv6.svg', 'Lo que SRv6 añade a cada paquete', sobrecarga, None),
     ('10-usid/img/contenedor-usid.svg', 'Un contenedor uSID (formato F3216)', contenedor_usid, 'Caben 6 uSID de 16 bits detrás del bloque de 32 bits.'),
+    ('21-bier/img/cabecera-bier.svg', 'La cabecera BIER (RFC 8296)', cabecera_bier, 'Va detrás de la cabecera IPv6 (BIERin6) o de una etiqueta MPLS. Detrás, el paquete original.'),
     ('anexo-escenarios/E5-usid-migracion/img/contenedor-te.svg', 'E5 · El camino de TE en un solo contenedor', contenedor_te, None),
 ]
 
