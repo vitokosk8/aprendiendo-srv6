@@ -1,0 +1,6 @@
+# r2 es un NODO de replicación del árbol 1: lo que llega a su Replication-SID se copia a
+# cada rama, con la dirección de destino reescrita hacia el Replication-SID de la rama.
+sid 5f00:0:2:a1::
+rama r3 5f00:0:3:a1::
+rama r4 5f00:0:4:a1::
+rama r5 5f00:0:5:a1::

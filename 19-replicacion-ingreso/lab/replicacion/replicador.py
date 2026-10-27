@@ -66,7 +66,7 @@ def main():
             except OSError as e:
                 print(time.strftime('%H:%M:%S'), f'⚠️  {nombre} ({sid}): {e}', flush=True)
         print(time.strftime('%H:%M:%S'), f'{socket.inet_ntoa(pkt[12:16])} → {socket.inet_ntoa(pkt[16:20])}:',
-              f'{len(enviadas)} copias ({" ".join(enviadas) or "ninguna hoja"})', flush=True)
+              f'{len(enviadas)} {"copia" if len(enviadas) == 1 else "copias"} ({" ".join(enviadas) or "ninguna hoja"})', flush=True)
 
 if __name__ == '__main__':
     main()

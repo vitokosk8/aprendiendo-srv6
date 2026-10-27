@@ -195,7 +195,7 @@ docker run --rm -it --net container:clab-m19-r2 nicolaka/netshoot:v0.13 tcpdump 
 
 ## Siguiente paso
 
-➡️ **[20 · *Replication segments* y Tree-SID](../README.md#bloque-v--multicast-en-redes-srv6)** *(en preparación)*: cómo poner puntos de replicación **dentro** de la red sin volver a PIM, con un SID que significa "copia este paquete hacia estos vecinos".
+➡️ **[20 · *Replication segments* y Tree-SID](../20-replication-segments/README.md)**: cómo poner puntos de replicación **dentro** de la red sin volver a PIM, con un SID que significa "copia este paquete hacia estos vecinos".
 
 ## Para saber más
 

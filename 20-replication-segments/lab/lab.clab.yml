@@ -1,0 +1,174 @@
+# Módulo 20 · Segmentos de replicación (RFC 9524): un árbol multicast sobre SRv6
+#
+#                       ┌── r3 ── h3 (receptor)
+#   h1 ── r1 ══════ r2 ─┼── r4 ── h4 (receptor)
+#  fuente  RAÍZ    NODO  └── r5 ── h5 (receptor)
+#                 de rep.        HOJAS
+#
+# La misma red que el módulo 19. Ahora la copia no la hace r1 para todas las hojas: el
+# árbol 1 está hecho de segmentos de replicación, uno por nodo, con su Replication-SID:
+#
+#   r1 (raíz):  envía UNA copia hacia el Replication-SID de r2 (5f00:0:2:a1::)
+#   r2 (nodo):  End.Replicate: copia hacia 5f00:0:3:a1::, 5f00:0:4:a1:: y 5f00:0:5:a1::
+#               reescribiendo la dirección de destino. Linux no tiene End.Replicate: lo hace
+#               replicacion/replicacion.py, y una ruta blackhole descarta el original.
+#   r3-r5 (hojas): su Replication-SID es un End.DX4 que desencapsula y entrega al receptor.
+#
+# El estado de replicación de cada nodo está en replicacion/estado/rN.txt.
+#
+#   python3 herramientas/topologia.py 20-replication-segments/lab/lab.clab.yml
+#
+# Probado con containerlab 0.82.0, FRR 10.7.1, netshoot v0.13, kernel 7.2 (OrbStack).
+
+name: m20
+
+topology:
+  defaults:
+    kind: linux
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: 0
+      net.ipv6.conf.all.seg6_enabled: 1
+      net.ipv6.conf.default.seg6_enabled: 1
+
+  nodes:
+    h1:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 1, graph-row: 1, graph-icon: host, graph-desc: "fuente multicast · grupo 233.252.0.1", ip.eth1: "10.0.1.10/24"}
+      exec:
+        - "ip route flush default"
+        - "ip -6 route del default dev eth0"
+        - "ip addr add 10.0.1.10/24 dev eth1"
+        - "ip route add default via 10.0.1.1 dev eth1"
+
+    r1:
+      image: quay.io/frrouting/frr:10.7.1
+      labels: {graph-level: 2, graph-icon: router, graph-desc: "raíz del árbol 1 · una copia → r2", ip.lo: "3fff:0:ff::1/128", ip.eth1: "10.0.1.1/24", ip.eth2: "3fff:0:12::1/64", srv6.locator: "5f00:0:1::/48", srv6.sids: "End/End.X (IS-IS)"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r1/daemons:/etc/frr/daemons, r1/frr.conf:/etc/frr/frr.conf, r1/vtysh.conf:/etc/frr/vtysh.conf, replicacion:/replicacion]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth2.seg6_enabled=1"
+        # Interfaz dummy donde FRR instala los SIDs (módulo 11)
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+        # La sede: h1
+        - "ip addr add 10.0.1.1/24 dev eth1"
+        # El segmento de replicación de r1 (replicacion/estado/r1.txt); su registro, en /tmp/replicacion.log
+        - "bash -c 'setsid python3 -u /replicacion/replicacion.py r1 > /tmp/replicacion.log 2>&1 < /dev/null &'"
+
+    r2:
+      image: quay.io/frrouting/frr:10.7.1
+      labels: {graph-level: 3, graph-icon: router, graph-desc: "nodo de replicación", ip.lo: "3fff:0:ff::2/128", ip.eth1: "3fff:0:12::2/64", ip.eth2: "3fff:0:23::2/64", ip.eth3: "3fff:0:24::2/64", ip.eth4: "3fff:0:25::2/64", srv6.locator: "5f00:0:2::/48", srv6.sids: "5f00:0:2:a1:: Replication-SID (End.Replicate, script)"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r2/daemons:/etc/frr/daemons, r2/frr.conf:/etc/frr/frr.conf, r2/vtysh.conf:/etc/frr/vtysh.conf, replicacion:/replicacion]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1 net.ipv6.conf.eth2.seg6_enabled=1 net.ipv6.conf.eth3.seg6_enabled=1 net.ipv6.conf.eth4.seg6_enabled=1"
+        # Interfaz dummy donde FRR instala los SIDs (módulo 11)
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+        # Linux no tiene End.Replicate: el kernel descarta en silencio lo que llega al Replication-SID
+        # de r2 (blackhole) y replicacion.py, que lo ve antes, hace las copias
+        - "ip -6 route add blackhole 5f00:0:2:a1::/128"
+        # El segmento de replicación de r2 (replicacion/estado/r2.txt); su registro, en /tmp/replicacion.log
+        - "bash -c 'setsid python3 -u /replicacion/replicacion.py r2 > /tmp/replicacion.log 2>&1 < /dev/null &'"
+
+    r3:
+      image: quay.io/frrouting/frr:10.7.1
+      labels: {graph-level: 4, graph-row: 1, graph-icon: router, graph-desc: "hoja del árbol 1", ip.lo: "3fff:0:ff::3/128", ip.eth1: "3fff:0:23::3/64", ip.eth2: "10.0.3.1/24", srv6.locator: "5f00:0:3::/48", srv6.sids: "5f00:0:3:a1:: Replication-SID de hoja (End.DX4 → 10.0.3.30)"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r3/daemons:/etc/frr/daemons, r3/frr.conf:/etc/frr/frr.conf, r3/vtysh.conf:/etc/frr/vtysh.conf]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1"
+        # Interfaz dummy donde FRR instala los SIDs (módulo 11)
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+        # La sede: h3
+        - "ip addr add 10.0.3.1/24 dev eth2"
+        # El Replication-SID de la hoja: End.DX4 desencapsula y entrega el paquete IPv4 a h3
+        - "ip -6 route add 5f00:0:3:a1::/128 encap seg6local action End.DX4 nh4 10.0.3.30 dev sr0"
+
+    r4:
+      image: quay.io/frrouting/frr:10.7.1
+      labels: {graph-level: 4, graph-row: 2, graph-icon: router, graph-desc: "hoja del árbol 1", ip.lo: "3fff:0:ff::4/128", ip.eth1: "3fff:0:24::4/64", ip.eth2: "10.0.4.1/24", srv6.locator: "5f00:0:4::/48", srv6.sids: "5f00:0:4:a1:: Replication-SID de hoja (End.DX4 → 10.0.4.40)"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r4/daemons:/etc/frr/daemons, r4/frr.conf:/etc/frr/frr.conf, r4/vtysh.conf:/etc/frr/vtysh.conf]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1"
+        # Interfaz dummy donde FRR instala los SIDs (módulo 11)
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+        # La sede: h4
+        - "ip addr add 10.0.4.1/24 dev eth2"
+        # El Replication-SID de la hoja: End.DX4 desencapsula y entrega el paquete IPv4 a h4
+        - "ip -6 route add 5f00:0:4:a1::/128 encap seg6local action End.DX4 nh4 10.0.4.40 dev sr0"
+
+    r5:
+      image: quay.io/frrouting/frr:10.7.1
+      labels: {graph-level: 4, graph-row: 3, graph-icon: router, graph-desc: "hoja del árbol 1", ip.lo: "3fff:0:ff::5/128", ip.eth1: "3fff:0:25::5/64", ip.eth2: "10.0.5.1/24", srv6.locator: "5f00:0:5::/48", srv6.sids: "5f00:0:5:a1:: Replication-SID de hoja (End.DX4 → 10.0.5.50)"}
+      sysctls: {net.ipv6.conf.all.forwarding: 1, net.ipv4.ip_forward: 1, net.ipv6.conf.all.seg6_enabled: 1, net.ipv6.conf.default.seg6_enabled: 1}
+      binds: [r5/daemons:/etc/frr/daemons, r5/frr.conf:/etc/frr/frr.conf, r5/vtysh.conf:/etc/frr/vtysh.conf]
+      exec:
+        - "ip -6 route del default dev eth0"
+        - "sysctl -w net.ipv6.conf.eth1.seg6_enabled=1"
+        # Interfaz dummy donde FRR instala los SIDs (módulo 11)
+        - "ip link add sr0 type dummy"
+        - "ip link set sr0 up"
+        - "sysctl -w net.ipv6.conf.sr0.seg6_enabled=1"
+        # La sede: h5
+        - "ip addr add 10.0.5.1/24 dev eth2"
+        # El Replication-SID de la hoja: End.DX4 desencapsula y entrega el paquete IPv4 a h5
+        - "ip -6 route add 5f00:0:5:a1::/128 encap seg6local action End.DX4 nh4 10.0.5.50 dev sr0"
+
+    h3:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 5, graph-row: 1, graph-icon: host, graph-desc: "receptor", ip.eth1: "10.0.3.30/24"}
+      exec:
+        - "ip route flush default"
+        - "ip -6 route del default dev eth0"
+        - "ip addr add 10.0.3.30/24 dev eth1"
+        - "ip route add default via 10.0.3.1 dev eth1"
+        # Receptor: se une al grupo 233.252.0.1 y guarda lo que recibe
+        - "bash -c 'setsid socat -u UDP4-RECV:5000,reuseaddr,ip-add-membership=233.252.0.1:eth1 OPEN:/tmp/recibido.txt,creat,append >/dev/null 2>&1 < /dev/null &'"
+
+    h4:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 5, graph-row: 2, graph-icon: host, graph-desc: "receptor", ip.eth1: "10.0.4.40/24"}
+      exec:
+        - "ip route flush default"
+        - "ip -6 route del default dev eth0"
+        - "ip addr add 10.0.4.40/24 dev eth1"
+        - "ip route add default via 10.0.4.1 dev eth1"
+        # Receptor: se une al grupo 233.252.0.1 y guarda lo que recibe
+        - "bash -c 'setsid socat -u UDP4-RECV:5000,reuseaddr,ip-add-membership=233.252.0.1:eth1 OPEN:/tmp/recibido.txt,creat,append >/dev/null 2>&1 < /dev/null &'"
+
+    h5:
+      image: nicolaka/netshoot:v0.13
+      cmd: sleep infinity
+      labels: {graph-level: 5, graph-row: 3, graph-icon: host, graph-desc: "receptor", ip.eth1: "10.0.5.50/24"}
+      exec:
+        - "ip route flush default"
+        - "ip -6 route del default dev eth0"
+        - "ip addr add 10.0.5.50/24 dev eth1"
+        - "ip route add default via 10.0.5.1 dev eth1"
+        # Receptor: se une al grupo 233.252.0.1 y guarda lo que recibe
+        - "bash -c 'setsid socat -u UDP4-RECV:5000,reuseaddr,ip-add-membership=233.252.0.1:eth1 OPEN:/tmp/recibido.txt,creat,append >/dev/null 2>&1 < /dev/null &'"
+
+  links:
+    - endpoints: ["r1:eth2", "r2:eth1"]
+    - endpoints: ["r2:eth2", "r3:eth1"]
+    - endpoints: ["r2:eth3", "r4:eth1"]
+    - endpoints: ["r2:eth4", "r5:eth1"]
+    - endpoints: ["h1:eth1", "r1:eth1"]
+    - endpoints: ["r3:eth2", "h3:eth1"]
+    - endpoints: ["r4:eth2", "h4:eth1"]
+    - endpoints: ["r5:eth2", "h5:eth1"]

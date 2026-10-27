@@ -1,0 +1,4 @@
+# r1 es la RAÍZ del árbol 1: el tráfico del grupo 233.252.0.1 que entra por eth1 (la sede
+# de la fuente) se envía a sus ramas. Aquí, una sola: r2, que es quien bifurca.
+entrada eth1 233.252.0.1
+rama r2 5f00:0:2:a1::
