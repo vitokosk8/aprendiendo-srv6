@@ -11,7 +11,7 @@ De *"¿qué es una dirección IPv6?"* a montar **L3VPN multicliente con ingenier
 ![Lab](https://img.shields.io/badge/lab-Containerlab-00b0f0)
 ![Routing](https://img.shields.io/badge/routing-FRRouting%2010.7-cc0000)
 ![Data plane](https://img.shields.io/badge/data%20plane-SRv6%20(Linux%20kernel)-5f3aa6)
-![Módulos](https://img.shields.io/badge/módulos-19%20(00→18)-success)
+![Módulos](https://img.shields.io/badge/módulos-20%20(00→19)-success)
 
 </div>
 
@@ -30,7 +30,7 @@ Cada módulo combina **teoría**, un **laboratorio reproducible** con [Container
 - **Ingeniería de tráfico y resiliencia**: listas de segmentos explícitas, SR Policy, TI-LFA y **Flex-Algo** (varios caminos más cortos sobre la misma red, la base del *network slicing*).
 - **Operación**: OAM, *troubleshooting*, MTU y seguridad/filtrado en el borde.
 - **Casos de uso completos**: un anexo de ocho escenarios (Internet, multisede, Inter-AS, EVPN, *slicing*, uSID, *service chaining* y un controlador con BGP-LS).
-- **Próximamente**: multicast en redes SRv6 (BIER).
+- **Multicast en redes SRv6**: por qué choca con Segment Routing y la replicación en el ingreso; próximamente, *replication segments* y BIER.
 
 Y, de propina, el **porqué** de cada cosa: de MPLS a SR, el modelo de confianza del dominio, y las trampas reales de montar SRv6 en Linux (que irás descubriendo lab a lab).
 
@@ -101,11 +101,11 @@ Los módulos se siguen **en orden**: cada uno se apoya en lo aprendido en los an
 | [17](17-oam/README.md) | OAM y troubleshooting: ping, traceroute y capturas | ✅ |
 | [18](18-mtu-seguridad/README.md) | MTU, seguridad y filtrado de SRv6 en el borde | ✅ |
 
-### Bloque V · Multicast en redes SRv6 *(previsto)*
+### Bloque V · Multicast en redes SRv6
 
 | Módulo | Tema | Estado |
 |--------|------|:------:|
-| 19 | El problema del multicast en Segment Routing y la replicación en el ingreso | ⏳ |
+| [19](19-replicacion-ingreso/README.md) | El problema del multicast en Segment Routing y la replicación en el ingreso | 🧪 |
 | 20 | *Replication segments* y Tree-SID ([RFC 9524](https://www.rfc-editor.org/rfc/rfc9524)) | 🔍 |
 | 21 | BIER y BIERv6: teoría, simulador en Python y laboratorio P4 opcional | 🔍 |
 

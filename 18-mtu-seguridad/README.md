@@ -102,7 +102,7 @@ ip -6 rule add from 3fff:0:1::/64 to 5f00::/16 blackhole priority 100
 
 Desde aquí, algunas direcciones para seguir: **uSID en profundidad** y despliegues de operador (donde la TE y la TI-LFA SRv6 completas viven en plataformas como IOS-XR), **EVPN sobre SRv6** (servicios de capa 2), e **integración con controladores/PCE** para SR Policy. Pero la base —la de verdad, la que se toca— ya la tienes.
 
-Y el curso sigue creciendo: están previstos un **Bloque V** sobre **multicast en redes SRv6** (replicación en el ingreso, *replication segments* y BIER) y un **anexo de escenarios**, casos de uso completos con laboratorio sobre una topología común. Los tienes en el [temario](../README.md#-temario).
+Y el curso sigue: el **Bloque V** trata el **multicast en redes SRv6** y empieza en el **[módulo 19 · replicación en el ingreso](../19-replicacion-ingreso/README.md)**; y el **[anexo de escenarios](../anexo-escenarios/README.md)** junta todo en casos de uso completos, con laboratorio sobre una topología común. Los tienes en el [temario](../README.md#-temario).
 
 ## Para saber más
 

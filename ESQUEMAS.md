@@ -41,6 +41,8 @@ Todo lo que se puede **ver** en el curso, en un solo sitio: cada entrada enlaza 
 | [El viaje de un paquete de la L3VPN dual-stack (IPv4 o IPv6, da igual)](13-l3vpn-dualstack/README.md#5-el-viaje-de-un-paquete-ipv4-o-ipv6-da-igual) | secuencia | 13 · L3VPN IPv6 y dual-stack (End.DT6 / End.DT46) · 5. El viaje de un paquete (IPv4 o IPv6, da igual) |
 | [La red del ejemplo de Flex-Algo](16-flex-algo/README.md#el-ejemplo-de-este-módulo) | grafo | 16 · Flex-Algo: varios "caminos más cortos" sobre la misma red · El ejemplo de este módulo |
 | [La red de los ejercicios de Flex-Algo](16-flex-algo/ejercicios.md#la-red) | grafo | 16 · Flex-Algo: varios "caminos más cortos" sobre la misma red · La red |
+| [Replicación en el ingreso: una copia por hoja desde el PE de entrada](19-replicacion-ingreso/README.md#3-la-replicación-en-el-ingreso) | grafo | 19 · Multicast en una red SRv6: el problema y la replicación en el ingreso · 3. La replicación en el ingreso |
+| [El viaje de un paquete multicast con replicación en el ingreso](19-replicacion-ingreso/README.md#4-el-viaje-de-un-paquete) | secuencia | 19 · Multicast en una red SRv6: el problema y la replicación en el ingreso · 4. El viaje de un paquete |
 | [Viaje de un ping de h1 al servidor web](anexo-escenarios/E0-internet/README.md#3-la-solución-con-srv6) | secuencia | E0 · Internet sobre SRv6 · 3. La solución con SRv6 |
 | [Sesiones iBGP con el route reflector](anexo-escenarios/E1-multisede/README.md#3-la-solución-con-srv6) | grafo | E1 · Cliente multisede: L3VPN con route reflector y UCMP · 3. La solución con SRv6 |
 | [Opción C: el paquete de punta a punta](anexo-escenarios/E2-inter-as/README.md#opción-c-un-túnel-srv6-de-punta-a-punta) | secuencia | E2 · Dos operadores: L3VPN entre sistemas autónomos (Inter-AS) · Opción C: un túnel SRv6 de punta a punta |
@@ -67,6 +69,7 @@ Todo lo que se puede **ver** en el curso, en un solo sitio: cada entrada enlaza 
 | 15 · Resiliencia: TI-LFA | `lab` | [ver](15-tilfa/README.md#el-laboratorio-de-este-módulo) | [editar](15-tilfa/lab/topologia.drawio) |
 | 17 · OAM y troubleshooting | `lab` | [ver](17-oam/README.md#el-laboratorio-de-este-módulo) | [editar](17-oam/lab/topologia.drawio) |
 | 18 · MTU, seguridad y filtrado de SRv6 en el borde | `lab` | [ver](18-mtu-seguridad/README.md#el-laboratorio-de-este-módulo) | [editar](18-mtu-seguridad/lab/topologia.drawio) |
+| 19 · Multicast en una red SRv6: el problema y la replicación en el ingreso | `lab` | [ver](19-replicacion-ingreso/README.md#el-laboratorio-de-este-módulo) | [editar](19-replicacion-ingreso/lab/topologia.drawio) |
 | Base · Topología base de los escenarios | `lab` | [ver](anexo-escenarios/topologia-base/README.md#topología-base-de-los-escenarios) | [editar](anexo-escenarios/topologia-base/lab/topologia.drawio) |
 | E0 · Internet sobre SRv6 | `lab-vrf` | [ver](anexo-escenarios/E0-internet/README.md#5-parte-1--internet-en-una-vrf) | [editar](anexo-escenarios/E0-internet/lab-vrf/topologia.drawio) |
 | E0 · Internet sobre SRv6 | `lab-global` | [ver](anexo-escenarios/E0-internet/README.md#6-parte-2--internet-en-la-tabla-global) | [editar](anexo-escenarios/E0-internet/lab-global/topologia.drawio) |

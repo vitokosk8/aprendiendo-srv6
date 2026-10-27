@@ -1,0 +1,6 @@
+# Hojas del grupo 233.252.0.1: los PE de salida con receptores, y el SID donde cada uno
+# quiere recibir (su End.DX4). Una línea por hoja. Comenta una línea con '#' para quitarla.
+# El replicador de r1 relee este fichero en cuanto cambia.
+r3 5f00:0:3:d4::
+r4 5f00:0:4:d4::
+r5 5f00:0:5:d4::
